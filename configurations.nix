@@ -69,7 +69,7 @@ let
         };
         sops.defaultSopsFile = lib.mkIf (builtins.pathExists sopsFile) sopsFile;
 
-        time.timeZone = lib.mkForce "KR";
+        time.timeZone = lib.mkForce "Asia/Seoul";
       }
     )
   ];

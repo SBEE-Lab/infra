@@ -44,13 +44,6 @@ variable "infra_admins" {
     username = string
     role     = optional(string, "maintainer")
   }))
-
-  default = {
-    "mulatta" = {
-      username = "mulatta"
-      role     = "maintainer"
-    }
-  }
 }
 
 variable "infra_users" {

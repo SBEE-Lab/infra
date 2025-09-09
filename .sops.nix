@@ -41,7 +41,6 @@ let
       "modules/sshd/[^/]+\\.yaml$" = [ ];
       "terraform/secrets.yaml" = [ ];
       "modules/minio/secrets.yaml" = [ ];
-      "packages/install-iso/secrets.yaml" = [ ];
     };
 in
 {

@@ -29,10 +29,14 @@
           "modules/users/researchers.nix"
           "modules/users/students.nix"
         ];
-        typos.excludes = [
-          "packages/install-iso/secrets.yaml"
-        ];
       };
+
+      settings.global.excludes = [
+        "*/secrets.yaml"
+        "*/secrets.yml"
+        "*.lock"
+        ".gitignore"
+      ];
     };
   };
 }

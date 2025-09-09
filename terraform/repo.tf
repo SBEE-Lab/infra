@@ -46,26 +46,33 @@ resource "github_repository_ruleset" "infra" {
     }
   }
 
+  bypass_actors {
+    actor_id    = github_team.infra_admins.id
+    actor_type  = "Team"
+    bypass_mode = "always"
+  }
+
   rules {
     deletion         = true
     non_fast_forward = true
 
-    merge_queue {
-      check_response_timeout_minutes    = 60
-      grouping_strategy                 = "ALLGREEN"
-      max_entries_to_build              = 2
-      max_entries_to_merge              = 1
-      merge_method                      = "REBASE"
-      min_entries_to_merge              = 1
-      min_entries_to_merge_wait_minutes = 3
-    }
+    # TODO: Enable when core functions are on boarding
+    # merge_queue {
+    #   check_response_timeout_minutes    = 60
+    #   grouping_strategy                 = "ALLGREEN"
+    #   max_entries_to_build              = 2
+    #   max_entries_to_merge              = 1
+    #   merge_method                      = "REBASE"
+    #   min_entries_to_merge              = 1
+    #   min_entries_to_merge_wait_minutes = 3
+    # }
 
     pull_request {
       dismiss_stale_reviews_on_push     = true
-      require_code_owner_review         = true
-      require_last_push_approval        = true
-      required_approving_review_count   = 1
-      required_review_thread_resolution = true
+      require_code_owner_review         = false
+      require_last_push_approval        = false
+      required_approving_review_count   = 0
+      required_review_thread_resolution = false
     }
 
     # #  extended status check

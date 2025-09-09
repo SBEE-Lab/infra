@@ -3,6 +3,11 @@
   pkgs,
   ...
 }:
+let
+  mulattaKeys = [
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINkKJdIzvxlWcry+brNiCGLBNkxrMxFDyo1anE4xRNkL"
+  ];
+in
 {
   system.stateVersion = "25.05";
 
@@ -12,25 +17,18 @@
   systemd.network.enable = true;
   networking.useNetworkd = true;
 
-  systemd.network.networks = {
-    "10-ethernet".extraConfig = ''
-      [Match]
-      Type = ether
-
-      [Network]
-      Address = 10.80.169.64/24
-      Gateway = 10.80.169.254
-      DNS = 117.16.191.6
-      DNS = 168.126.63.1
-    '';
+  services.openssh = {
+    enable = true;
+    ports = [ 10022 ];
+    settings = {
+      PermitRootLogin = "yes";
+      PasswordAuthentication = true;
+    };
   };
 
-  imports = [
-    ../../modules/users
-  ];
-
-  sops.defaultSopsFile = ./secrets.yaml;
-  sops.secrets.root-password-hash = { };
+  users.users.root = {
+    openssh.authorizedKeys.keys = mulattaKeys;
+  };
 
   documentation.enable = false;
   documentation.nixos.options.warningsAreErrors = false;
@@ -39,11 +37,8 @@
     diskrsync
     partclone
     curl
-    dnsutils
     gitMinimal # for flakes
-    htop
     jq
-    tmux
   ];
 
   systemd.services.sshd.wantedBy = lib.mkForce [ "multi-user.target" ];

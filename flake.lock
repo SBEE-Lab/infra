@@ -120,6 +120,44 @@
         "type": "github"
       }
     },
+    "nixos-images": {
+      "inputs": {
+        "nixos-stable": "nixos-stable",
+        "nixos-unstable": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1756480726,
+        "narHash": "sha256-54DaxHeJUqbQN0qxxoKHq/GJ+oNZC9YIBXmfyYFObEg=",
+        "owner": "nix-community",
+        "repo": "nixos-images",
+        "rev": "9da5b17ee5779c4442349eb9d872743699951dc6",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "nixos-images",
+        "type": "github"
+      }
+    },
+    "nixos-stable": {
+      "locked": {
+        "lastModified": 1749237914,
+        "narHash": "sha256-N5waoqWt8aMr/MykZjSErOokYH6rOsMMXu3UOVH5kiw=",
+        "ref": "nixos-25.05",
+        "rev": "70c74b02eac46f4e4aa071e45a6189ce0f6d9265",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/NixOS/nixpkgs"
+      },
+      "original": {
+        "ref": "nixos-25.05",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/NixOS/nixpkgs"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1755471983,
@@ -159,6 +197,7 @@
         "harmonia": "harmonia",
         "nixos-facter-modules": "nixos-facter-modules",
         "nixos-generators": "nixos-generators",
+        "nixos-images": "nixos-images",
         "nixpkgs": "nixpkgs",
         "sops-nix": "sops-nix",
         "srvos": "srvos",
