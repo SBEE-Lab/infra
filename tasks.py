@@ -1,0 +1,377 @@
+#!/usr/bin/env python3
+
+import json
+import os
+import random
+import string
+import subprocess
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from typing import Any, List
+
+from deploykit import DeployGroup, DeployHost
+from invoke.tasks import task
+
+ROOT = Path(__file__).parent.resolve()
+os.chdir(ROOT)
+
+
+def get_hosts(hosts: str) -> List[DeployHost]:
+    return [DeployHost(h, user="root") for h in hosts.split(",")]
+
+
+@task
+def deploy(_: Any, hosts: str) -> None:
+    """
+    Use inv deploy --hosts
+    """
+    g = DeployGroup(get_hosts(hosts))
+
+    def deploy(h: DeployHost) -> None:
+        command = "sudo nixos-rebuild"
+        target = f"{h.host}"
+
+        res = subprocess.run(
+            ["nix", "flake", "metadata", "--json"],
+            text=True,
+            check=True,
+            stdout=subprocess.PIPE,
+        )
+        data = json.loads(res.stdout)
+        path = data["path"]
+
+        send = (
+            "nix flake archive"
+            if any(
+                (
+                    n.get("locked", {}).get("type") == "path"
+                    or n.get("locked", {}).get("url", "").startswith("file:")
+                )
+                for n in data["locks"]["nodes"].values()
+            )
+            else f"nix copy {path}"
+        )
+
+        h.run_local(f"{send} --to ssh://{target}")
+
+        hostname = h.host.replace(".nix-community.org", "")
+        h.run(f"{command} switch --option accept-flake-config true --flake {path}#{hostname}")
+
+    g.run_function(deploy)
+
+
+@task
+def update_sops_files(c: Any) -> None:
+    """
+    Update all sops yaml files according to .sops.nix rules
+    """
+    c.run(f"nix eval --json -f {ROOT}/.sops.nix | yq e -P - > {ROOT}/.sops.yaml")
+    # every secret key files should be .yaml, else yml
+    c.run("fd -e yaml -e enc.json -x sops updatekeys --yes {}")
+
+
+@task
+def docs(c: Any) -> None:
+    """
+    Serve docs (mkdoc serve)
+    """
+    c.run("nix develop .#mkdocs -c mkdocs serve")
+
+
+@task
+def docs_linkcheck(c: Any) -> None:
+    """
+    Run docs online linkchecker
+    """
+    c.run("nix run .#docs-linkcheck.online")
+
+
+def decrypt_host_key(flake_attr: str, tmpdir: str) -> None:
+    def opener(path: str, flags: int) -> int:
+        return os.open(path, flags, 0o400)
+
+    t = Path(tmpdir)
+    t.mkdir(parents=True, exist_ok=True)
+    t.chmod(0o755)
+
+    def decrypt(path: str, secret: str) -> None:
+        file = t / path
+        file.parent.mkdir(parents=True, exist_ok=True)
+        with open(file, "w", opener=opener) as fh:
+            subprocess.run(
+                [
+                    "sops",
+                    "--extract",
+                    secret,
+                    "--decrypt",
+                    f"{ROOT}/secrets.yaml",
+                ],
+                check=True,
+                stdout=fh,
+            )
+
+    decrypt(
+        "var/lib/ssh_secrets/ssh_host_ed25519_key",
+        f'["ssh_host_ed25519_key"]["{flake_attr}"]',
+    )
+    decrypt("var/lib/ssh_secrets/initrd_host_ed25519_key", '["initrd_host_ed25519_key"]')
+
+
+@task
+def install(c: Any, machine: str, hostname: str, extra_args: str = "") -> None:
+    """
+    format disks and install nixos, i.e.: inv install --machine rho --hostname root@rho.sbee.lab
+    """
+    ask = input(f"Are you sure you want to install .#{machine} on {hostname}? [y/N] ")
+    if ask != "y":
+        return
+
+    with TemporaryDirectory() as tmpdir:
+        decrypt_host_keys(c, machine, tmpdir)
+        c.run(
+            f"nix run github:nix-community/nixos-anywhere#nixos-anywhere -- --flake .#{machine} {extra_args} --extra-files {tmpdir} {hostname}",
+            echo=True,
+        )
+
+
+@task
+def cleanup_gcroots(_: Any, hosts: str) -> None:
+    g = DeployGroup(get_hosts(hosts))
+    g.run("sudo find /nix/var/nix/gcroots/auto -type s -delete")
+
+
+@task
+def generate_password(c: Any, user: str = "root") -> None:
+    """
+    Generate password hashes for users i.e. for root in ./hosts/$HOSTNAME.yaml
+    """
+    passw = c.run(
+        "nix shell --inputs-from . nixpkgs#xkcdpass -c xkcdpass --numwords 3 --delimiter - --count 1",
+        echo=True,
+    ).stdout
+    out = c.run(f"echo '{passw}' | mkpasswd -m sha-512 -s", echo=True)
+    print("# Add the following secrets")
+    print(f"{user}-password: {passw}")
+    print(f"{user}-password-hash: {out.stdout}")
+
+
+@task
+def generate_ssh_cert(c: Any, host: str) -> None:
+    """
+    Generate ssh cert for host, i.e. inv generate-ssh-cert bill
+    """
+    h = host
+    sops_file = f"{ROOT}/hosts/{host}.yaml"
+    with TemporaryDirectory() as tmpdir:
+        # should we use ssh-keygen -A (Generate host keys of all default key types) here?
+        c.run(f"mkdir -p {tmpdir}/etc/ssh")
+
+        keytype = "ed25519"
+        print("ssh cert extraction")
+        res = c.run(
+            f"sops --extract '[\"ssh_host_{keytype}_key.pub\"]' -d {sops_file}",
+            warn=True,
+        )
+        privkey = Path(f"{tmpdir}/etc/ssh/ssh_host_{keytype}_key")
+        pubkey = Path(f"{tmpdir}/etc/ssh/ssh_host_{keytype}_key.pub")
+        if len(res.stdout) == 0:
+            # create host key with comment -c and empty passphrase -N ''
+            c.run(f"ssh-keygen -f {privkey} -t {keytype} -C 'host key for host {host}' -N ''")
+            c.run(
+                f"sops --set '[\"ssh_host_{keytype}_key\"] {json.dumps(privkey.read_text())}' {sops_file}"
+            )
+            c.run(
+                f"sops --set '[\"ssh_host_{keytype}_key.pub\"] {json.dumps(pubkey.read_text())}' {sops_file}"
+            )
+        else:
+            # save existing cert so we can generate an ssh certificate
+            pubkey.write_text(res.stdout)
+
+        os.umask(0o077)
+        c.run(
+            f"sops --extract '[\"ssh-ca\"]' -d {ROOT}/modules/sshd/ca-keys.yaml > {tmpdir}/ssh-ca"
+        )
+        # .dse.in.tum.de is legacy, remove soon
+        valid_hostnames = f"{h}.r,{h}.dse.in.tum.de,{h}.dos.cit.tum.de,{h}.thalheim.io"
+        pubkey_path = f"{tmpdir}/etc/ssh/ssh_host_ed25519_key.pub"
+        c.run(f"ssh-keygen -h -s {tmpdir}/ssh-ca -n {valid_hostnames} -I {h} {pubkey_path}")
+        signed_key_src = f"{tmpdir}/etc/ssh/ssh_host_ed25519_key-cert.pub"
+        signed_key_dst = f"{ROOT}/modules/sshd/certs/{host}-cert.pub"
+        c.run(f"mv {signed_key_src} {signed_key_dst}")
+
+
+@task
+def print_age_key(_: Any, host: str) -> None:
+    """
+    Scans for the host key via ssh an converts it to age, i.e. inv scan-age-keys --host <hostname>
+    """
+    import subprocess
+
+    proc = subprocess.run(
+        [
+            "sops",
+            "--extract",
+            '["ssh_host_ed25519_key.pub"]',
+            "-d",
+            f"{ROOT}/hosts/{host}.yaml",
+        ],
+        text=True,
+        stdout=subprocess.PIPE,
+        check=True,
+    )
+    print("###### Age key ######")
+    subprocess.run(
+        ["nix", "run", "--inputs-from", ".#", "nixpkgs#ssh-to-age"],
+        input=proc.stdout,
+        check=True,
+        text=True,
+    )
+
+
+@task
+def generate_wireguard_key(c: Any, hostname: str) -> None:
+    """
+    Generate wireguard private key for a given hostname
+    """
+    with TemporaryDirectory() as tmp:
+        c.run(
+            f"nix shell --inputs-from . nixpkgs#wireguard-tools -c sh -c '"
+            f"umask 077 && "
+            f"wg genkey > {tmp}/private && "
+            f"wg pubkey < {tmp}/private > {tmp}/public"
+            f"'",
+            echo=True,
+        )
+
+        wg_key = (Path(tmp) / "private").read_text().strip()
+        wg_pubkey = (Path(tmp) / "public").read_text().strip()
+
+        keys = {
+            "wg-key": wg_key,
+            "wg-pubkey": wg_pubkey,
+        }
+
+        for key, value in keys.items():
+            c.run(f"sops --set '[\"{key}\"] {json.dumps(value)}' {ROOT}/hosts/{hostname}.yaml")
+
+
+@task
+def install_ssh_hostkeys(c: Any, machine: str, hostname: str) -> None:
+    """
+    Install ssh host keys stored in sops files on a remote host, i.e. inv install-ssh-hostkeys --machine mickey --hostname mickey.dos.cit.tum.de
+    """
+    with TemporaryDirectory() as tmpdir:
+        decrypt_host_keys(c, machine, tmpdir)
+        c.run("mkdir -p /etc/ssh", pty=True)
+        host = DeployHost(hostname, user="root")
+        cmds = []
+        for keyname in Path(f"{tmpdir}/etc/ssh").iterdir():
+            cmds.append(f"echo '{keyname.read_text()}' > /etc/ssh/{keyname.name}")
+        host.run(";".join(cmds))
+
+
+def decrypt_host_keys(c: Any, host: str, tmpdir: str) -> None:
+    os.mkdir(f"{tmpdir}/etc")
+    os.mkdir(f"{tmpdir}/etc/ssh")
+    for keyname in [
+        "ssh_host_ed25519_key",
+        "ssh_host_ed25519_key.pub",
+    ]:
+        if keyname.endswith(".pub"):
+            os.umask(0o133)
+        else:
+            os.umask(0o177)
+        c.run(
+            f"sops --extract '[\"{keyname}\"]' -d {ROOT}/hosts/{host}.yaml > {tmpdir}/etc/ssh/{keyname}"
+        )
+
+
+@task
+def add_server(c: Any, hostname: str) -> None:
+    """
+    Generate new server keys and configurations for a given hostname and hardware config
+    """
+
+    print(f"Adding {hostname}")
+
+    keys = None
+    with open(f"{ROOT}/pubkeys.json", "r") as f:
+        keys = f.read()
+    keys = json.loads(keys)
+    if keys["machines"].get(hostname, None):
+        print("Configuration already exists")
+        exit(-1)
+    keys["machines"][hostname] = ""
+    with open(f"{ROOT}/pubkeys.json", "w") as f:
+        json.dump(keys, f, indent=2)
+
+    update_sops_files(c)
+
+    sops_file = f"{ROOT}/hosts/{hostname}.yaml"
+
+    print("Generating Password")
+    size = 12
+    chars = string.ascii_letters + string.digits
+    passwd = "".join(random.choice(chars) for _ in range(size))
+    passwd_hash = subprocess.check_output(
+        ["mkpasswd", "-m", "sha-512", "-s"], input=passwd, text=True
+    )
+    with open(sops_file, "w") as hosts:
+        hosts.write(f"root-password: {passwd}\n")
+        hosts.write(f"root-password-hash: {passwd_hash}")
+    enc_out = subprocess.check_output(["sops", "-e", f"{sops_file}"], text=True)
+    with open(sops_file, "w") as hosts:
+        hosts.write(enc_out)
+
+    print("Generating SSH certificate")
+    generate_ssh_cert(c, hostname)
+
+    print("Generating Wireguard key")
+    generate_wireguard_key(c, hostname)
+
+    print("Generating age key")
+    key_ed = subprocess.Popen(
+        ["sops", "--extract", '["ssh_host_ed25519_key.pub"]', "-d", sops_file],
+        stdout=subprocess.PIPE,
+    )
+
+    age = subprocess.check_output(
+        ["nix", "run", "--inputs-from", ".#", "nixpkgs#ssh-to-age"],
+        text=True,
+        stdin=key_ed.stdout,
+    )
+    age = age.rstrip()
+
+    print("Updating pubkeys.json")
+    keys = None
+    with open(f"{ROOT}/pubkeys.json", "r") as f:
+        keys = json.load(f)
+    keys["machines"][hostname] = age
+    with open(f"{ROOT}/pubkeys.json", "w") as f:
+        json.dump(keys, f, indent=2)
+
+    print("Updating sops files")
+    update_sops_files(c)
+
+    example_host_config = f"""
+{{
+  imports = [
+    ../modules/hardware/placeholder.nix
+  ];
+
+  networking.hostName = "{hostname}";
+
+  system.stateVersion = "25.05";
+}}"""
+    print(f"Writing example hosts/{hostname}.nix")
+    with open(f"{ROOT}/hosts/{hostname}.nix", "w") as f:
+        f.write(example_host_config)
+
+    c.run(
+        "git add "
+        + f"{ROOT}/hosts/{hostname}.nix "
+        + f"{ROOT}/hosts/{hostname}.yaml "
+        + f"{ROOT}/pubkeys.json "
+        + f"{ROOT}/.sops.yaml "
+        + f"{ROOT}/modules/sshd/certs/{hostname}-cert.pub"
+    )

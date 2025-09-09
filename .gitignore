@@ -1,0 +1,12 @@
+.direnv
+result
+.jj/
+.pre-commit-config.yaml
+.ruff-cache
+
+
+.terraform*
+*.tfstate*
+terraform.tf
+
+.DS_Store
