@@ -116,13 +116,6 @@ in {
         wg-serv = "10.200.0.4";
         tags = ["nat-behind" "lab-network" "kren-dns"];
       };
-      turing = {
-        ipv4 = "158.247.212.73";
-        gateway = "158.247.212.1";
-        mac = "56:00:05:aa:d4:72";
-        wg-mgnt = "10.100.0.5";
-        wg-serv = "10.200.0.5";
-      };
     };
   };
 }
