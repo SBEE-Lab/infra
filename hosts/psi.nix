@@ -6,6 +6,7 @@
     ../modules/buildbot/master.nix
     ../modules/buildbot/worker.nix
     ../modules/borgbackup/psi/client.nix
+    ../modules/monitoring/vector
   ];
 
   disko.rootDisk = "/dev/disk/by-id/nvme-Samsung_SSD_990_PRO_4TB_S7DPNU0Y404280K";

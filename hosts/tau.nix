@@ -7,6 +7,7 @@
     ../modules/postgresql/replica.nix
     ../modules/borgbackup/psi/server.nix
     ../modules/borgbackup/rho/server.nix
+    ../modules/monitoring/vector/monitor-services.nix
   ];
 
   disko.rootDisk = "/dev/disk/by-id/nvme-eui.00000000000000006479a79cdac0038f";

@@ -5,6 +5,7 @@
     ../modules/ntfy.nix
     ../modules/attic/reverse-proxy.nix
     ../modules/buildbot/reverse-proxy.nix
+    ../modules/monitoring/vector
   ];
 
   disko.rootDisk = "/dev/vda";
