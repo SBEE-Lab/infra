@@ -30,11 +30,13 @@
     ./modules/users/admins.nix
     ./modules/users/extra-user-options.nix
     ./modules/nix-daemon.nix
+    ./modules/nix-index.nix
     ./modules/hosts.nix
     ./modules/cleanup-usr.nix
     ./modules/sshd
     ./modules/network.nix
     ./modules/packages.nix
+    ./modules/register-flake.nix
 
     disko.nixosModules.disko
 
