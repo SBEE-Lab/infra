@@ -8,6 +8,8 @@ in {
   imports = [
     ./default.nix
     ../loki.nix
+    ../grafana.nix
+    ../prometheus
   ];
 
   services.vector.settings.sinks = {
