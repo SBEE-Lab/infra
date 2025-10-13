@@ -3,7 +3,7 @@
     enable = true;
     signKeyPaths = [config.sops.secrets.harmonia-private-key.path];
     settings = {
-      bind = "${config.networking.sbee.hosts.tau.wg-serv}:5000";
+      bind = "${config.networking.sbee.hosts.psi.wg-serv}:5000";
       workers = 4;
       max_connection_rate = 256;
       priority = 30;

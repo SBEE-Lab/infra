@@ -67,11 +67,27 @@ def update_sops_files(c: Any) -> None:
     """
     c.run(f"nix eval --json -f {ROOT}/.sops.nix | yq e -P - > {ROOT}/.sops.yaml")
 
-    # every secret key files should be .yaml, else yml
     excludes = ["**/minio/secrets.yaml"]
     exclude_args = " ".join([f'--exclude "{e}"' for e in excludes])
     cmd = f"fd -e yaml {exclude_args} -x sops updatekeys --yes {{}}"
-    c.run(cmd)
+
+    result = c.run(cmd, hide=True, warn=True)
+
+    lines = result.stdout.splitlines()
+    updated_files = []
+
+    for i, line in enumerate(lines):
+        if "Syncing keys for file" in line:
+            # 다음 줄이 "already up to date"가 아니면 변경됨
+            if i + 1 >= len(lines) or "already up to date" not in lines[i + 1]:
+                filename = line.split("file ")[-1]
+                updated_files.append(filename)
+                print(f"✓ Updated: {filename}")
+
+    if not updated_files:
+        print("✓ All files already up to date")
+    else:
+        print(f"\n📝 Total: {len(updated_files)} files updated")
 
 
 @task

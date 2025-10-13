@@ -5,8 +5,7 @@
   ...
 }: let
   cfg = config.networking.sbee.currentHost;
-  all = config.networking.sbee.hosts;
-  others = lib.filterAttrs (name: _: name != config.networking.hostName) all;
+  inherit (config.networking.sbee) others;
 
   hasTag = host: tag: builtins.elem tag (host.tags or []);
   currentHasTag = tag: hasTag cfg tag;

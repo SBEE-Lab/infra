@@ -5,7 +5,6 @@
     ../modules/disko/xfs-storage.nix
     ../modules/wake-on-lan.nix
     ../modules/minio
-    ../modules/harmonia
   ];
 
   disko.rootDisk = "/dev/disk/by-id/nvme-eui.00000000000000006479a79cdac0038f";

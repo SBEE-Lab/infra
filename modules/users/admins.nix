@@ -5,6 +5,7 @@
 }: let
   seungwonKeys = [
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINkKJdIzvxlWcry+brNiCGLBNkxrMxFDyo1anE4xRNkL"
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEMzkxPcb7+kD38k1G1erxSOg4TTAcYXkMQo1rw0CYEA"
   ];
 
   extraGroups = [

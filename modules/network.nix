@@ -29,7 +29,7 @@ in {
       lib.mapAttrsToList (name: host: ''
         ${host.ipv4} ${name}
       '')
-      config.networking.sbee.hosts
+      config.networking.sbee.others
     );
 
     boot.initrd.systemd.network.networks."10-ethernet" = config.systemd.network.networks."10-ethernet";

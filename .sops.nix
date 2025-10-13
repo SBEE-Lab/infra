@@ -40,6 +40,9 @@ let
       "modules/acme/secrets.yaml" = [
         "eta"
       ];
+      "modules/harmonia/secrets.yaml" = [
+        "psi"
+      ];
       "modules/minio/secrets.yaml" = [
         "tau"
         "rho"

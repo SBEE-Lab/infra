@@ -9,10 +9,10 @@ in {
     gc.randomizedDelaySec = "1h";
 
     settings = {
-      trusted-substituters = ["http://10.200.0.4:5000"];
+      trusted-substituters = ["http://10.200.0.2:5000"];
 
       substituters = [
-        "http://10.200.0.4:5000"
+        "http://10.200.0.2:5000"
         "https://cache.nixos.org"
         "https://nix-community.cachix.org"
       ];

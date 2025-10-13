@@ -35,9 +35,7 @@ in {
 
   programs.ssh.knownHosts.ssh-ca = {
     certAuthority = true;
-    hostNames = [
-      "*.sbee.lab"
-    ];
+    hostNames = lib.mapAttrsToList (n: _: n) config.networking.sbee.others;
     publicKeyFile = ./certs/ssh-ca.pub;
   };
 

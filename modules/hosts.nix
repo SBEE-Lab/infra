@@ -73,6 +73,13 @@ in {
       default = config.networking.sbee.hosts.${config.networking.hostName};
       description = "The host that is described by this configuration";
     };
+    networking.sbee.others = mkOption {
+      type = with types; attrsOf (submodule [{options = hostOptions;}]);
+      default =
+        lib.filterAttrs (name: _: name != config.networking.hostName)
+        config.networking.sbee.hosts;
+      description = "All hosts except the current one";
+    };
   };
   config = {
     warnings =
