@@ -54,7 +54,7 @@ def deploy(_: Any, hosts: str) -> None:
 
         h.run_local(f"{send} --to ssh://{target}")
 
-        hostname = h.host.replace(".nix-community.org", "")
+        hostname = h.host
         h.run(f"{command} switch --option accept-flake-config true --flake {path}#{hostname}")
 
     g.run_function(deploy)
@@ -164,7 +164,7 @@ def install(c: Any, machine: str, hostname: str, extra_args: str = "") -> None:
 @task
 def cleanup_gcroots(_: Any, hosts: str) -> None:
     g = DeployGroup(get_hosts(hosts))
-    g.run("sudo find /nix/var/nix/gcroots/auto -type s -delete")
+    g.run("sudo find /nix/var/nix/gcroots/auto -type l -delete")
 
 
 @task
@@ -524,3 +524,42 @@ def add_server(c: Any, hostname: str) -> None:
         + f"{ROOT}/.sops.yaml "
         + f"{ROOT}/modules/sshd/certs/{hostname}-cert.pub"
     )
+
+
+@task
+def build_all(c: Any, builder: str = "", concurrent: int = 12, arch: str = "x86_64-linux") -> None:
+    """
+    Build all flake closure on builder
+    e.g., inv build-all --builder psi --concurrent 24
+    """
+    cmd = [
+        "nix",
+        "run",
+        "github:Mic92/nix-fast-build",
+        "--",
+        "--flake",
+        f"{ROOT}#checks.{arch}",
+    ]
+
+    if builder:
+        cmd.extend(["--remote", f"root@{builder}"])
+        print(f"Building on remote host: {builder}")
+    else:
+        print("Building locally")
+
+    if concurrent:
+        cmd.extend(["--max-jobs", str(concurrent)])
+
+    print(f"Building with {concurrent} concurrent jobs...")
+    print(f"Architecture: {arch}")
+
+    try:
+        subprocess.run(
+            cmd,
+            text=True,
+            check=True,
+        )
+        print("✓ Build completed successfully")
+    except subprocess.CalledProcessError as e:
+        print(f"✗ Build failed with exit code {e.returncode}")
+        raise
