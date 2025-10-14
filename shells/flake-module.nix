@@ -1,6 +1,6 @@
 {
   perSystem =
-    { pkgs, ... }:
+    { pkgs, config, ... }:
     {
       devShells.default = pkgs.mkShellNoCC {
         buildInputs = with pkgs; [
@@ -32,6 +32,9 @@
           # network tools
           dnsmasq
           wireguard-tools
+
+          # docs tools
+          config.packages.zensical
         ];
       };
     };

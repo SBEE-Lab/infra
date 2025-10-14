@@ -92,19 +92,37 @@ def update_sops_files(c: Any) -> None:
 
 
 @task
-def docs(c: Any) -> None:
+def docs(c: Any, port: int = 8000) -> None:
     """
-    Serve docs (mkdoc serve)
+    Build documentation with Nix and serve it locally
+    Use --port to specify custom port (default: 8000)
     """
-    c.run("nix develop .#mkdocs -c mkdocs serve")
+    print("Building documentation with Nix (matches production build)...")
+    c.run("nix build .#docs")
+
+    print(f"\nStarting HTTP server on port {port}...")
+    print(f"Documentation available at: http://localhost:{port}/")
+    print(f"  - Korean (default): http://localhost:{port}/")
+    print(f"  - English: http://localhost:{port}/en/")
+    print("\nPress Ctrl+C to stop the server\n")
+
+    c.run(f"python3 -m http.server {port} --directory result")
 
 
 @task
-def docs_linkcheck(c: Any) -> None:
+def docs_linkcheck(c: Any, online: bool = False) -> None:
     """
-    Run docs online linkchecker
+    Run documentation link checker
+    Use --online flag to check external links (default: local only)
     """
-    c.run("nix run .#docs-linkcheck.online")
+    if online:
+        print("Running online link checker (checks external links)...")
+        c.run("nix run .#docs-linkcheck.online")
+    else:
+        print("Running local link checker...")
+        print("Note: Some errors about absolute paths (/infra/) are expected")
+        print("      These will work when deployed to GitHub Pages")
+        c.run("nix run .#docs-linkcheck")
 
 
 def decrypt_host_key(flake_attr: str, tmpdir: str) -> None:
