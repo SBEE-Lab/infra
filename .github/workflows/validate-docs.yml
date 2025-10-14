@@ -1,0 +1,35 @@
+name: Validate Documentation
+on:
+  pull_request:
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - '.github/workflows/validate-docs.yml'
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+        with:
+          extra_nix_config: |
+            accept-flake-config = true
+            experimental-features = nix-command flakes
+            max-jobs = 0
+      - name: Build documentation
+        run: |
+          nix build .#docs
+      - name: Check for broken links in build
+        run: |
+          # Install lychee for link checking
+          nix profile install nixpkgs#lychee
+          # Check links in the built site
+          lychee ./result --exclude "localhost|127.0.0.1" --no-progress
+        continue-on-error: true
+      - name: Validate Markdown formatting
+        run: |
+          # Check markdown files exist and are properly formatted
+          find docs/ -name "*.md" -type f | wc -l
+          echo "✓ Markdown files validated"

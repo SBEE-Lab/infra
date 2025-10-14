@@ -1,5 +1,9 @@
 {
-  perSystem = {pkgs, ...}: {
+  perSystem = {
+    pkgs,
+    inputs',
+    ...
+  }: {
     devShells.default = pkgs.mkShellNoCC {
       buildInputs = with pkgs; [
         # deploy tools
@@ -31,6 +35,9 @@
         # network tools
         dnsmasq
         wireguard-tools
+
+        # docs tools
+        inputs'.toolz.packages.zensical
       ];
     };
   };

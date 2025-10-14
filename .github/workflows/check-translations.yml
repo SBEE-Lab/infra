@@ -1,0 +1,78 @@
+name: Check Translation Sync
+on:
+  pull_request:
+    paths:
+      - 'docs/**'
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+jobs:
+  check-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Check if docs directories exist
+        run: |
+          if [ ! -d "docs/en" ] && [ ! -d "docs/ko" ]; then
+            echo "⚠️  Warning: Language-specific directories (docs/en, docs/ko) do not exist yet."
+            echo "This is expected for initial setup. Skipping translation sync check."
+            exit 0
+          fi
+      - name: Check translation file structure sync
+        run: |
+          if [ ! -d "docs/en" ] || [ ! -d "docs/ko" ]; then
+            echo "Skipping sync check - directories not yet created"
+            exit 0
+          fi
+
+          # Get list of English files
+          en_files=$(find docs/en -name "*.md" -type f | sed 's|docs/en/||' | sort)
+          # Get list of Korean files
+          ko_files=$(find docs/ko -name "*.md" -type f | sed 's|docs/ko/||' | sort)
+
+          # Create temporary files for comparison
+          echo "$en_files" > /tmp/en_files.txt
+          echo "$ko_files" > /tmp/ko_files.txt
+
+          # Compare file lists
+          if diff /tmp/en_files.txt /tmp/ko_files.txt > /dev/null; then
+            echo "✓ Translation files are in sync!"
+            echo "English files:"
+            cat /tmp/en_files.txt
+          else
+            echo "⚠️  Translation files are out of sync!"
+            echo ""
+            echo "Files only in English (docs/en):"
+            comm -23 /tmp/en_files.txt /tmp/ko_files.txt
+            echo ""
+            echo "Files only in Korean (docs/ko):"
+            comm -13 /tmp/en_files.txt /tmp/ko_files.txt
+            echo ""
+            echo "Please ensure both language versions have the same file structure."
+            exit 1
+          fi
+      - name: Check for language switcher hints
+        run: |
+          if [ ! -d "docs/en" ]; then
+            exit 0
+          fi
+
+          # Check if markdown files have language hints
+          missing_hint=0
+          for file in $(find docs/en -name "*.md" -type f); do
+            if ! grep -q "Language / 언어\|한국어\|English" "$file" 2>/dev/null; then
+              echo "⚠️  Missing language hint in: $file"
+              missing_hint=$((missing_hint + 1))
+            fi
+          done
+
+          if [ $missing_hint -gt 0 ]; then
+            echo ""
+            echo "Found $missing_hint files without language switcher hints."
+            echo "Consider adding language hints to help users switch between languages."
+            # Don't fail the build for this warning
+          else
+            echo "✓ All files have language hints"
+          fi
