@@ -1,9 +1,5 @@
 # R     /dir/to/remove/recursively - - - - -
-{
-  lib,
-  config,
-  ...
-}:
+{ lib, config, ... }:
 {
   # Create workspace space on dedicated high-speed storage.
   # The workspace space is for temporary/intermediate data (not backed up).

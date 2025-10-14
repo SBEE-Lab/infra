@@ -5,9 +5,7 @@ let
   wgMgntAddr = config.networking.sbee.currentHost.wg-mgnt;
 in
 {
-  imports = [
-    ./rules.nix
-  ];
+  imports = [ ./rules.nix ];
 
   # TODO: enable alertmanager when ntfy integration is ready
   services.prometheus.alertmanager = {

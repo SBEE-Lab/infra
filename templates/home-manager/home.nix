@@ -1,10 +1,6 @@
 # docs: find home manager options here:
 # https://nix-community.github.io/home-manager/options.html
-{
-  pkgs,
-  username,
-  ...
-}:
+{ pkgs, username, ... }:
 {
   config = {
     home.packages = with pkgs; [

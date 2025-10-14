@@ -25,9 +25,7 @@ let
   '';
 in
 {
-  imports = [
-    ../auditd.nix
-  ];
+  imports = [ ../auditd.nix ];
 
   services.vector = {
     enable = true;
@@ -177,13 +175,13 @@ in
         filter_ssh = {
           type = "filter";
           inputs = [ "parse_ssh" ];
-          condition = ".event != \"other\"";
+          condition = ''.event != "other"'';
         };
 
         filter_audit = {
           type = "filter";
           inputs = [ "parse_audit" ];
-          condition = ".event != \"other\"";
+          condition = ''.event != "other"'';
         };
 
         tag_metrics = {
@@ -249,9 +247,7 @@ in
     };
   };
 
-  systemd.tmpfiles.rules = [
-    "d /var/lib/vector 0700 vector vector - -"
-  ];
+  systemd.tmpfiles.rules = [ "d /var/lib/vector 0700 vector vector - -" ];
   # Vector permissions
   systemd.services.vector.serviceConfig = {
     SupplementaryGroups = [ "systemd-journal" ];

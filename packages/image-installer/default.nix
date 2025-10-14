@@ -1,8 +1,4 @@
-{
-  self,
-  pkgs,
-  ...
-}:
+{ self, pkgs, ... }:
 let
   commonModule = {
     imports = [

@@ -1,9 +1,5 @@
 # https://github.com/TUM-DSE/doctor-cluster-config/tree/4702b65ba00ccaf932fa87c71eee5a5b584896ab/modules/users/extra-user-options.nix
-{
-  config,
-  lib,
-  ...
-}:
+{ config, lib, ... }:
 let
   globalConfig = config;
 in

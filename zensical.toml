@@ -1,0 +1,124 @@
+# SBEE Lab Infrastructure Documentation
+
+[project]
+site_name = "SBEE Lab 인프라"
+site_url = "https://sbee-lab.github.io/infra"
+site_description = "SBEE Lab의 NixOS 기반 생물정보학 연구 인프라 문서"
+site_author = "SBEE Lab"
+repo_name = "sbee-lab/infra"
+repo_url = "https://github.com/sbee-lab/infra"
+copyright = "Copyright &copy; 2025 SBEE Lab"
+
+nav = [
+  { "홈" = "index.md" },
+  { "시작하기" = [
+    { "개요" = "getting-started/index.md" },
+    { "사전 요구사항" = "getting-started/prerequisites.md" },
+    { "접근 권한 요청" = "getting-started/requesting-access.md" },
+    { "최초 설정" = "getting-started/first-time-setup.md" },
+    { "서버 연결" = "getting-started/connecting-to-servers.md" },
+  ] },
+  { "사용자 가이드" = [
+    { "시작하기" = "user-guides/getting-started.md" },
+    { "Apptainer/Singularity" = "user-guides/apptainer.md" },
+    { "연구자" = [
+      { "연구자 시작 가이드" = "user-guides/researchers/getting-started.md" },
+    ] },
+    { "학생" = [
+      { "모범 사례" = "user-guides/students/best-practices.md" },
+      { "계정 만료" = "user-guides/students/account-expiration.md" },
+    ] },
+  ] },
+  { "운영자 가이드" = [
+    { "일상 운영" = [
+      { "변경사항 배포" = "operator-guides/daily-operations/deploying-changes.md" },
+      { "문제 해결" = "operator-guides/daily-operations/troubleshooting.md" },
+    ] },
+    { "사용자 관리" = [
+      { "온보딩 및 오프보딩" = "operator-guides/user-management/onboarding-offboarding.md" },
+      { "사용자 추가" = "operator-guides/user-management/adding-users.md" },
+    ] },
+  ] },
+  { "개발자 가이드" = [
+    { "기여 방법" = "developer-guides/contributing.md" },
+    { "모듈 개발" = "developer-guides/module-development.md" },
+    { "Terraform 워크플로우" = "developer-guides/terraform.md" },
+  ] },
+  { "시스템 아키텍처" = [
+    { "인프라 개요" = "architecture/overview.md" },
+    { "네트워크 토폴로지" = "architecture/network.md" },
+  ] },
+  { "모듈 레퍼런스" = [
+    { "개요" = "modules-reference/index.md" },
+    { "Users" = "modules-reference/users.md" },
+    { "SSHD" = "modules-reference/sshd.md" },
+    { "Disko" = "modules-reference/disko.md" },
+    { "WireGuard" = "modules-reference/wireguard.md" },
+    { "MinIO" = "modules-reference/minio.md" },
+    { "NVIDIA" = "modules-reference/nvidia.md" },
+  ] },
+  { "참조" = [
+    { "FAQ" = "reference/faq.md" },
+  ] },
+  { "부록" = [
+    { "용어집" = "appendix/glossary.md" },
+  ] },
+]
+
+[project.theme]
+language = "ko"
+features = [
+  "announce.dismiss",
+  "content.action.edit",
+  "content.action.view",
+  "content.code.annotate",
+  "content.code.copy",
+  "content.code.select",
+  "content.footnote.tooltips",
+  "content.tabs.link",
+  "content.tooltips",
+  "navigation.footer",
+  "navigation.indexes",
+  "navigation.path",
+  "navigation.sections",
+  "navigation.tabs",
+  "navigation.top",
+  "search.highlight",
+  "search.suggest",
+]
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme)"
+toggle.icon = "lucide/sun-moon"
+toggle.name = "라이트 모드로 전환"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
+scheme = "default"
+primary = "indigo"
+accent = "indigo"
+toggle.icon = "lucide/sun"
+toggle.name = "다크 모드로 전환"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
+scheme = "slate"
+primary = "indigo"
+accent = "orange"
+toggle.icon = "lucide/moon-star"
+toggle.name = "시스템 설정 따르기"
+
+[project.theme.icon]
+repo = "fontawesome/brands/github"
+
+[project.extra]
+homepage = "https://sjanglab.org"
+generator = false
+
+[[project.extra.social]]
+icon = "fontawesome/brands/github"
+link = "https://github.com/sbee-lab"
+
+[[project.extra.social]]
+icon = "fontawesome/solid/globe"
+link = "https://sjanglab.org"

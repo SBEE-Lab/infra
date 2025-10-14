@@ -7,9 +7,7 @@ let
 in
 {
   # Ensure backup directory exists
-  systemd.tmpfiles.rules = [
-    "d ${backupDir} 0750 postgres postgres -"
-  ];
+  systemd.tmpfiles.rules = [ "d ${backupDir} 0750 postgres postgres -" ];
 
   # Pre-backup service: dump PostgreSQL databases
   systemd.services.postgresql-dump-for-borg = {

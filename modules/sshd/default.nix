@@ -1,8 +1,4 @@
-{
-  lib,
-  config,
-  ...
-}:
+{ lib, config, ... }:
 let
   cfg = config.networking.sbee.currentHost;
   cert = ./certs + "/${config.networking.hostName}-cert.pub";

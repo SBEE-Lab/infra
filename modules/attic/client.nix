@@ -35,9 +35,7 @@ in
   config = lib.mkIf cfg.enable {
     environment.systemPackages = [ pkgs.attic-client ];
 
-    systemd.tmpfiles.rules = [
-      "d /root/.config/attic 0700 root root -"
-    ];
+    systemd.tmpfiles.rules = [ "d /root/.config/attic 0700 root root -" ];
 
     sops.templates."attic-netrc" = {
       mode = "0400";

@@ -1,10 +1,6 @@
 # PostgreSQL streaming replica configuration for tau
 # Replicates from rho (primary) via wg-mgnt
-{
-  config,
-  pkgs,
-  ...
-}:
+{ config, pkgs, ... }:
 let
   inherit (config.networking.sbee) hosts;
   primaryHost = hosts.rho.wg-mgnt;

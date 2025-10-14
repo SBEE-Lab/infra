@@ -1,8 +1,4 @@
-{
-  self,
-  inputs,
-  ...
-}:
+{ self, inputs, ... }:
 let
   inherit (inputs)
     nixpkgs
@@ -50,11 +46,7 @@ let
     ./modules/bootloader.nix
     sops-nix.nixosModules.sops
     (
-      {
-        config,
-        lib,
-        ...
-      }:
+      { config, lib, ... }:
       let
         sopsFile = ./. + "/hosts/${config.networking.hostName}.yaml";
       in

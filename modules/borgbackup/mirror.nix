@@ -1,19 +1,13 @@
 # Rsync mirror of borg repos from tau to rho
 # Provides redundancy for borg backups (3-2-1 rule)
-{
-  config,
-  pkgs,
-  ...
-}:
+{ config, pkgs, ... }:
 let
   tauWgMgnt = config.networking.sbee.hosts.tau.wg-mgnt;
   mirrorDir = "/backup/borg-mirror";
 in
 {
   # Ensure mirror directory exists
-  systemd.tmpfiles.rules = [
-    "d ${mirrorDir} 0750 root root -"
-  ];
+  systemd.tmpfiles.rules = [ "d ${mirrorDir} 0750 root root -" ];
 
   # Rsync borg repos from tau
   systemd.services.borg-mirror-sync = {

@@ -1,9 +1,5 @@
 # Buildbot PostgreSQL database (deployed on rho)
-{
-  config,
-  lib,
-  ...
-}:
+{ config, lib, ... }:
 let
   inherit (config.networking.sbee) currentHost hosts;
   psql = "${config.services.postgresql.package}/bin/psql --port=${toString config.services.postgresql.settings.port}";

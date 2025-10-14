@@ -2,18 +2,12 @@
 # - Nextflow webhook ingestion
 # - Local Loki for Nextflow logs (wg-serv)
 # - Also sends system logs/metrics to rho via default.nix
-{
-  config,
-  lib,
-  ...
-}:
+{ config, lib, ... }:
 let
   wgServAddr = config.networking.sbee.currentHost.wg-serv;
 in
 {
-  imports = [
-    ./default.nix
-  ];
+  imports = [ ./default.nix ];
 
   # Vector:collect nextflow webhook & serve loki
   services.vector = {

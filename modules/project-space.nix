@@ -1,9 +1,5 @@
 # R     /dir/to/remove/recursively - - - - -
-{
-  lib,
-  config,
-  ...
-}:
+{ lib, config, ... }:
 {
   # Create project space per user on local rootfs.
   # The project space is for longer-term working data (backed up).

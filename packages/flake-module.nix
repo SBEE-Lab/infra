@@ -1,11 +1,7 @@
 { self, ... }:
 {
   perSystem =
-    {
-      pkgs,
-      lib,
-      ...
-    }:
+    { pkgs, lib, ... }:
     {
       packages = {
         icebox = pkgs.python3.pkgs.callPackage ./icebox { };

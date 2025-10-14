@@ -20,8 +20,7 @@
       auth-users = [
         "mulatta:$2b$12$EdDkCKfL2BL35SdzCFznBe2xm8jOL9IM6IaH3nlZV6UQ70j/iGOZ2:admin"
       ];
-      auth-access = [
-      ];
+      auth-access = [ ];
       auth-default-access = "deny-all";
       auth-file = "/var/lib/ntfy/user.db";
 

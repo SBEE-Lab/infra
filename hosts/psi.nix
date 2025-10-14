@@ -26,9 +26,7 @@
         disks.ssd1 = "/dev/disk/by-id/nvme-Samsung_SSD_9100_PRO_8TB_S7YHNJ0YA05025J";
         disks.ssd2 = "/dev/disk/by-id/nvme-Samsung_SSD_9100_PRO_8TB_S7YHNJ0YA02750H";
         mountpoint = "/workspace";
-        extraXfsOptions = [
-          "allocsize=16m"
-        ];
+        extraXfsOptions = [ "allocsize=16m" ];
       };
       # HDD RAID0 for data (60TB total)
       data = {

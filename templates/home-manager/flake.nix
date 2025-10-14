@@ -11,11 +11,7 @@
   };
 
   outputs =
-    {
-      nixpkgs,
-      home-manager,
-      ...
-    }:
+    { nixpkgs, home-manager, ... }:
     let
       # the system & architecture you use
       system = "x86_64-linux";
@@ -26,9 +22,7 @@
       homeConfigurations.${username} = home-manager.lib.homeManagerConfiguration {
         inherit pkgs;
         modules = [ ./home.nix ];
-        extraSpecialArgs = {
-          inherit username;
-        };
+        extraSpecialArgs = { inherit username; };
       };
     };
 }

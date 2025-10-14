@@ -6,11 +6,7 @@
 # ┃ 4. ALL THE COMMENTS SHOULD BE LOCATED AT THE END OF THE CONTENTS.          ┃
 # ┃    PLEASE WRITE YOUR ACCOUNT INFO ON TOP OF THE COMMENTS                   ┃
 # ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-{
-  config,
-  lib,
-  ...
-}:
+{ config, lib, ... }:
 let
   seungwonKeys = [
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINkKJdIzvxlWcry+brNiCGLBNkxrMxFDyo1anE4xRNkL"
@@ -63,7 +59,5 @@ in
     # };
   };
 
-  nix.settings.trusted-users = [
-    "seungwon"
-  ];
+  nix.settings.trusted-users = [ "seungwon" ];
 }

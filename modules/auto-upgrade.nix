@@ -1,9 +1,5 @@
 # https://github.com/TUM-DSE/doctor-cluster-config/tree/04a6acec04fbed055511b8f03055b117e76683d3/modules/auto-upgrade.nix
-{
-  pkgs,
-  lib,
-  ...
-}:
+{ pkgs, lib, ... }:
 {
   system.autoUpgrade.enable = lib.mkDefault true;
   system.autoUpgrade.flake = "github:SBEE-lab/infra";

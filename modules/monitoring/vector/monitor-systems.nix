@@ -66,11 +66,7 @@ in
       {
         job_name = "vector";
         scrape_interval = "60s";
-        static_configs = [
-          {
-            targets = [ "${wgMgntAddr}:9598" ];
-          }
-        ];
+        static_configs = [ { targets = [ "${wgMgntAddr}:9598" ]; } ];
       }
     ];
   };
@@ -80,7 +76,5 @@ in
     9598 # Vector exporter
   ];
 
-  systemd.tmpfiles.rules = [
-    "d /var/lib/prometheus2 0700 prometheus prometheus - -"
-  ];
+  systemd.tmpfiles.rules = [ "d /var/lib/prometheus2 0700 prometheus prometheus - -" ];
 }

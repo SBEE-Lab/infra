@@ -1,8 +1,4 @@
-{
-  config,
-  lib,
-  ...
-}:
+{ config, lib, ... }:
 let
   cfg = config.networking.sbee.currentHost;
   wg = config.networking.sbee.wireguard;

@@ -1,8 +1,4 @@
-{
-  config,
-  lib,
-  ...
-}:
+{ config, lib, ... }:
 let
   wgMgntAddr = config.networking.sbee.hosts.rho.wg-mgnt;
 in

@@ -7,11 +7,7 @@
 #     mountpoint = "/workspace";
 #     xfsOptions = [ "defaults" "noatime" ... ];
 #   };
-{
-  lib,
-  config,
-  ...
-}:
+{ lib, config, ... }:
 let
   cfg = config.disko.xfsMdadm;
   inherit (lib)

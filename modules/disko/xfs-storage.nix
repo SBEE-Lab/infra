@@ -1,8 +1,4 @@
-{
-  lib,
-  config,
-  ...
-}:
+{ lib, config, ... }:
 let
   cfg = config.disko.xfsStorage;
   inherit (lib) types mkOption;
@@ -38,9 +34,7 @@ let
 in
 {
   options.disko.xfsStorage = {
-    disks = mkOption {
-      type = types.attrsOf types.str;
-    };
+    disks = mkOption { type = types.attrsOf types.str; };
     xfsOptions = mkOption {
       type = types.listOf types.str;
       default = defaultXfsOptions;

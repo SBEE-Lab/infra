@@ -1,9 +1,5 @@
 # https://github.com/TUM-DSE/doctor-cluster-config/tree/4702b65ba00ccaf932fa87c71eee5a5b584896ab/modules/hosts.nix
-{
-  lib,
-  config,
-  ...
-}:
+{ lib, config, ... }:
 let
   hostOptions = with lib; {
     ipv4 = mkOption {
@@ -90,10 +86,7 @@ in
     # This allows servers to resolve each other by hostname (e.g., ssh psi)
     networking.hosts = lib.mkMerge (
       lib.mapAttrsToList (
-        name: host:
-        lib.optionalAttrs (host.wg-mgnt != null) {
-          ${host.wg-mgnt} = [ name ];
-        }
+        name: host: lib.optionalAttrs (host.wg-mgnt != null) { ${host.wg-mgnt} = [ name ]; }
       ) config.networking.sbee.hosts
     );
 

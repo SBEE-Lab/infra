@@ -1,11 +1,7 @@
 # https://github.com/nix-community/infra/tree/e25c9f72a56641d5b4646d2711e59ccc63e171b8/dev/terraform.nix
 {
   perSystem =
-    {
-      config,
-      pkgs,
-      ...
-    }:
+    { config, pkgs, ... }:
     {
       devShells.terraform = pkgs.mkShellNoCC {
         packages = [

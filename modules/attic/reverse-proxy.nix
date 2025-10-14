@@ -1,17 +1,7 @@
-{
-  config,
-  inputs,
-  ...
-}:
-let
-  cacheDomain = "cache.sjanglab.org";
-in
-{
-  imports = [
-    inputs.attic.nixosModules.atticd
-    ../acme
-    ./default.nix
-  ];
+{ config, inputs, ... }:
+let cacheDomain = "cache.sjanglab.org";
+in {
+  imports = [ inputs.attic.nixosModules.atticd ../acme ./default.nix ];
 
   # Rate limiting configuration
   # Note: nix-fast-build sends many parallel requests, so limits are relaxed
@@ -143,7 +133,9 @@ in
 
         # Rate limit error handler
         "@rate_limited" = {
-          return = "429 'Rate limit exceeded. Please slow down your requests.\n'";
+          return = ''
+            429 'Rate limit exceeded. Please slow down your requests.
+            ''';
           extraConfig = ''
             default_type text/plain;
             add_header Retry-After 60 always;
@@ -152,7 +144,9 @@ in
 
         # Service unavailable handler
         "@service_unavailable" = {
-          return = "503 'Binary cache temporarily unavailable. Please try again later.\n'";
+          return = ''
+            503 'Binary cache temporarily unavailable. Please try again later.
+            ''';
           extraConfig = ''
             default_type text/plain;
             add_header Retry-After 300 always;
@@ -161,7 +155,9 @@ in
 
         # Health check endpoint (no rate limiting)
         "/health" = {
-          return = "200 'OK\n'";
+          return = ''
+            200 'OK
+            ''';
           extraConfig = ''
             default_type text/plain;
             access_log off;
