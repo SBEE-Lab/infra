@@ -3,12 +3,15 @@
   inputs,
   ...
 }: {
-  flake.overlays = rec {
-    blast = import ./blast.nix;
-    unstable = import ./unstable-packages.nix {inherit inputs;};
+  flake.overlays = {
     default = lib.composeManyExtensions [
-      blast
-      unstable
+      (final: _prev: {
+        unstable = import inputs.nixpkgs-unstable {
+          inherit (final) system;
+          config.allowUnfree = true;
+        };
+        toolz = inputs.toolz.packages.${final.system};
+      })
     ];
   };
 }

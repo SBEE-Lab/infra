@@ -1,7 +1,6 @@
 .direnv
 result
 .jj/
-.pre-commit-config.yaml
 .ruff-cache
 
 .terragrunt-cache/

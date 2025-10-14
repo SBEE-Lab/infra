@@ -2,8 +2,10 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }: {
+  environment.systemPackages = with pkgs.cudaPackages; [cudatoolkit cudnn];
   hardware.graphics.enable = true;
   # Switching from datacenter driver to production driver for kernel 6.15 compatibility
   # The production driver (570.153.02) includes patches for kernel 6.15 support

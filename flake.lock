@@ -240,6 +240,7 @@
         "sops-nix": "sops-nix",
         "srvos": "srvos",
         "systems": "systems",
+        "toolz": "toolz",
         "treefmt-nix": "treefmt-nix"
       }
     },
@@ -293,6 +294,38 @@
       "original": {
         "owner": "nix-systems",
         "repo": "default",
+        "type": "github"
+      }
+    },
+    "toolz": {
+      "inputs": {
+        "flake-parts": [
+          "flake-parts"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "nixpkgs-unstable": [
+          "nixpkgs-unstable"
+        ],
+        "systems": [
+          "systems"
+        ],
+        "treefmt-nix": [
+          "treefmt-nix"
+        ]
+      },
+      "locked": {
+        "lastModified": 1760435557,
+        "narHash": "sha256-VhMkah7QVjt8dpMBvEl7tVaqgvSlReogfeXjHcqpqss=",
+        "owner": "zmblr",
+        "repo": "toolz",
+        "rev": "0f32871bf6e542e1887b3c75140d2d8998f74c12",
+        "type": "github"
+      },
+      "original": {
+        "owner": "zmblr",
+        "repo": "toolz",
         "type": "github"
       }
     },
