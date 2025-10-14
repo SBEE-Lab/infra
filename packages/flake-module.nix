@@ -9,6 +9,7 @@
     {
       packages = {
         icebox = pkgs.python3.pkgs.callPackage ./icebox { };
+        zensical = pkgs.python3.pkgs.callPackage ./zensical { };
       }
       // lib.optionalAttrs pkgs.stdenv.isLinux {
         installer = pkgs.callPackage ./image-installer { inherit pkgs self; };

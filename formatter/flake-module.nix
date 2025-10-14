@@ -24,6 +24,12 @@
         terraform.enable = true;
         hclfmt.enable = true;
 
+        # Markdown formatter (docs/ only)
+        mdformat = {
+          enable = true;
+          includes = [ "docs/**/*.md" ];
+        };
+
         # Other formatters
         keep-sorted.enable = true;
         yamlfmt.enable = true;
