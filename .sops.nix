@@ -35,16 +35,19 @@ let
       keys.machines
     )
     // builtins.mapAttrs (_name: value: (map (x: keys.machines.${x}) value)) {
-      "modules/nfs/secrets.yaml" = ["psi"];
-      "modules/users/xrdp-passwords.yaml" = ["psi"];
+      # keep-sorted start
       "modules/acme/secrets.yaml" = ["eta"];
       "modules/attic/secrets.yaml" = ["eta"];
       "modules/borgbackup/psi/secrets.yaml" = ["psi"];
       "modules/borgbackup/rho/secrets.yaml" = ["rho"];
       "modules/buildbot/secrets.yaml" = ["psi" "rho"];
+      "modules/monitoring/secrets.yaml" = ["rho"];
+      "modules/nfs/secrets.yaml" = ["psi"];
+      "modules/users/xrdp-passwords.yaml" = ["psi"];
       "terraform/cloudflare/secrets.yaml" = [];
       "terraform/github/secrets.yaml" = [];
       "terraform/vultr/secrets.yaml" = [];
+      # keep-sorted end
     }
     // {
       "modules/sshd/[^/]+\\.yaml$" = [];

@@ -1,0 +1,77 @@
+# Grafana dashboard server (deployed on rho)
+# - Listens on wg-serv for user access
+# - Connects to Loki/Prometheus on wg-mgnt (internal)
+{config, ...}: let
+  inherit (config.networking.sbee) currentHost;
+  wgServAddr = currentHost.wg-serv;
+  wgMgntAddr = currentHost.wg-mgnt;
+
+  lokiUrl = "http://${wgMgntAddr}:3100";
+  prometheusUrl = "http://${wgMgntAddr}:9090";
+in {
+  services.grafana = {
+    enable = true;
+
+    settings = {
+      server = {
+        http_addr = wgServAddr;
+        http_port = 3000;
+        domain = "logging.sjanglab.org";
+        root_url = "https://logging.sjanglab.org";
+      };
+
+      analytics.reporting_enabled = false;
+
+      security = {
+        admin_user = "admin";
+        admin_password = "$__file{${config.sops.secrets.grafana-admin-password.path}}";
+        secret_key = "$__file{${config.sops.secrets.grafana-secret-key.path}}";
+      };
+
+      users = {
+        allow_sign_up = false;
+        default_theme = "system";
+      };
+
+      "auth.anonymous" = {
+        enabled = true;
+        org_name = "Public";
+        org_role = "Viewer";
+      };
+    };
+
+    provision = {
+      enable = true;
+
+      datasources.settings.datasources = [
+        {
+          name = "Prometheus";
+          type = "prometheus";
+          url = prometheusUrl;
+          isDefault = true;
+          editable = false;
+        }
+        {
+          name = "Loki";
+          type = "loki";
+          url = lokiUrl;
+          editable = false;
+        }
+      ];
+    };
+  };
+
+  sops.secrets.grafana-admin-password = {
+    sopsFile = ./secrets.yaml;
+    owner = "grafana";
+    group = "grafana";
+  };
+
+  sops.secrets.grafana-secret-key = {
+    sopsFile = ./secrets.yaml;
+    owner = "grafana";
+    group = "grafana";
+  };
+
+  networking.firewall.interfaces."wg-serv".allowedTCPPorts = [3000];
+}
