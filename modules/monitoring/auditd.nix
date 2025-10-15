@@ -1,6 +1,6 @@
 # Linux Audit daemon configuration for SSH session tracking
 # Generates session IDs for correlation across jumphost and internal hosts
-{lib, ...}: {
+{
   # Enable audit subsystem
   security.audit = {
     enable = true;

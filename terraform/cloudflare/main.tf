@@ -84,3 +84,12 @@ resource "cloudflare_dns_record" "cache" {
   comment = "Nix binary cache (harmonia)"
 }
 
+resource "cloudflare_dns_record" "logging" {
+  zone_id = data.sops_file.secrets.data["CLOUDFLARE_ZONE_ID"]
+  name    = "logging.sjanglab.org"
+  content = "141.164.53.203"
+  type    = "A"
+  ttl     = 300
+  proxied = false
+  comment = "Grafana logging dashboard"
+}
