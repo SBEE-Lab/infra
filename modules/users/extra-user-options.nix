@@ -50,11 +50,11 @@ in {
                 !(builtins.elem "all" config.allowedHosts)
                 && !(builtins.elem globalConfig.networking.hostName config.allowedHosts)
               ) (lib.mkForce "/run/current-system/sw/bin/nologin");
-              hashedPasswordFile =
-                lib.mkIf (
-                  globalConfig.services.xrdp.enable && config.xrdpAccess
-                )
-                globalConfig.sops.secrets."${config.name}-password-hash".path;
+              # hashedPasswordFile =
+              #   lib.mkIf (
+              #     globalConfig.services.xrdp.enable && config.xrdpAccess
+              #   )
+              #   globalConfig.sops.secrets."${config.name}-password-hash".path;
             };
           }
         )
@@ -83,14 +83,14 @@ in {
       config.users.users
     );
 
-    sops.secrets = lib.mkIf config.services.xrdp.enable (
-      lib.mapAttrs' (
-        name: _user:
-          lib.nameValuePair "${name}-password-hash" {
-            neededForUsers = true;
-            sopsFile = ./xrdp-passwords.yml;
-          }
-      ) (lib.filterAttrs (_: v: v.xrdpAccess) config.users.users)
-    );
+    # sops.secrets = lib.mkIf config.services.xrdp.enable (
+    #   lib.mapAttrs' (
+    #     name: _user:
+    #       lib.nameValuePair "${name}-password-hash" {
+    #         neededForUsers = true;
+    #         sopsFile = ./xrdp-passwords.yml;
+    #       }
+    #   ) (lib.filterAttrs (_: v: v.xrdpAccess) config.users.users)
+    # );
   };
 }

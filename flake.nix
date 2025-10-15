@@ -48,7 +48,7 @@
     nixos-generators.inputs.nixlib.follows = "nixpkgs";
     nixos-generators.inputs.nixpkgs.follows = "nixpkgs";
     nixos-generators.url = "github:nix-community/nixos-generators";
-    nixos-images.inputs.nixos-unstable.follows = "nixpkgs";
+    nixos-images.inputs.nixos-unstable.follows = "nixpkgs-unstable";
     nixos-images.url = "github:nix-community/nixos-images";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";

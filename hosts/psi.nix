@@ -1,7 +1,6 @@
 {
   imports = [
     ../modules/disko/xfs-root.nix
-    ../modules/xrdp.nix
     ../modules/nvidia.nix
     ../modules/harmonia
   ];

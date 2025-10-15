@@ -1,5 +1,6 @@
 {
   self,
+  lib,
   pkgs,
   ...
 }: let
@@ -10,6 +11,7 @@
       {
         system.kexec-installer.name = "nixos-kexec-installer-noninteractive";
         services.openssh.ports = [10022];
+        boot.supportedFilesystems = lib.mkForce ["ext4" "xfs" "btrfs"];
       }
     ];
   };

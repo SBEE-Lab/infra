@@ -144,7 +144,7 @@
       "inputs": {
         "nixos-stable": "nixos-stable",
         "nixos-unstable": [
-          "nixpkgs"
+          "nixpkgs-unstable"
         ]
       },
       "locked": {
