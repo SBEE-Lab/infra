@@ -74,6 +74,7 @@
     commonModules
     ++ [
       ./modules/scratch-space.nix
+      ./modules/apptainer.nix
       ({pkgs, ...}: {environment.systemPackages = with pkgs.toolz; [bbtools blast nextflow];})
     ];
 in {
