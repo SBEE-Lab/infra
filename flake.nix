@@ -1,9 +1,5 @@
 {
   description = "SBEE laboratory infrastructures flake";
-  # nixConfig = {
-  #   extra-substituters = [];
-  #   extra-trusted-public-keys = [];
-  # };
   outputs = inputs @ {
     self,
     flake-parts,

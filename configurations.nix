@@ -37,6 +37,7 @@
     ./modules/network.nix
     ./modules/packages.nix
     ./modules/register-flake.nix
+    ./modules/auto-upgrade.nix
 
     disko.nixosModules.disko
 
