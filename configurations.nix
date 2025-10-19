@@ -76,6 +76,7 @@
     ++ [
       ./modules/scratch-space.nix
       ./modules/apptainer.nix
+      ./modules/nix-ld.nix
       ({pkgs, ...}: {environment.systemPackages = with pkgs.toolz; [bbtools blast nextflow];})
     ];
 in {
