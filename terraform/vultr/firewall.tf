@@ -8,16 +8,6 @@ resource "vultr_firewall_rule" "ssh" {
   ip_type           = "v4"
   subnet            = "0.0.0.0"
   subnet_size       = 0
-  port              = 22
-  notes             = "SSH access on port 10022"
-}
-
-resource "vultr_firewall_rule" "ssh-alt" {
-  firewall_group_id = vultr_firewall_group.eta.id
-  protocol          = "tcp"
-  ip_type           = "v4"
-  subnet            = "0.0.0.0"
-  subnet_size       = 0
   port              = 10022
   notes             = "SSH access on port 10022"
 }
