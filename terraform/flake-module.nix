@@ -19,7 +19,7 @@
     devShells.terraform = pkgs.mkShellNoCC {
       packages = [
         pkgs.sops
-        pkgs.unstable.terragrunt
+        pkgs.terragrunt
         config.packages.terraform
       ];
     };

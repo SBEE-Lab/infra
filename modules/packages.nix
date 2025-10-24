@@ -12,7 +12,7 @@
     iperf3
     hyperfine
     ookla-speedtest
-    unstable.somo
+    somo
 
     # core tools
     git

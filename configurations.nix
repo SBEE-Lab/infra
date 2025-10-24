@@ -3,29 +3,23 @@
   inputs,
   ...
 }: let
-  inherit
-    (inputs)
-    nixpkgs
-    disko
-    sops-nix
-    srvos
-    ;
+  inherit (inputs) nixpkgs disko sops-nix srvos;
 
-  nixosSystem = args:
-    nixpkgs.lib.nixosSystem (
-      {
-        specialArgs = {inherit self inputs;};
-      }
-      // args
-    );
+  system = "x86_64-linux";
 
-  pkgsForSystem = system:
-    import nixpkgs {
+  pkgs = import nixpkgs {
+    inherit system;
+    config.allowUnfree = true;
+    overlays = import ./overlays {inherit inputs;};
+  };
+
+  nixosSystem = modules:
+    nixpkgs.lib.nixosSystem {
       inherit system;
-      config.allowUnfree = true;
-      overlays = [self.overlays.default];
+      specialArgs = {inherit self inputs;};
+      modules = modules ++ [{nixpkgs.pkgs = pkgs;}];
     };
-  pkgs-x86_64-linux = pkgsForSystem "x86_64-linux";
+
   commonModules = [
     ./modules/users/admins.nix
     ./modules/users/extra-user-options.nix
@@ -40,9 +34,7 @@
     ./modules/auto-upgrade.nix
 
     disko.nixosModules.disko
-
     srvos.nixosModules.server
-
     srvos.nixosModules.mixins-telegraf
     srvos.nixosModules.mixins-terminfo
     srvos.nixosModules.mixins-nix-experimental
@@ -58,44 +50,34 @@
       }: let
         sopsFile = ./. + "/hosts/${config.networking.hostName}.yaml";
       in {
-        # TODO: share nixpkgs for each machine to speed up local evaluation.
-        #nixpkgs.pkgs = self.inputs.nixpkgs.legacyPackages.${system};
-
         users.withSops = builtins.pathExists sopsFile;
         sops.secrets = lib.mkIf config.users.withSops {
           root-password-hash.neededForUsers = true;
         };
         sops.defaultSopsFile = lib.mkIf (builtins.pathExists sopsFile) sopsFile;
-
         time.timeZone = lib.mkForce "Asia/Seoul";
       }
     )
   ];
+
   computeModules =
     commonModules
     ++ [
       ./modules/scratch-space.nix
       ./modules/apptainer.nix
       ./modules/nix-ld.nix
-      ({pkgs, ...}: {environment.systemPackages = with pkgs.toolz; [bbtools blast nextflow];})
+      ({pkgs, ...}: {
+        environment.systemPackages = with pkgs; [
+          blast
+          nextflow
+        ];
+      })
     ];
 in {
   flake.nixosConfigurations = {
-    psi = nixosSystem {
-      pkgs = pkgs-x86_64-linux;
-      modules = computeModules ++ [./hosts/psi.nix];
-    };
-    rho = nixosSystem {
-      pkgs = pkgs-x86_64-linux;
-      modules = computeModules ++ [./hosts/rho.nix];
-    };
-    tau = nixosSystem {
-      pkgs = pkgs-x86_64-linux;
-      modules = computeModules ++ [./hosts/tau.nix];
-    };
-    eta = nixosSystem {
-      pkgs = pkgs-x86_64-linux;
-      modules = commonModules ++ [./hosts/eta.nix];
-    };
+    psi = nixosSystem (computeModules ++ [./hosts/psi.nix]);
+    rho = nixosSystem (computeModules ++ [./hosts/rho.nix]);
+    tau = nixosSystem (computeModules ++ [./hosts/tau.nix]);
+    eta = nixosSystem (commonModules ++ [./hosts/eta.nix]);
   };
 }

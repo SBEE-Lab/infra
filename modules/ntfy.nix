@@ -7,7 +7,7 @@
   imports = [./acme];
   services.ntfy-sh = {
     enable = true;
-    package = pkgs.unstable.ntfy-sh;
+    package = pkgs.ntfy-sh;
     user = "ntfy";
     group = "ntfy";
     settings = {
