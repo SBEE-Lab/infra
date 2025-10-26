@@ -70,6 +70,13 @@
         environment.systemPackages = with pkgs; [
           blast
           nextflow
+          stdenv.cc.cc.lib
+          zlib
+          libGL
+          gcc
+          pkg-config
+          cargo
+          rustc
         ];
       })
     ];
