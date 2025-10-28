@@ -46,5 +46,6 @@
     minio-client
     ts
     sd
+    nix-output-monitor
   ];
 }
