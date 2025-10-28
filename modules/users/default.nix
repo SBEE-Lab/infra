@@ -10,7 +10,7 @@
     # Ph.D./MS who use GPU Compute Node (psi)
     ./researchers.nix
     # BS who use tau/rho
-    ./stdents.nix
+    ./students.nix
 
     ./extra-user-options.nix
   ];
