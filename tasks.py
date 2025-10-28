@@ -727,5 +727,6 @@ cc @TUM-DSE/chair-members"""
             f"gh issue create "
             f'--title "Expired student account: {username}" '
             f"--body {shlex.quote(issue_body)} ",
+            "--label 'expired-user' ",
             echo=True,
         )
