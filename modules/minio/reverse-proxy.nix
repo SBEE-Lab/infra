@@ -3,6 +3,8 @@
   lib,
   ...
 }: let
+  inherit (config.networking.sbee) hosts;
+  cfg = config.services.minio;
   acmeDomains = ["minio.sjanglab.org" "s3.sjanglab.org"];
 in {
   imports = [../acme];
@@ -14,12 +16,12 @@ in {
 
     upstreams = {
       "minio-console".extraConfig = ''
-        server 10.200.0.3:9001;
+        server ${hosts.rho.wg-serv}${cfg.consoleAddress};
         keepalive 32;
         keepalive_timeout 60s;
       '';
       "minio-api".extraConfig = ''
-        server 10.200.0.3:9000;
+        server ${hosts.rho.wg-serv}${cfg.listenAddress};
         keepalive 32;
         keepalive_timeout 60s;
       '';
