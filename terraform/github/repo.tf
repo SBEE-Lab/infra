@@ -47,8 +47,8 @@ resource "github_repository_ruleset" "infra" {
   }
 
   bypass_actors {
-    actor_id    = github_team.infra_admins.id
-    actor_type  = "Team"
+    actor_id    = 5 # Rpository admin role
+    actor_type  = "RepositoryRole"
     bypass_mode = "always"
   }
 
@@ -63,16 +63,6 @@ resource "github_repository_ruleset" "infra" {
       required_approving_review_count   = 0
       required_review_thread_resolution = false
     }
-
-    # #  extended status check
-    # dynamic "required_status_checks" {
-    #   for_each = local.required_checks
-    #   content {
-    #     required_check {
-    #       context = required_status_checks.value
-    #     }
-    #   }
-    # }
 
     commit_message_pattern {
       pattern  = "^(feat|fix|docs|style|refactor|test|chore)(\\(.+\\))?: .{1,50}"
@@ -116,4 +106,38 @@ resource "github_repository_ruleset" "user_branches" {
     #   }
     # }
   }
+}
+
+locals {
+  labels = {
+    bug = {
+      color       = "d73a4a"
+      description = "Something isn't working"
+    }
+    enhancement = {
+      color       = "a2eeef"
+      description = "New feature or request"
+    }
+    documentation = {
+      color       = "0075ca"
+      description = "Documentation"
+    }
+    "onboarding" = {
+      color       = "00bfa5"
+      description = "New member onboarding process"
+    }
+    "expired-user" = {
+      color       = "F5EB27"
+      description = "Expired user"
+    }
+  }
+}
+
+resource "github_issue_label" "labels" {
+  for_each = local.labels
+
+  repository  = "infra"
+  name        = each.key
+  color       = each.value.color
+  description = each.value.description
 }

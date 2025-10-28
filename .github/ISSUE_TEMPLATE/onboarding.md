@@ -27,7 +27,10 @@ Please follow each step carefully and check off items as you complete them.
 
      - `modules/users/students.nix` _(if role = student)_
        or
-       `modules/users/researchers.nix` _(if role = researchers)_
+       `modules/users/researchers.nix` _(if role = researcher)_
+       or
+       `modules/users/admins.nix` _(if role = admin)_
+
        and follow the comments
 
 4. (Optional) Add an Age key placeholder if needed:
@@ -50,10 +53,12 @@ nix flake check
 
 - Note that your commit should be signed
   see: [github docs: signing-commits](https://docs.github.com/ko/authentication/managing-commit-signature-verification/signing-commits)
+- Also, Commit should be follow the rule below
+  `^(feat|fix|docs|style|refactor|test|chore)(\\(.+\\))?: .{1,50}`
 
 ```bash
 git add .
-git commit -m "feat: add user <your-username>"
+git commit -m "feat(users): add user <your-username>"
 git push origin onboarding/<your-username>
 ```
 

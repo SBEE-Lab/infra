@@ -1,7 +1,7 @@
 name: "Check for expired student accounts"
 on:
   schedule:
-    - cron: "0 0 * * *"
+    - cron: "0 0 * * *" # KTC Mon, 09:00:00
   workflow_dispatch:
 permissions:
   issues: write

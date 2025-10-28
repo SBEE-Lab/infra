@@ -1,21 +1,17 @@
-infra_admins = {
+repository_collaborators = {
+  # Admins
   "mulatta" = {
-    username = "mulatta"
-    role     = "maintainer"
+    permission = "admin"
   }
   "sjang-bioe" = {
-    username = "sjang-bioe"
-    role     = "member"
+    permission = "admin"
   }
-}
 
-infra_users = {
-  "qkrwogns" = {
-    username = "qkrwogns"
-    role     = "member"
-  }
+  # Users
   "rhrbfls" = {
-    username = "rhrbfls"
-    role     = "member"
+    permission = "triage"
+  }
+  "qkrwogns" = {
+    permission = "triage"
   }
 }

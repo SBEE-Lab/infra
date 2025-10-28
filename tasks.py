@@ -720,7 +720,7 @@ This student account has expired and should be reviewed for removal.
 3. Add the username to `users.deletedUsers` in `modules/users/default.nix`
 4. Commit and create a PR
 
-cc @TUM-DSE/chair-members"""
+cc @SBEE-Lab/infra-admins"""
 
         # Create the issue
         c.run(
