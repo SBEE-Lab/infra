@@ -24,9 +24,13 @@ in {
       ];
 
       system-features = [
+        "benchmark"
         "big-parallel"
+        "ca-derivations"
         "kvm"
         "nixos-test"
+        "recursive-nix"
+        "uid-range"
       ];
 
       # auto-free the /nix/store
