@@ -41,4 +41,5 @@ in {
       auto-optimise-store = true;
     };
   };
+  boot.binfmt.emulatedSystems = ["aarch64-linux"];
 }
