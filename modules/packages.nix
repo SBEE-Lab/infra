@@ -1,14 +1,21 @@
 {
+  config,
   pkgs,
   lib,
   ...
-}: {
+}: let
+  hasNvidia = builtins.elem "nvidia" config.services.xserver.videoDrivers;
+in {
   environment.systemPackages = with pkgs; [
     # monitoring
     nvme-cli
     pciutils
     lsof
-    btop
+    (
+      if hasNvidia
+      then btop-cuda
+      else btop
+    )
     iperf3
     hyperfine
     ookla-speedtest
