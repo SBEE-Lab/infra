@@ -77,6 +77,7 @@
           pkg-config
           cargo
           rustc
+          nodejs
         ];
       })
     ];
