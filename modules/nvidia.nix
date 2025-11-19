@@ -5,7 +5,7 @@
   pkgs,
   ...
 }: {
-  environment.systemPackages = with pkgs.cudaPackages; [cudatoolkit cudnn];
+  environment.systemPackages = with pkgs.cudaPackages; [cudatoolkit cudnn cuda_cudart];
   hardware.graphics.enable = true;
   # Switching from datacenter driver to production driver for kernel 6.15 compatibility
   # The production driver (570.153.02) includes patches for kernel 6.15 support
@@ -20,5 +20,7 @@
 
   virtualisation.docker.enable = true;
   hardware.nvidia-container-toolkit.enable = true;
+
+  # allow only x86_64-linux
   hardware.graphics.enable32Bit = true;
 }

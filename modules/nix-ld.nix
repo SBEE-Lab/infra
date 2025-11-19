@@ -20,6 +20,7 @@ in {
         config.boot.kernelPackages.nvidiaPackages.production
         cudaPackages.cuda_cudart
         cudaPackages.cudnn
+        cudaPackages.cudatoolkit
       ];
   };
 }
