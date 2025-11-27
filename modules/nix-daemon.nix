@@ -1,11 +1,12 @@
 # https://github.com/nix-community/infra/blob/d886971901070f0d1f5265cef08582051c856e7d/modules/shared/nix-daemon.nix
 {lib, ...}: let
   asGB = size: toString (size * 1024 * 1024 * 1024);
+  inherit (lib) mkDefault;
 in {
   nix = {
-    gc.automatic = lib.mkDefault true;
-    gc.dates = "";
-    gc.options = lib.mkDefault "--delete-older-than 14d";
+    gc.automatic = mkDefault true;
+    gc.dates = mkDefault "monthly";
+    gc.options = mkDefault "--delete-older-than 14d";
     gc.randomizedDelaySec = "1h";
 
     settings = {
