@@ -40,8 +40,8 @@ let
       "modules/acme/secrets.yaml" = [
         "eta"
       ];
-      "modules/harmonia/secrets.yaml" = [
-        "psi"
+      "modules/attic/secrets.yaml" = [
+        "eta"
       ];
       "modules/minio/secrets.yaml" = [
         "tau"
@@ -59,6 +59,7 @@ let
     // {
       "modules/sshd/[^/]+\\.yaml$" = [];
       "terraform/secrets.yaml" = [];
+      "^\\.secrets\\.yaml$" = [];
     };
 in {
   creation_rules = renderPermissions sopsPermissions;

@@ -10,18 +10,16 @@ in {
     gc.randomizedDelaySec = "1h";
 
     settings = {
-      trusted-substituters = ["http://10.200.0.2:5000"];
-
       substituters = [
-        "http://10.200.0.2:5000"
         "https://cache.nixos.org"
         "https://nix-community.cachix.org"
+        "https://cache.sjanglab.org/infra"
       ];
 
       trusted-public-keys = [
-        "cache.sjanglab.org-1:qnmAmr3qctcLiatkrtYX3OpvFKP4Z9whK8pLtSdCgPw="
         "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
         "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+        "infra:I/HTgvj5en5tiRtunBNFLkthLFBu3Gz39OvYEss/Td4="
       ];
 
       system-features = [

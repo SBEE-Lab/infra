@@ -6,6 +6,7 @@
         python3.pkgs.invoke
         python3.pkgs.deploykit
         python3.pkgs.bcrypt
+        attic-client
 
         # nix tools
         nixVersions.latest

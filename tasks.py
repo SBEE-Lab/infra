@@ -80,7 +80,6 @@ def update_sops_files(c: Any) -> None:
 
     for i, line in enumerate(lines):
         if "Syncing keys for file" in line:
-            # 다음 줄이 "already up to date"가 아니면 변경됨
             if i + 1 >= len(lines) or "already up to date" not in lines[i + 1]:
                 filename = line.split("file ")[-1]
                 updated_files.append(filename)
@@ -438,9 +437,10 @@ def list_services(c: Any, host: str, pattern: str = "") -> None:
 
 
 @task
-def add_server(c: Any, hostname: str) -> None:
+def add_server(c: Any, hostname: str, skip_attic: bool = False) -> None:
     """
-    Generate new server keys and configurations for a given hostname and hardware config
+    Generate new server keys and configurations for a given hostname and hardware config.
+    Use --skip-attic if attic server is not yet available.
     """
 
     print(f"Adding {hostname}")
@@ -479,6 +479,20 @@ def add_server(c: Any, hostname: str) -> None:
 
     print("Generating Wireguard key")
     generate_wireguard_key(c, hostname)
+
+    if not skip_attic:
+        print("Generating Attic token")
+        try:
+            token = generate_attic_token_for_host(c, hostname)
+            c.run(
+                f"sops --set '[\"attic-token\"] {json.dumps(token)}' {sops_file}",
+            )
+            print("✓ Attic token added")
+        except Exception as e:
+            print(f"⚠ Attic token generation failed: {e}")
+            print(f"  Run 'inv attic-generate-host-token --hostname {hostname}' later")
+    else:
+        print("Skipping Attic token generation (--skip-attic)")
 
     print("Generating age key")
     key_ed = subprocess.Popen(
@@ -665,6 +679,108 @@ def expired_accounts_json(_: Any) -> None:
     }
 
     print(json.dumps(result, indent=2))
+
+
+# =============================================================================
+# Attic Cache Management
+# =============================================================================
+
+ATTIC_HOST = "eta"
+ATTIC_INFRA_CACHE = "infra"  # Private cache for infra hosts
+
+
+@task
+def attic_make_token(
+    c: Any,
+    sub: str,
+    validity: str = "1y",
+    caches: str = "main",
+    push: bool = True,
+    pull: bool = True,
+    create_cache: bool = False,
+    configure_cache: bool = False,
+    delete: bool = False,
+) -> None:
+    """
+    Create an attic token on the cache server.
+    e.g., inv attic-make-token --sub ci --validity 1y --caches main
+          inv attic-make-token --sub admin --validity 10y --caches "*" --create-cache --configure-cache --delete
+    """
+    cmd_parts = [
+        "atticd-atticadm",
+        "make-token",
+        f"--sub {shlex.quote(sub)}",
+        f"--validity {shlex.quote(validity)}",
+    ]
+
+    cache_list = caches.split(",")
+    for cache in cache_list:
+        cache = cache.strip()
+        if pull:
+            cmd_parts.append(f"--pull {shlex.quote(cache)}")
+        if push:
+            cmd_parts.append(f"--push {shlex.quote(cache)}")
+        if delete:
+            cmd_parts.append(f"--delete {shlex.quote(cache)}")
+        if create_cache:
+            cmd_parts.append(f"--create-cache {shlex.quote(cache)}")
+        if configure_cache:
+            cmd_parts.append(f"--configure-cache {shlex.quote(cache)}")
+            cmd_parts.append(f"--configure-cache-retention {shlex.quote(cache)}")
+
+    cmd = " ".join(cmd_parts)
+    print(f"Creating token for '{sub}' with access to: {caches}")
+    c.run(f"ssh root@{ATTIC_HOST} {shlex.quote(cmd)}", echo=True)
+
+
+@task
+def attic_gc(c: Any) -> None:
+    """
+    Trigger garbage collection on the attic server.
+    """
+    print(f"Triggering GC on {ATTIC_HOST}...")
+    c.run(f"ssh root@{ATTIC_HOST} 'atticd --mode garbage-collector-once'", echo=True)
+    print("✓ Garbage collection completed")
+
+
+def generate_attic_token_for_host(c: Any, hostname: str) -> str:
+    """
+    Generate an attic token for a host to access the infra cache.
+    Returns the token string.
+    """
+    cmd = (
+        f"atticd-atticadm make-token "
+        f"--sub {shlex.quote(hostname)} "
+        f"--validity '10y' "
+        f"--pull {shlex.quote(ATTIC_INFRA_CACHE)} "
+        f"--push {shlex.quote(ATTIC_INFRA_CACHE)}"
+    )
+    result = c.run(f"ssh root@{ATTIC_HOST} {shlex.quote(cmd)}", hide=True)
+    token = result.stdout.strip()
+    return token
+
+
+@task
+def attic_generate_host_token(c: Any, hostname: str) -> None:
+    """
+    Generate attic token for a host and add it to the host's sops secrets.
+    e.g., inv attic-generate-host-token --hostname psi
+    """
+    sops_file = f"{ROOT}/hosts/{hostname}.yaml"
+
+    print(f"Generating attic token for '{hostname}'...")
+    token = generate_attic_token_for_host(c, hostname)
+
+    if not Path(sops_file).exists():
+        print(f"Error: {sops_file} does not exist")
+        return
+
+    print(f"Adding token to {sops_file}...")
+    c.run(
+        f"sops --set '[\"attic-token\"] {json.dumps(token)}' {sops_file}",
+        echo=True,
+    )
+    print(f"✓ Attic token added for '{hostname}'")
 
 
 @task

@@ -23,6 +23,9 @@
 
   inputs = {
     # keep-sorted start
+    attic.inputs.flake-compat.follows = "";
+    attic.inputs.nixpkgs.follows = "nixpkgs";
+    attic.url = "github:zhaofengli/attic";
     disko.inputs.nixpkgs.follows = "nixpkgs";
     disko.url = "github:nix-community/disko";
     flake-parts.inputs.nixpkgs-lib.follows = "nixpkgs";
