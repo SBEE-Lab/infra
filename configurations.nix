@@ -21,17 +21,18 @@
     };
 
   commonModules = [
-    ./modules/users/admins.nix
-    ./modules/users/extra-user-options.nix
+    ./modules/auto-upgrade.nix
+    ./modules/cleanup-usr.nix
+    ./modules/hosts.nix
+    ./modules/network.nix
     ./modules/nix-daemon.nix
     ./modules/nix-index.nix
-    ./modules/hosts.nix
-    ./modules/cleanup-usr.nix
-    ./modules/sshd
-    ./modules/network.nix
     ./modules/packages.nix
     ./modules/register-flake.nix
-    ./modules/auto-upgrade.nix
+    ./modules/sshd
+    ./modules/tmux.nix
+    ./modules/users/admins.nix
+    ./modules/users/extra-user-options.nix
 
     disko.nixosModules.disko
     srvos.nixosModules.server
