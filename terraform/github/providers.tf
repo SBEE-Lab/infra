@@ -11,5 +11,5 @@ terraform {
 
 provider "github" {
   owner = "SBEE-lab"
-  token = data.sops_file.secrets.data["GITHUB_TOKEN"]
+  token = local.github_token
 }

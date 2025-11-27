@@ -3,13 +3,17 @@
   lib,
   pkgs,
   ...
-}: {
+}: let
+  inherit (config.networking.sbee) currentHost hosts;
+in {
   services.postgresql = {
     enable = true;
     package = pkgs.postgresql_17;
 
     settings = {
-      listen_addresses = lib.mkForce config.networking.sbee.currentHost.wg-mgnt;
+      # Base: listen on wg-mgnt only (terraform, replication)
+      # buildbot/database.nix will extend this to include wg-serv
+      listen_addresses = lib.mkDefault currentHost.wg-mgnt;
       port = 5432;
 
       wal_level = "replica";
@@ -32,6 +36,7 @@
       }
     ];
 
+    # Identity map: wheel users -> terraform (for peer auth on rho local)
     identMap = lib.pipe config.users.users [
       (lib.filterAttrs (_: u: lib.elem "wheel" (u.extraGroups or [])))
       lib.attrNames
@@ -40,12 +45,14 @@
     ];
 
     authentication = ''
+      # Local peer authentication for terraform (wheel users on rho)
       local terraform terraform peer map=tf_map
 
-      host replication replicator ${config.networking.sbee.hosts.tau.wg-mgnt}/32 scram-sha-256
+      # Replication from tau via wg-mgnt
+      host replication replicator ${hosts.tau.wg-mgnt}/32 scram-sha-256
 
-      # Terraform backend access from wg-mgnt network
-      host terraform terraform 10.100.0.0/24 scram-sha-256
+      # Terraform backend access from eta (SSH tunnel) via wg-mgnt
+      host terraform terraform ${hosts.eta.wg-mgnt}/32 scram-sha-256
     '';
   };
 
@@ -99,4 +106,7 @@
         '')
         terraformModules}
     '';
+
+  # Firewall: PostgreSQL from wg-mgnt (terraform, replication)
+  networking.firewall.interfaces.wg-mgnt.allowedTCPPorts = [5432];
 }

@@ -5,7 +5,8 @@ resource "github_repository" "infra" {
   topics = [
     "nixos",
     "terraform",
-    "infra"
+    "infra",
+    "buildbot-sbee"
   ]
 
   allow_auto_merge       = true

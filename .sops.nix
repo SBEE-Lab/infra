@@ -43,12 +43,13 @@ let
       "modules/attic/secrets.yaml" = [
         "eta"
       ];
-      "modules/harmonia/secrets.yaml" = [
-        "eta"
+      "modules/buildbot/secrets.yaml" = [
+        "psi"
+        "rho"
       ];
-      "terraform/cloudflare/secrets.yaml" = ["eta"];
-      "terraform/github/secrets.yaml" = [];
-      "terraform/vultr/secrets.yaml" = [];
+      "terraform/cloudflare/secrets.yaml" = ["rho"];
+      "terraform/github/secrets.yaml" = ["rho"];
+      "terraform/vultr/secrets.yaml" = ["rho"];
     }
     // {
       "modules/sshd/[^/]+\\.yaml$" = [];
