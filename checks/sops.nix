@@ -28,7 +28,7 @@
         cp --no-preserve=mode -rT $files .
         nix --extra-experimental-features nix-command eval --json -f .sops.nix | yq e -P - > .sops.yaml
         diff -u $files/.sops.yaml .sops.yaml
-        fd -e yaml --exclude **/minio/secrets.yaml -x sops updatekeys --yes {}
+        fd -e yaml -x sops updatekeys --yes {}
         touch $out
       '';
   };

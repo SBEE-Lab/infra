@@ -43,14 +43,8 @@ let
       "modules/attic/secrets.yaml" = [
         "eta"
       ];
-      "modules/minio/secrets.yaml" = [
-        "tau"
-        "rho"
-      ];
-      # identical with modules/minio/secrets.yaml
-      "terraform/minio/secrets.yaml" = [
-        "tau"
-        "rho"
+      "modules/harmonia/secrets.yaml" = [
+        "eta"
       ];
       "terraform/cloudflare/secrets.yaml" = ["eta"];
       "terraform/github/secrets.yaml" = [];
