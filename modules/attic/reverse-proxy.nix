@@ -1,7 +1,12 @@
-{config, ...}: let
+{
+  config,
+  inputs,
+  ...
+}: let
   cacheDomain = "cache.sjanglab.org";
 in {
   imports = [
+    inputs.attic.nixosModules.atticd
     ../acme
     ./default.nix
   ];
