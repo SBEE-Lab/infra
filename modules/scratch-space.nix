@@ -1,16 +1,13 @@
-# R     /dir/to/remove/recursively               -    -    -     -           -
+# R     /dir/to/remove/recursively - - - - -
 {
   lib,
   config,
   ...
 }: {
-  # Create scratch space per user.
-  # The scratch space is not backed up!
-  # /scratch is stored on the local rootfs (usually zfs) instead of NFS
-  # /scratch2 is meant for dedicated storage devices. We usually use a faster
-  #           more common filesystem i.e. ext4. Use this for
-  #           benchmarks/evaluation if present. This block device might be more
-  #           of re-formatted in order to have consistent measurement results
+  # Create scratch space per user on dedicated high-speed storage.
+  # The scratch space is for temporary/intermediate data (not backed up).
+  # /scratch is mounted on the RAID array (8TB x2 SSD RAID0 on psi).
+  # Use this for I/O intensive workloads, benchmarks, and temporary files.
   systemd.tmpfiles.rules = let
     loginUsers = lib.filterAttrs (_n: v: v.isNormalUser || v.name == "root") config.users.users;
   in
