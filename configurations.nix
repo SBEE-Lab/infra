@@ -3,7 +3,7 @@
   inputs,
   ...
 }: let
-  inherit (inputs) nixpkgs disko sops-nix srvos;
+  inherit (inputs) nixpkgs disko sops-nix srvos colmena;
 
   system = "x86_64-linux";
 
@@ -82,5 +82,25 @@ in {
     rho = nixosSystem (commonModules ++ [./hosts/rho.nix]);
     tau = nixosSystem (commonModules ++ [./hosts/tau.nix]);
     eta = nixosSystem (commonModules ++ [./hosts/eta.nix]);
+  };
+
+  flake.colmenaHive = colmena.lib.makeHive {
+    meta = {
+      nixpkgs = pkgs;
+      specialArgs = {inherit self inputs;};
+    };
+
+    defaults = {name, ...}: {
+      deployment = {
+        targetHost = name;
+        targetUser = "root";
+        buildOnTarget = true;
+      };
+    };
+
+    psi = {imports = computeModules ++ [./hosts/psi.nix];};
+    rho = {imports = commonModules ++ [./hosts/rho.nix];};
+    tau = {imports = commonModules ++ [./hosts/tau.nix];};
+    eta = {imports = commonModules ++ [./hosts/eta.nix];};
   };
 }

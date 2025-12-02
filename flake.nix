@@ -31,6 +31,8 @@
     attic.inputs.nixpkgs.follows = "nixpkgs";
     attic.url = "github:zhaofengli/attic";
     buildbot-nix.url = "github:nix-community/buildbot-nix";
+    colmena.inputs.nixpkgs.follows = "nixpkgs";
+    colmena.url = "github:zhaofengli/colmena";
     disko.inputs.nixpkgs.follows = "nixpkgs";
     disko.url = "github:nix-community/disko";
     flake-parts.inputs.nixpkgs-lib.follows = "nixpkgs";

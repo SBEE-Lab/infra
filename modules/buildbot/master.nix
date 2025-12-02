@@ -50,6 +50,16 @@ in {
         ];
         warnOnly = true;
       }
+      {
+        name = "Deploy to hosts";
+        command = [
+          "colmena"
+          "apply"
+          "--parallel"
+          "0" # unlimited parallelism for all 4 nodes
+        ];
+        warnOnly = true; # don't fail the build if deployment fails
+      }
     ];
   };
 

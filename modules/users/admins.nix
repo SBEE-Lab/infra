@@ -16,6 +16,10 @@
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN48qMQAJGeDA+qs1o6T2+p9WyyYnyE1366IB6zzvmSD"
   ];
 
+  buildbotDeployKey = [
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEcKzpOA5ITGQgJxA2GitIqlB4vuY8ZBngC1zobfOpTT buildbot-worker@psi"
+  ];
+
   # ADD YOUR SSH PUBLIC KEY FOR SERVER CONNECTION
   # testUserKeys = [
   # "ssh-ed25519 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA+bbbbbbbbbbbbbbbbbbbbbbbbbbbb"
@@ -29,6 +33,11 @@
   ];
 in {
   users.users = {
+    root = {
+      hashedPasswordFile = lib.mkIf config.users.withSops config.sops.secrets.root-password-hash.path;
+      openssh.authorizedKeys.keys = seungwonKeys ++ buildbotDeployKey;
+    };
+
     # Seungwon Lee
     seungwon = {
       isNormalUser = true;
@@ -53,11 +62,6 @@ in {
     #     expires = "2026-08-31"; # for student group, expiration must be specified
     #   };
     # };
-
-    root = {
-      hashedPasswordFile = lib.mkIf config.users.withSops config.sops.secrets.root-password-hash.path;
-      openssh.authorizedKeys.keys = seungwonKeys;
-    };
   };
 
   nix.settings.trusted-users = [

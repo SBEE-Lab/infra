@@ -82,6 +82,18 @@ in {
     };
   };
   config = {
+    # Generate /etc/hosts entries for all hosts using WireGuard management IPs
+    # This allows servers to resolve each other by hostname (e.g., ssh psi)
+    networking.hosts = lib.mkMerge (
+      lib.mapAttrsToList (
+        name: host:
+          lib.optionalAttrs (host.wg-mgnt != null) {
+            ${host.wg-mgnt} = [name];
+          }
+      )
+      config.networking.sbee.hosts
+    );
+
     warnings =
       lib.optional
       (

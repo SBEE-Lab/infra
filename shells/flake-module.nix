@@ -1,5 +1,9 @@
-{
-  perSystem = {pkgs, ...}: {
+{inputs, ...}: {
+  perSystem = {
+    pkgs,
+    system,
+    ...
+  }: {
     devShells.default = pkgs.mkShellNoCC {
       buildInputs = with pkgs; [
         # deploy tools
@@ -7,6 +11,7 @@
         python3.pkgs.deploykit
         python3.pkgs.bcrypt
         attic-client
+        inputs.colmena.packages.${system}.colmena
 
         # nix tools
         nixVersions.latest

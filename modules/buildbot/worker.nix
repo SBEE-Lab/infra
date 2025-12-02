@@ -6,6 +6,8 @@
   ...
 }: let
   inherit (config.networking.sbee) hosts;
+  colmena-pkg = inputs.colmena.packages.${pkgs.system}.colmena;
+  sshPort = 10022;
 in {
   imports = [inputs.buildbot-nix.nixosModules.buildbot-worker];
 
@@ -15,12 +17,30 @@ in {
     masterUrl = "tcp:host=${hosts.psi.wg-serv}:port=9989";
   };
 
-  # Add attic-client to worker PATH for postBuildSteps
-  systemd.services.buildbot-worker.path = [pkgs.attic-client];
+  systemd.services.buildbot-worker.path = [
+    pkgs.attic-client
+    colmena-pkg
+  ];
 
-  sops.secrets.buildbot-worker-password = {
-    sopsFile = ./secrets.yaml;
-    owner = "buildbot-worker";
-    group = "buildbot-worker";
+  # SSH client config for buildbot-worker
+  # Host key verification uses SSH CA (configured in modules/sshd)
+  programs.ssh.extraConfig = ''
+    Match User buildbot-worker
+        IdentityFile /run/secrets/buildbot-deploy-key
+        Port ${toString sshPort}
+  '';
+
+  sops.secrets = {
+    buildbot-worker-password = {
+      sopsFile = ./secrets.yaml;
+      owner = "buildbot-worker";
+      group = "buildbot-worker";
+    };
+    buildbot-deploy-key = {
+      sopsFile = ./secrets.yaml;
+      owner = "buildbot-worker";
+      group = "buildbot-worker";
+      mode = "0400";
+    };
   };
 }
