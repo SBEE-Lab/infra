@@ -13,7 +13,7 @@ terraform {
 }
 
 provider "vultr" {
-  api_key     = local.vultr_api_token
+  api_key     = data.sops_file.secrets.data["VULTR_API_TOKEN"]
   rate_limit  = 700
   retry_limit = 3
 }

@@ -11,5 +11,5 @@ terraform {
 }
 
 provider "cloudflare" {
-  api_token = local.cloudflare_api_token
+  api_token = data.sops_file.secrets.data["CLOUDFLARE_API_TOKEN"]
 }
