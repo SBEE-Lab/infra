@@ -30,6 +30,21 @@ in {
 
     authBackend = "github";
     admins = ["mulatta"];
+
+    postBuildSteps = [
+      {
+        name = "Push to Attic";
+        environment = {
+          ATTIC_TOKEN = "%(secret:attic-token)s";
+        };
+        command = [
+          "sh"
+          "-c"
+          "attic login sbee https://cache.sjanglab.org $ATTIC_TOKEN && attic push sbee:infra result-%(prop:attr)s"
+        ];
+        warnOnly = true;
+      }
+    ];
   };
 
   services.buildbot-master.dbUrl = lib.mkForce "postgresql://buildbot@${hosts.rho.wg-serv}/buildbot";
@@ -69,7 +84,16 @@ in {
       owner = "buildbot";
       mode = "0400";
     };
+    attic-auth-token = {
+      sopsFile = ./secrets.yaml;
+      owner = "buildbot";
+      mode = "0400";
+    };
   };
+
+  systemd.services.buildbot-master.serviceConfig.LoadCredential = [
+    "attic-token:${config.sops.secrets.attic-auth-token.path}"
+  ];
 
   users.users.buildbot = {
     isSystemUser = true;

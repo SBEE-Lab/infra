@@ -1,5 +1,9 @@
 {
   description = "SBEE laboratory infrastructures flake";
+  nixConfig = {
+    extra-substituters = ["https://cache.sjanglab.org/infra"];
+    extra-trusted-public-keys = ["infra:I/HTgvj5en5tiRtunBNFLkthLFBu3Gz39OvYEss/Td4="];
+  };
   outputs = inputs @ {flake-parts, ...}:
     flake-parts.lib.mkFlake {inherit inputs;} {
       systems = import inputs.systems;

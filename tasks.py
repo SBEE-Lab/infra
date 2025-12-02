@@ -481,16 +481,19 @@ def add_server(c: Any, hostname: str, skip_attic: bool = False) -> None:
     generate_wireguard_key(c, hostname)
 
     if not skip_attic:
-        print("Generating Attic token")
+        print("Generating Attic token (pull only)")
         try:
-            token = generate_attic_token_for_host(c, hostname)
+            token = generate_attic_token_for_host(c, hostname, push=False, pull=True)
             c.run(
                 f"sops --set '[\"attic-token\"] {json.dumps(token)}' {sops_file}",
             )
-            print("✓ Attic token added")
+            print("✓ Attic token added (pull)")
+            print(
+                f"  Note: Run 'inv generate-attic-host-token --hostname {hostname} --push' if push access needed"
+            )
         except Exception as e:
             print(f"⚠ Attic token generation failed: {e}")
-            print(f"  Run 'inv attic-generate-host-token --hostname {hostname}' later")
+            print(f"  Run 'inv generate-attic-host-token --hostname {hostname}' later")
     else:
         print("Skipping Attic token generation (--skip-attic)")
 
@@ -743,41 +746,68 @@ def attic_gc(c: Any) -> None:
     print("✓ Garbage collection completed")
 
 
-def generate_attic_token_for_host(c: Any, hostname: str) -> str:
+def generate_attic_token_for_host(
+    c: Any,
+    hostname: str,
+    push: bool = False,
+    pull: bool = True,
+    validity: str = "10y",
+) -> str:
     """
     Generate an attic token for a host to access the infra cache.
     Returns the token string.
     """
-    cmd = (
-        f"atticd-atticadm make-token "
-        f"--sub {shlex.quote(hostname)} "
-        f"--validity '10y' "
-        f"--pull {shlex.quote(ATTIC_INFRA_CACHE)} "
-        f"--push {shlex.quote(ATTIC_INFRA_CACHE)}"
-    )
+    cmd_parts = [
+        "atticd-atticadm make-token",
+        f"--sub {shlex.quote(hostname)}",
+        f"--validity {shlex.quote(validity)}",
+    ]
+    if pull:
+        cmd_parts.append(f"--pull {shlex.quote(ATTIC_INFRA_CACHE)}")
+    if push:
+        cmd_parts.append(f"--push {shlex.quote(ATTIC_INFRA_CACHE)}")
+
+    cmd = " ".join(cmd_parts)
     result = c.run(f"ssh root@{ATTIC_HOST} {shlex.quote(cmd)}", hide=True)
     token = result.stdout.strip()
     return token
 
 
 @task
-def attic_generate_host_token(c: Any, hostname: str) -> None:
+def generate_attic_host_token(
+    c: Any,
+    hostname: str,
+    push: bool = False,
+    pull: bool = True,
+    validity: str = "10y",
+    sops_file: str = "",
+    secret_name: str = "attic-token",
+) -> None:
     """
-    Generate attic token for a host and add it to the host's sops secrets.
-    e.g., inv attic-generate-host-token --hostname psi
+    Generate attic token for a host and add it to sops secrets.
+    e.g., inv generate-attic-host-token --hostname rho              # pull only
+          inv generate-attic-host-token --hostname psi --push       # push + pull
+          inv generate-attic-host-token --hostname buildbot --push --sops-file modules/buildbot/secrets.yaml --secret-name attic-auth-token
     """
-    sops_file = f"{ROOT}/hosts/{hostname}.yaml"
+    if not sops_file:
+        sops_file = f"{ROOT}/hosts/{hostname}.yaml"
 
-    print(f"Generating attic token for '{hostname}'...")
-    token = generate_attic_token_for_host(c, hostname)
+    perms = []
+    if pull:
+        perms.append("pull")
+    if push:
+        perms.append("push")
+    print(f"Generating attic token for '{hostname}' with permissions: {', '.join(perms)}")
+
+    token = generate_attic_token_for_host(c, hostname, push=push, pull=pull, validity=validity)
 
     if not Path(sops_file).exists():
         print(f"Error: {sops_file} does not exist")
         return
 
-    print(f"Adding token to {sops_file}...")
+    print(f"Adding token to {sops_file} as '{secret_name}'...")
     c.run(
-        f"sops --set '[\"attic-token\"] {json.dumps(token)}' {sops_file}",
+        f"sops --set '[\"{secret_name}\"] {json.dumps(token)}' {sops_file}",
         echo=True,
     )
     print(f"✓ Attic token added for '{hostname}'")
