@@ -6,6 +6,8 @@
     ../modules/wake-on-lan.nix
     ../modules/postgresql
     ../modules/buildbot/database.nix
+    ../modules/borgbackup/rho/client.nix
+    ../modules/borgbackup/mirror.nix
   ];
 
   disko.rootDisk = "/dev/disk/by-id/nvme-eui.00000000000000006479a79cdac0038a";

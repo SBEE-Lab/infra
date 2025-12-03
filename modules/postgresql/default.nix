@@ -56,14 +56,8 @@ in {
     '';
   };
 
-  services.postgresqlBackup = {
-    enable = true;
-    databases = ["terraform"];
-    compression = "zstd";
-    compressionLevel = 3;
-    startAt = "*-*-* 02:00:00";
-    location = "/var/backup/postgresql";
-  };
+  # PostgreSQL backup is handled by borgbackup/rho/client.nix
+  # which runs pg_dumpall before borg backup
 
   sops.secrets.pg-replicator-password = {
     owner = "postgres";

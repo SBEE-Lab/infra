@@ -40,6 +40,7 @@ let
       "modules/acme/secrets.yaml" = ["eta"];
       "modules/attic/secrets.yaml" = ["eta"];
       "modules/borgbackup/psi/secrets.yaml" = ["psi"];
+      "modules/borgbackup/rho/secrets.yaml" = ["rho"];
       "modules/buildbot/secrets.yaml" = ["psi" "rho"];
       "terraform/cloudflare/secrets.yaml" = [];
       "terraform/github/secrets.yaml" = [];
