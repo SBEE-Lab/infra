@@ -39,6 +39,7 @@ let
       "modules/users/xrdp-passwords.yaml" = ["psi"];
       "modules/acme/secrets.yaml" = ["eta"];
       "modules/attic/secrets.yaml" = ["eta"];
+      "modules/borgbackup/psi/secrets.yaml" = ["psi"];
       "modules/buildbot/secrets.yaml" = ["psi" "rho"];
       "terraform/cloudflare/secrets.yaml" = [];
       "terraform/github/secrets.yaml" = [];
