@@ -17,7 +17,7 @@
       "backend.tf"
       "target/*"
     ];
-    repo = "borg@${config.networking.sbee.hosts.tau.wg-mgnt}";
+    repo = "borg@${config.networking.sbee.hosts.tau.wg-mgnt}:/backup/borg/psi";
     encryption = {
       mode = "repokey-blake2";
       passCommand = "cat ${config.sops.secrets.borg-passphrase.path}";
@@ -34,8 +34,7 @@
     };
     postHook = ''
       if [ "$exitStatus" != "0" ]; then
-        echo "Borgbackup failed on $(hostname) with status $exitStatus at $(date)" \
-          | systemd-cat -t borgbackup -p err
+        echo "Borgbackup failed on ${config.networking.hostName} with status $exitStatus" >&2
       fi
     '';
   };
