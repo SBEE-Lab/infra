@@ -63,8 +63,13 @@ in {
               ATTR="%(prop:attr)s"
               if [[ "$ATTR" == *.nixos-* ]]; then
                 HOST="''${ATTR##*.nixos-}"
-                echo "Deploying to $HOST..."
-                deploy --skip-checks "github:%(prop:project)s/%(prop:revision)s#$HOST"
+                if [[ "$HOST" == "psi" ]]; then
+                  # psi is buildbot worker host, skip auto-deploy (manual deployment required)
+                  echo "Skipping psi deployment (manual deployment required)"
+                else
+                  echo "Deploying to $HOST..."
+                  deploy --skip-checks "github:%(prop:project)s/%(prop:revision)s#$HOST"
+                fi
               else
                 echo "Skipping deployment for non-nixos check: $ATTR"
               fi
