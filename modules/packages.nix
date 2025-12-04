@@ -18,6 +18,7 @@ in {
     )
     iperf3
     hyperfine
+    perf
     ookla-speedtest
     somo
 
