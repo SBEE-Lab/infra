@@ -7,7 +7,16 @@
       config.allowUnfree = true;
     };
   in {
-    inherit (unstable) ntfy-sh somo opentofu buildbot buildbot-worker buildbot-plugins;
+    inherit
+      (unstable)
+      ntfy-sh
+      somo
+      opentofu
+      buildbot
+      buildbot-worker
+      buildbot-plugins
+      perf
+      ;
     inherit unstable;
   })
 ]

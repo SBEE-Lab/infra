@@ -56,7 +56,7 @@
     toolz.inputs.nixpkgs.follows = "nixpkgs";
     toolz.inputs.systems.follows = "systems";
     toolz.inputs.treefmt-nix.follows = "treefmt-nix";
-    toolz.url = "github:zmblr/toolz";
+    toolz.url = "github:zmblr/toolz/release-25.05";
     treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
     treefmt-nix.url = "github:numtide/treefmt-nix";
     # keep-sorted end
