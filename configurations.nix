@@ -33,6 +33,7 @@
     ./modules/tmux.nix
     ./modules/users/admins.nix
     ./modules/users/extra-user-options.nix
+    ./modules/zram.nix
 
     disko.nixosModules.disko
     srvos.nixosModules.server
