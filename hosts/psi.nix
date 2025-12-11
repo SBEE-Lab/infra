@@ -14,11 +14,11 @@
   disko.xfsMdadm = {
     enable = true;
     arrays = {
-      # SSD RAID0 for scratch (16TB total)
-      scratch = {
+      # SSD RAID0 for workspace (16TB total)
+      workspace = {
         disks.ssd1 = "/dev/disk/by-id/nvme-Samsung_SSD_9100_PRO_8TB_S7YHNJ0YA05025J";
         disks.ssd2 = "/dev/disk/by-id/nvme-Samsung_SSD_9100_PRO_8TB_S7YHNJ0YA02750H";
-        mountpoint = "/scratch";
+        mountpoint = "/workspace";
         extraXfsOptions = [
           "allocsize=16m"
         ];

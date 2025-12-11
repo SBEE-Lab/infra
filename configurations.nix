@@ -72,7 +72,7 @@
     ++ [
       ./modules/research-utility.nix
       ./modules/project-space.nix
-      ./modules/scratch-space.nix
+      ./modules/workspace-space.nix
       ./modules/blobs-space.nix
       ./modules/nix-ld.nix
     ];
