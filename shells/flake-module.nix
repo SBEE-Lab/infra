@@ -10,7 +10,6 @@
         python3.pkgs.invoke
         python3.pkgs.deploykit
         python3.pkgs.bcrypt
-        attic-client
         inputs.deploy-rs.packages.${system}.deploy-rs
 
         # nix tools

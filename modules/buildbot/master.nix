@@ -33,24 +33,6 @@ in {
 
     postBuildSteps = [
       {
-        name = "Push to Attic";
-        environment = {
-          ATTIC_TOKEN = {
-            _type = "interpolate";
-            value = "%(secret:attic-token)s";
-          };
-        };
-        command = [
-          "sh"
-          "-c"
-          {
-            _type = "interpolate";
-            value = "attic login sbee https://cache.sjanglab.org $ATTIC_TOKEN && attic push sbee:infra result-%(prop:attr)s";
-          }
-        ];
-        warnOnly = true;
-      }
-      {
         name = "Deploy to host";
         command = [
           "sh"
@@ -118,16 +100,7 @@ in {
       owner = "buildbot";
       mode = "0400";
     };
-    attic-auth-token = {
-      sopsFile = ./secrets.yaml;
-      owner = "buildbot";
-      mode = "0400";
-    };
   };
-
-  systemd.services.buildbot-master.serviceConfig.LoadCredential = [
-    "attic-token:${config.sops.secrets.attic-auth-token.path}"
-  ];
 
   users.users.buildbot = {
     isSystemUser = true;

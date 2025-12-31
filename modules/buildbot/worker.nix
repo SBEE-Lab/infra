@@ -20,7 +20,6 @@ in {
   nix.settings.trusted-users = ["buildbot-worker"];
 
   systemd.services.buildbot-worker.path = [
-    pkgs.attic-client
     deploy-rs-pkg
   ];
 

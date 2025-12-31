@@ -42,7 +42,6 @@
 
     ./modules/users
     ./modules/bootloader.nix
-    ./modules/attic/client.nix
     sops-nix.nixosModules.sops
     (
       {
@@ -51,18 +50,13 @@
         ...
       }: let
         sopsFile = ./. + "/hosts/${config.networking.hostName}.yaml";
-        # Check if attic-token exists in the sops file
       in {
         users.withSops = builtins.pathExists sopsFile;
         sops.secrets = lib.mkIf config.users.withSops {
           root-password-hash.neededForUsers = true;
-          # attic-token will be added per-host after running inv attic-generate-host-token
-          attic-token = lib.mkIf config.services.attic-client.enable {};
         };
         sops.defaultSopsFile = lib.mkIf (builtins.pathExists sopsFile) sopsFile;
         time.timeZone = lib.mkForce "Asia/Seoul";
-
-        services.attic-client.enable = true;
       }
     )
   ];
