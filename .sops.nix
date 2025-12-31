@@ -41,6 +41,7 @@ let
       "modules/borgbackup/psi/secrets.yaml" = ["psi"];
       "modules/borgbackup/rho/secrets.yaml" = ["rho"];
       "modules/buildbot/secrets.yaml" = ["psi" "rho"];
+      "modules/harmonia/secrets.yaml" = ["psi"];
       "modules/monitoring/secrets.yaml" = ["rho"];
       "modules/nfs/secrets.yaml" = ["psi"];
       "modules/users/xrdp-passwords.yaml" = ["psi"];
