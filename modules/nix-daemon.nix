@@ -1,8 +1,10 @@
 # https://github.com/nix-community/infra/blob/d886971901070f0d1f5265cef08582051c856e7d/modules/shared/nix-daemon.nix
-{lib, ...}: let
+{ lib, ... }:
+let
   asGB = size: toString (size * 1024 * 1024 * 1024);
   inherit (lib) mkDefault;
-in {
+in
+{
   nix = {
     gc.automatic = mkDefault true;
     gc.dates = mkDefault "monthly";
@@ -13,7 +15,7 @@ in {
       substituters = [
         "https://cache.nixos.org"
         "https://nix-community.cachix.org"
-        "https://cache.sjanglab.org/infra"
+        "http://10.200.0.2:5000"
       ];
 
       trusted-public-keys = [
@@ -40,5 +42,5 @@ in {
       auto-optimise-store = true;
     };
   };
-  boot.binfmt.emulatedSystems = ["aarch64-linux"];
+  boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
 }
