@@ -1,11 +1,8 @@
 {
   description = "SBEE laboratory infrastructures flake";
-  nixConfig = {
-    extra-substituters = ["https://cache.sjanglab.org/infra"];
-    extra-trusted-public-keys = ["infra:I/HTgvj5en5tiRtunBNFLkthLFBu3Gz39OvYEss/Td4="];
-  };
-  outputs = inputs @ {flake-parts, ...}:
-    flake-parts.lib.mkFlake {inherit inputs;} {
+  outputs =
+    inputs@{ flake-parts, ... }:
+    flake-parts.lib.mkFlake { inherit inputs; } {
       systems = import inputs.systems;
       imports = [
         ./configurations.nix
@@ -16,13 +13,15 @@
         ./shells/flake-module.nix
         ./terraform/flake-module.nix
       ];
-      perSystem = {system, ...}: {
-        _module.args.pkgs = import inputs.nixpkgs {
-          inherit system;
-          config.allowUnfree = true;
-          overlays = import ./overlays {inherit inputs;};
+      perSystem =
+        { system, ... }:
+        {
+          _module.args.pkgs = import inputs.nixpkgs {
+            inherit system;
+            config.allowUnfree = true;
+            overlays = import ./overlays { inherit inputs; };
+          };
         };
-      };
     };
 
   inputs = {
