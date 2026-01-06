@@ -25,7 +25,6 @@
 
         # Other formatters
         keep-sorted.enable = true;
-        typos.enable = true;
         yamlfmt.enable = true;
         taplo.enable = true;
       };
@@ -42,7 +41,6 @@
       in {
         deadnix.excludes = nixExcludes;
         statix.excludes = nixExcludes;
-        typos.excludes = nixExcludes;
       };
 
       settings.global.excludes = [
