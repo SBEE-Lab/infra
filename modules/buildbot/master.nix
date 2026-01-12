@@ -4,17 +4,19 @@
   inputs,
   lib,
   ...
-}: let
+}:
+let
   inherit (config.networking.sbee) hosts;
   buildbotDomain = "buildbot.sjanglab.org";
-in {
-  imports = [inputs.buildbot-nix.nixosModules.buildbot-master];
+in
+{
+  imports = [ inputs.buildbot-nix.nixosModules.buildbot-master ];
 
   services.buildbot-nix.master = {
     enable = true;
     domain = buildbotDomain;
     workersFile = config.sops.secrets.buildbot-workers.path;
-    buildSystems = ["x86_64-linux"];
+    buildSystems = [ "x86_64-linux" ];
     evalWorkerCount = 8;
     evalMaxMemorySize = 8192;
 
@@ -25,11 +27,11 @@ in {
       webhookSecretFile = config.sops.secrets.github-webhook-secret.path;
       oauthId = "Ov23lixVe87HVC7XJzqn";
       oauthSecretFile = config.sops.secrets.github-oauth-secret.path;
-      topic = "buildbot-sbee";
+      # topic defaults to "build-with-buildbot"
     };
 
     authBackend = "github";
-    admins = ["mulatta"];
+    admins = [ "mulatta" ];
 
     postBuildSteps = [
       {
@@ -75,7 +77,10 @@ in {
     c["protocols"] = {"pb": {"port": "tcp:9989:interface=${hosts.psi.wg-serv}"}}
   '';
 
-  networking.firewall.interfaces.wg-serv.allowedTCPPorts = [8010 9989];
+  networking.firewall.interfaces.wg-serv.allowedTCPPorts = [
+    8010
+    9989
+  ];
 
   sops.secrets = {
     buildbot-workers = {
@@ -106,5 +111,5 @@ in {
     isSystemUser = true;
     group = "buildbot";
   };
-  users.groups.buildbot = {};
+  users.groups.buildbot = { };
 }

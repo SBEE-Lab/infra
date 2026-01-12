@@ -6,7 +6,7 @@ resource "github_repository" "infra" {
     "nixos",
     "terraform",
     "infra",
-    "buildbot-sbee"
+    "build-with-buildbot"
   ]
 
   allow_auto_merge       = true
