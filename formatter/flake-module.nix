@@ -1,5 +1,6 @@
-{inputs, ...}: {
-  imports = [inputs.treefmt-nix.flakeModule];
+{ inputs, ... }:
+{
+  imports = [ inputs.treefmt-nix.flakeModule ];
   perSystem = {
     treefmt = {
       # Used to find the project root
@@ -7,7 +8,7 @@
 
       programs = {
         # Nix formatters & linters
-        alejandra.enable = true;
+        nixfmt.enable = true;
         deadnix.enable = true;
         statix.enable = true;
 
@@ -29,19 +30,21 @@
         taplo.enable = true;
       };
 
-      settings.formatter = let
-        nixExcludes = [
-          "*.lock"
-          "*/secrets.yaml"
-          "hosts/**.yaml"
-          "modules/users/admins.nix"
-          "modules/users/researchers.nix"
-          "modules/users/students.nix"
-        ];
-      in {
-        deadnix.excludes = nixExcludes;
-        statix.excludes = nixExcludes;
-      };
+      settings.formatter =
+        let
+          nixExcludes = [
+            "*.lock"
+            "*/secrets.yaml"
+            "hosts/**.yaml"
+            "modules/users/admins.nix"
+            "modules/users/researchers.nix"
+            "modules/users/students.nix"
+          ];
+        in
+        {
+          deadnix.excludes = nixExcludes;
+          statix.excludes = nixExcludes;
+        };
 
       settings.global.excludes = [
         "hosts/**.yaml"
