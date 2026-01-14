@@ -5,12 +5,12 @@
 let
   mapAttrsToList = f: attrs: map (name: f name attrs.${name}) (builtins.attrNames attrs);
 
-  renderPermissions = attrs:
+  renderPermissions =
+    attrs:
     mapAttrsToList (path: keys: {
       path_regex = path;
-      key_groups = [{age = keys ++ groups.admin;}];
-    })
-    attrs;
+      key_groups = [ { age = keys ++ groups.admin; } ];
+    }) attrs;
 
   # command to add a new age key for a new host
   # inv print-age-key --hosts "host1,host2"
@@ -30,31 +30,32 @@ let
     builtins.listToAttrs (
       mapAttrsToList (hostname: key: {
         name = "hosts/${hostname}.yaml$";
-        value = [key];
-      })
-      keys.machines
+        value = [ key ];
+      }) keys.machines
     )
     // builtins.mapAttrs (_name: value: (map (x: keys.machines.${x}) value)) {
-      # keep-sorted start
-      "modules/acme/secrets.yaml" = ["eta"];
-      "modules/attic/secrets.yaml" = ["eta"];
-      "modules/borgbackup/psi/secrets.yaml" = ["psi"];
-      "modules/borgbackup/rho/secrets.yaml" = ["rho"];
-      "modules/buildbot/secrets.yaml" = ["psi" "rho"];
-      "modules/harmonia/secrets.yaml" = ["psi"];
-      "modules/monitoring/secrets.yaml" = ["rho"];
-      "modules/nfs/secrets.yaml" = ["psi"];
-      "modules/users/xrdp-passwords.yaml" = ["psi"];
-      "terraform/cloudflare/secrets.yaml" = [];
-      "terraform/github/secrets.yaml" = [];
-      "terraform/vultr/secrets.yaml" = [];
-      # keep-sorted end
+      "modules/acme/secrets.yaml" = [ "eta" ];
+      "modules/attic/secrets.yaml" = [ "eta" ];
+      "modules/borgbackup/psi/secrets.yaml" = [ "psi" ];
+      "modules/borgbackup/rho/secrets.yaml" = [ "rho" ];
+      "modules/buildbot/secrets.yaml" = [
+        "psi"
+        "rho"
+      ];
+      "modules/harmonia/secrets.yaml" = [ "psi" ];
+      "modules/monitoring/secrets.yaml" = [ "rho" ];
+      "modules/nfs/secrets.yaml" = [ "psi" ];
+      "modules/users/xrdp-passwords.yaml" = [ "psi" ];
+      "terraform/cloudflare/secrets.yaml" = [ ];
+      "terraform/github/secrets.yaml" = [ ];
+      "terraform/vultr/secrets.yaml" = [ ];
     }
     // {
-      "modules/sshd/[^/]+\\.yaml$" = [];
-      "terraform/secrets.yaml" = [];
-      "^\\.secrets\\.yaml$" = [];
+      "modules/sshd/[^/]+\\.yaml$" = [ ];
+      "terraform/secrets.yaml" = [ ];
+      "^\\.secrets\\.yaml$" = [ ];
     };
-in {
+in
+{
   creation_rules = renderPermissions sopsPermissions;
 }
