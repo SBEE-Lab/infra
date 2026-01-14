@@ -7,6 +7,7 @@
 }:
 let
   inherit (config.networking.sbee) hosts;
+  inherit (inputs.buildbot-nix.lib) interpolate;
   buildbotDomain = "buildbot.sjanglab.org";
 in
 {
@@ -28,7 +29,38 @@ in
       oauthId = "Ov23lixVe87HVC7XJzqn";
       oauthSecretFile = config.sops.secrets.github-oauth-secret.path;
       # topic defaults to "build-with-buildbot"
+      userAllowlist = [
+        "SBEE-Lab"
+        "mulatta"
+        "zmblr"
+      ];
     };
+
+    # Push to niks3 cache for selected projects
+    postBuildSteps = [
+      {
+        name = "Push to niks3 cache";
+        environment = {
+          NIKS3_SERVER_URL = "https://cache.mulatta.io";
+        };
+        command = [
+          "bash"
+          "-c"
+          (interpolate ''
+            case "%(prop:projectname)s" in
+              mulatta/dots|zmblr/toolz)
+                echo "Pushing to niks3 cache..."
+                niks3 push --auth-token "%(secret:niks3-auth-token)s" "result-%(prop:attr)s"
+                ;;
+              *)
+                echo "Skipping niks3 push for %(prop:projectname)s"
+                ;;
+            esac
+          '')
+        ];
+        warnOnly = true;
+      }
+    ];
 
     authBackend = "github";
     admins = [ "mulatta" ];
@@ -73,6 +105,10 @@ in
       sopsFile = ./secrets.yaml;
       owner = "buildbot";
       mode = "0400";
+    };
+    niks3-auth-token = {
+      sopsFile = ./secrets.yaml;
+      owner = "buildbot";
     };
   };
 
