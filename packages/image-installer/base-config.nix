@@ -2,11 +2,13 @@
   lib,
   pkgs,
   ...
-}: let
+}:
+let
   mulattaKeys = [
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINkKJdIzvxlWcry+brNiCGLBNkxrMxFDyo1anE4xRNkL"
   ];
-in {
+in
+{
   system.stateVersion = "25.05";
 
   networking.firewall.enable = false;
@@ -17,7 +19,7 @@ in {
 
   services.openssh = {
     enable = true;
-    ports = [10022];
+    ports = [ 10022 ];
     settings = {
       PermitRootLogin = "yes";
     };
@@ -38,5 +40,5 @@ in {
     jq
   ];
 
-  systemd.services.sshd.wantedBy = lib.mkForce ["multi-user.target"];
+  systemd.services.sshd.wantedBy = lib.mkForce [ "multi-user.target" ];
 }

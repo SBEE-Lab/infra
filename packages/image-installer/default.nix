@@ -2,7 +2,8 @@
   self,
   pkgs,
   ...
-}: let
+}:
+let
   commonModule = {
     imports = [
       ./base-config.nix
@@ -12,8 +13,8 @@
     _module.args.inputs = self.inputs;
   };
 in
-  self.inputs.nixos-generators.nixosGenerate {
-    inherit pkgs;
-    format = "install-iso";
-    modules = [commonModule];
-  }
+self.inputs.nixos-generators.nixosGenerate {
+  inherit pkgs;
+  format = "install-iso";
+  modules = [ commonModule ];
+}
