@@ -1,4 +1,5 @@
-{config, ...}: {
+{ config, ... }:
+{
   security.acme = {
     defaults.email = "sjang.bioe@gmail.com";
     acceptTerms = true;

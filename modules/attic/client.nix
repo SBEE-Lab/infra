@@ -3,9 +3,11 @@
   lib,
   pkgs,
   ...
-}: let
+}:
+let
   cfg = config.services.attic-client;
-in {
+in
+{
   options.services.attic-client = {
     enable = lib.mkEnableOption "attic client for infra cache";
 
@@ -31,7 +33,7 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    environment.systemPackages = [pkgs.attic-client];
+    environment.systemPackages = [ pkgs.attic-client ];
 
     systemd.tmpfiles.rules = [
       "d /root/.config/attic 0700 root root -"
@@ -49,9 +51,9 @@ in {
 
     systemd.services.attic-client-setup = {
       description = "Setup attic client configuration";
-      wantedBy = ["multi-user.target"];
-      after = ["network-online.target"];
-      wants = ["network-online.target"];
+      wantedBy = [ "multi-user.target" ];
+      after = [ "network-online.target" ];
+      wants = [ "network-online.target" ];
 
       serviceConfig = {
         Type = "oneshot";

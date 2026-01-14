@@ -1,14 +1,16 @@
 # Grafana dashboard server (deployed on rho)
 # - Listens on wg-serv for user access
 # - Connects to Loki/Prometheus on wg-mgnt (internal)
-{config, ...}: let
+{ config, ... }:
+let
   inherit (config.networking.sbee) currentHost;
   wgServAddr = currentHost.wg-serv;
   wgMgntAddr = currentHost.wg-mgnt;
 
   lokiUrl = "http://${wgMgntAddr}:3100";
   prometheusUrl = "http://${wgMgntAddr}:9090";
-in {
+in
+{
   services.grafana = {
     enable = true;
 
@@ -73,5 +75,5 @@ in {
     group = "grafana";
   };
 
-  networking.firewall.interfaces."wg-serv".allowedTCPPorts = [3000];
+  networking.firewall.interfaces."wg-serv".allowedTCPPorts = [ 3000 ];
 }

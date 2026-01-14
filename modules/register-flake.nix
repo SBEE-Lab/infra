@@ -3,7 +3,8 @@
   inputs,
   config,
   ...
-}: {
+}:
+{
   srvos.flake = self;
   srvos.registerSelf = true;
 

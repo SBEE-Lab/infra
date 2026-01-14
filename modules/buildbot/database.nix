@@ -3,13 +3,15 @@
   config,
   lib,
   ...
-}: let
+}:
+let
   inherit (config.networking.sbee) currentHost hosts;
   psql = "${config.services.postgresql.package}/bin/psql --port=${toString config.services.postgresql.settings.port}";
-in {
+in
+{
   services.postgresql = {
     settings.listen_addresses = lib.mkForce "${currentHost.wg-mgnt},${currentHost.wg-serv}";
-    ensureDatabases = ["buildbot"];
+    ensureDatabases = [ "buildbot" ];
     ensureUsers = [
       {
         name = "buildbot";
@@ -32,7 +34,7 @@ in {
     group = "postgres";
   };
 
-  services.postgresqlBackup.databases = lib.mkAfter ["buildbot"];
+  services.postgresqlBackup.databases = lib.mkAfter [ "buildbot" ];
 
-  networking.firewall.interfaces.wg-serv.allowedTCPPorts = [5432];
+  networking.firewall.interfaces.wg-serv.allowedTCPPorts = [ 5432 ];
 }

@@ -2,9 +2,11 @@
   config,
   inputs,
   ...
-}: let
+}:
+let
   cacheDomain = "cache.sjanglab.org";
-in {
+in
+{
   imports = [
     inputs.attic.nixosModules.atticd
     ../acme
@@ -177,5 +179,5 @@ in {
   };
 
   # Internal wireguard access (for faster internal network access)
-  networking.firewall.interfaces.wg-serv.allowedTCPPorts = [8080];
+  networking.firewall.interfaces.wg-serv.allowedTCPPorts = [ 8080 ];
 }

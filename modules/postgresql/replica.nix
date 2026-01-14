@@ -4,12 +4,14 @@
   config,
   pkgs,
   ...
-}: let
+}:
+let
   inherit (config.networking.sbee) hosts;
   primaryHost = hosts.rho.wg-mgnt;
   pgPackage = pkgs.postgresql_17;
   pgDataDir = "/var/lib/postgresql/${pgPackage.psqlSchema}";
-in {
+in
+{
   services.postgresql = {
     enable = true;
     package = pgPackage;
@@ -27,13 +29,19 @@ in {
   # Initialize replica from primary before PostgreSQL starts
   systemd.services.postgresql-replica-init = {
     description = "Initialize PostgreSQL streaming replica";
-    after = ["network-online.target" "sops-install-secrets.service"];
-    wants = ["network-online.target"];
-    wantedBy = ["postgresql.service"];
-    before = ["postgresql.service"];
-    requiredBy = ["postgresql.service"];
+    after = [
+      "network-online.target"
+      "sops-install-secrets.service"
+    ];
+    wants = [ "network-online.target" ];
+    wantedBy = [ "postgresql.service" ];
+    before = [ "postgresql.service" ];
+    requiredBy = [ "postgresql.service" ];
 
-    path = [pgPackage pkgs.coreutils];
+    path = [
+      pgPackage
+      pkgs.coreutils
+    ];
 
     serviceConfig = {
       Type = "oneshot";

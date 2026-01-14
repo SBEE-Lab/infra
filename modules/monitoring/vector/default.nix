@@ -7,7 +7,8 @@
   pkgs,
   lib,
   ...
-}: let
+}:
+let
   inherit (config.networking) hostName;
 
   systemCollector = config.networking.sbee.hosts.rho.wg-mgnt;
@@ -22,7 +23,8 @@
       echo "{\"interface\":\"$name\",\"rx_bytes\":$(cat "$iface/statistics/rx_bytes" 2>/dev/null || echo 0),\"tx_bytes\":$(cat "$iface/statistics/tx_bytes" 2>/dev/null || echo 0),\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}"
     done
   '';
-in {
+in
+{
   imports = [
     ../auditd.nix
   ];
@@ -34,24 +36,30 @@ in {
       sources = {
         sshd_logs = {
           type = "journald";
-          include_units = ["sshd"];
+          include_units = [ "sshd" ];
         };
 
         # Audit logs for session tracking
         audit_logs = {
           type = "journald";
-          include_units = ["auditd"];
+          include_units = [ "auditd" ];
         };
 
         host_metrics = {
           type = "host_metrics";
           scrape_interval_secs = 60;
-          collectors = ["cpu" "disk" "filesystem" "memory" "network"];
+          collectors = [
+            "cpu"
+            "disk"
+            "filesystem"
+            "memory"
+            "network"
+          ];
         };
 
         network_stats = {
           type = "exec";
-          command = ["${netStatsScript}"];
+          command = [ "${netStatsScript}" ];
           mode = "scheduled";
           scheduled.exec_interval_secs = 60;
           decoding.codec = "json";
@@ -62,7 +70,7 @@ in {
         # Parse SSH logs - extract user, IP, port, auth method
         parse_ssh = {
           type = "remap";
-          inputs = ["sshd_logs"];
+          inputs = [ "sshd_logs" ];
           source = ''
             .host = "${hostName}"
             .log_type = "ssh"
@@ -121,7 +129,7 @@ in {
         # Parse audit logs - extract session ID for correlation
         parse_audit = {
           type = "remap";
-          inputs = ["audit_logs"];
+          inputs = [ "audit_logs" ];
           source = ''
             .host = "${hostName}"
             .log_type = "audit"
@@ -168,19 +176,22 @@ in {
         # Filter out "other" events to reduce noise
         filter_ssh = {
           type = "filter";
-          inputs = ["parse_ssh"];
+          inputs = [ "parse_ssh" ];
           condition = ".event != \"other\"";
         };
 
         filter_audit = {
           type = "filter";
-          inputs = ["parse_audit"];
+          inputs = [ "parse_audit" ];
           condition = ".event != \"other\"";
         };
 
         tag_metrics = {
           type = "remap";
-          inputs = ["host_metrics" "network_stats"];
+          inputs = [
+            "host_metrics"
+            "network_stats"
+          ];
           source = ''
             .host = "${hostName}"
           '';
@@ -192,7 +203,7 @@ in {
           # SSH logs to Loki
           ssh_logs_remote = {
             type = "loki";
-            inputs = ["filter_ssh"];
+            inputs = [ "filter_ssh" ];
             endpoint = "http://${systemCollector}:3100";
             encoding.codec = "json";
             labels = {
@@ -210,7 +221,7 @@ in {
           # Audit logs to Loki
           audit_logs_remote = {
             type = "loki";
-            inputs = ["filter_audit"];
+            inputs = [ "filter_audit" ];
             endpoint = "http://${systemCollector}:3100";
             encoding.codec = "json";
             labels = {
@@ -228,7 +239,7 @@ in {
           # Metrics to Prometheus
           system_metrics_remote = {
             type = "prometheus_remote_write";
-            inputs = ["tag_metrics"];
+            inputs = [ "tag_metrics" ];
             endpoint = "http://${systemCollector}:9090/api/v1/write";
             batch.timeout_secs = 10;
             healthcheck.enabled = false;
@@ -243,7 +254,7 @@ in {
   ];
   # Vector permissions
   systemd.services.vector.serviceConfig = {
-    SupplementaryGroups = ["systemd-journal"];
+    SupplementaryGroups = [ "systemd-journal" ];
     MemoryMax = "256M";
     CPUQuota = "30%";
   };

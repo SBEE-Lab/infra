@@ -1,6 +1,10 @@
-{config, ...}: {
+{ config, ... }:
+{
   services.borgbackup.jobs.psi = {
-    paths = ["/project" "/blobs"];
+    paths = [
+      "/project"
+      "/blobs"
+    ];
     exclude = [
       "*.pyc"
       "*/.cache/*"

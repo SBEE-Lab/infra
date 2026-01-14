@@ -2,9 +2,11 @@
 # - Local Loki sink for logs
 # - Prometheus server with remote write receiver
 # - Vector exporter for local metrics
-{config, ...}: let
+{ config, ... }:
+let
   wgMgntAddr = config.networking.sbee.currentHost.wg-mgnt;
-in {
+in
+{
   imports = [
     ./default.nix
     ../loki.nix
@@ -16,7 +18,7 @@ in {
     # SSH logs to local Loki
     ssh_logs_local = {
       type = "loki";
-      inputs = ["filter_ssh"];
+      inputs = [ "filter_ssh" ];
       endpoint = "http://127.0.0.1:3100";
       encoding.codec = "json";
       labels = {
@@ -30,7 +32,7 @@ in {
     # Audit logs to local Loki
     audit_logs_local = {
       type = "loki";
-      inputs = ["filter_audit"];
+      inputs = [ "filter_audit" ];
       endpoint = "http://127.0.0.1:3100";
       encoding.codec = "json";
       labels = {
@@ -43,7 +45,7 @@ in {
 
     system_metrics_local = {
       type = "prometheus_exporter";
-      inputs = ["tag_metrics"];
+      inputs = [ "tag_metrics" ];
       address = "${wgMgntAddr}:9598";
     };
   };
@@ -66,7 +68,7 @@ in {
         scrape_interval = "60s";
         static_configs = [
           {
-            targets = ["${wgMgntAddr}:9598"];
+            targets = [ "${wgMgntAddr}:9598" ];
           }
         ];
       }

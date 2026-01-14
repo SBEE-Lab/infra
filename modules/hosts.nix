@@ -3,7 +3,8 @@
   lib,
   config,
   ...
-}: let
+}:
+let
   hostOptions = with lib; {
     ipv4 = mkOption {
       type = types.str;
@@ -44,14 +45,16 @@
       '';
     };
     tags = mkOption {
-      type = types.listOf (types.enum [
-        "public-ip"
-        "nat-behind"
-        "lab-network"
-        "kren-dns"
-        "vps-network"
-      ]);
-      default = [];
+      type = types.listOf (
+        types.enum [
+          "public-ip"
+          "nat-behind"
+          "lab-network"
+          "kren-dns"
+          "vps-network"
+        ]
+      );
+      default = [ ];
       description = ''
         Tags for categorizing host configuration
         - "public-ip": Host has public IP and can accept incoming connections
@@ -62,22 +65,23 @@
       '';
     };
   };
-in {
+in
+{
   options = with lib; {
     networking.sbee.hosts = mkOption {
-      type = with types; attrsOf (submodule [{options = hostOptions;}]);
+      type = with types; attrsOf (submodule [ { options = hostOptions; } ]);
       description = "A host in our cluster";
     };
     networking.sbee.currentHost = mkOption {
-      type = with types; submodule [{options = hostOptions;}];
+      type = with types; submodule [ { options = hostOptions; } ];
       default = config.networking.sbee.hosts.${config.networking.hostName};
       description = "The host that is described by this configuration";
     };
     networking.sbee.others = mkOption {
-      type = with types; attrsOf (submodule [{options = hostOptions;}]);
-      default =
-        lib.filterAttrs (name: _: name != config.networking.hostName)
-        config.networking.sbee.hosts;
+      type = with types; attrsOf (submodule [ { options = hostOptions; } ]);
+      default = lib.filterAttrs (
+        name: _: name != config.networking.hostName
+      ) config.networking.sbee.hosts;
       description = "All hosts except the current one";
     };
   };
@@ -87,20 +91,19 @@ in {
     networking.hosts = lib.mkMerge (
       lib.mapAttrsToList (
         name: host:
-          lib.optionalAttrs (host.wg-mgnt != null) {
-            ${host.wg-mgnt} = [name];
-          }
-      )
-      config.networking.sbee.hosts
+        lib.optionalAttrs (host.wg-mgnt != null) {
+          ${host.wg-mgnt} = [ name ];
+        }
+      ) config.networking.sbee.hosts
     );
 
     warnings =
       lib.optional
-      (
-        !(config.networking.sbee.hosts ? ${config.networking.hostName})
-        && config.networking.hostName != "nixos" # we dont care about nixos netboot/installer images
-      )
-      "Please add network configuration for ${config.networking.hostName}. None found in ${./hosts.nix}";
+        (
+          !(config.networking.sbee.hosts ? ${config.networking.hostName})
+          && config.networking.hostName != "nixos" # we dont care about nixos netboot/installer images
+        )
+        "Please add network configuration for ${config.networking.hostName}. None found in ${./hosts.nix}";
 
     networking.sbee.hosts = {
       eta = {
@@ -109,7 +112,10 @@ in {
         mac = "56:00:05:a5:b3:57";
         wg-mgnt = "10.100.0.1";
         wg-serv = "10.200.0.1";
-        tags = ["public-ip" "vps-network"];
+        tags = [
+          "public-ip"
+          "vps-network"
+        ];
       };
       psi = {
         ipv4 = "117.16.251.37";
@@ -117,7 +123,10 @@ in {
         mac = "bc:fc:e7:52:e1:ab";
         wg-mgnt = "10.100.0.2";
         wg-serv = "10.200.0.2";
-        tags = ["public-ip" "kren-dns"];
+        tags = [
+          "public-ip"
+          "kren-dns"
+        ];
       };
       rho = {
         ipv4 = "10.80.169.39";
@@ -125,7 +134,11 @@ in {
         mac = "9c:6b:00:9e:fa:de";
         wg-mgnt = "10.100.0.3";
         wg-serv = "10.200.0.3";
-        tags = ["nat-behind" "lab-network" "kren-dns"];
+        tags = [
+          "nat-behind"
+          "lab-network"
+          "kren-dns"
+        ];
       };
       tau = {
         ipv4 = "10.80.169.40";
@@ -133,7 +146,11 @@ in {
         mac = "9c:6b:00:9e:f8:ef";
         wg-mgnt = "10.100.0.4";
         wg-serv = "10.200.0.4";
-        tags = ["nat-behind" "lab-network" "kren-dns"];
+        tags = [
+          "nat-behind"
+          "lab-network"
+          "kren-dns"
+        ];
       };
     };
   };

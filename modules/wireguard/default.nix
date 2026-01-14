@@ -3,27 +3,32 @@
   lib,
   pkgs,
   ...
-}: let
+}:
+let
   cfg = config.networking.sbee.currentHost;
   inherit (config.networking.sbee) others;
 
-  hasTag = host: tag: builtins.elem tag (host.tags or []);
+  hasTag = host: tag: builtins.elem tag (host.tags or [ ]);
   currentHasTag = tag: hasTag cfg tag;
 
-  mkPeer = interface: port: hostName: host:
+  mkPeer =
+    interface: port: hostName: host:
     lib.filterAttrs (_n: v: v != null) {
       PublicKey = builtins.readFile (./keys + "/${hostName}_${interface}");
       Endpoint =
-        if ((currentHasTag "public-ip") && (hasTag host "nat-behind"))
-        then null
-        else "${host.ipv4}:${builtins.toString port}";
-      AllowedIPs = ["${host.${interface}}/32"];
+        if ((currentHasTag "public-ip") && (hasTag host "nat-behind")) then
+          null
+        else
+          "${host.ipv4}:${builtins.toString port}";
+      AllowedIPs = [ "${host.${interface}}/32" ];
       PersistentKeepalive = 25;
     };
-in {
+in
+{
   options = with lib; {
     networking.sbee.wireguard = mkOption {
-      type = with types;
+      type =
+        with types;
         attrsOf (submodule {
           options = {
             interface = mkOption {
@@ -44,7 +49,7 @@ in {
             };
           };
         });
-      default = {};
+      default = { };
       description = "WireGuard network configurations";
     };
   };

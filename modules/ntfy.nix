@@ -3,8 +3,9 @@
   lib,
   pkgs,
   ...
-}: {
-  imports = [./acme];
+}:
+{
+  imports = [ ./acme ];
   services.ntfy-sh = {
     enable = true;
     package = pkgs.ntfy-sh;
@@ -50,7 +51,7 @@
     isSystemUser = true;
     group = "ntfy";
   };
-  users.groups.ntfy = {};
+  users.groups.ntfy = { };
 
   systemd.tmpfiles.rules = [
     "d /var/lib/ntfy 0755 ntfy ntfy"

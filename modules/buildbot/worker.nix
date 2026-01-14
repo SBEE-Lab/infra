@@ -4,12 +4,14 @@
   inputs,
   pkgs,
   ...
-}: let
+}:
+let
   inherit (config.networking.sbee) hosts;
   deploy-rs-pkg = inputs.deploy-rs.packages.${pkgs.system}.deploy-rs;
   sshPort = 10022;
-in {
-  imports = [inputs.buildbot-nix.nixosModules.buildbot-worker];
+in
+{
+  imports = [ inputs.buildbot-nix.nixosModules.buildbot-worker ];
 
   services.buildbot-nix.worker = {
     enable = true;
@@ -17,7 +19,7 @@ in {
     masterUrl = "tcp:host=${hosts.psi.wg-serv}:port=9989";
   };
 
-  nix.settings.trusted-users = ["buildbot-worker"];
+  nix.settings.trusted-users = [ "buildbot-worker" ];
 
   systemd.services.buildbot-worker.path = [
     deploy-rs-pkg

@@ -9,6 +9,7 @@
     ../modules/borgbackup/psi/client.nix
     ../modules/monitoring/vector
     ../modules/harmonia
+    ../modules/icebox/databases.nix
   ];
 
   disko.rootDisk = "/dev/disk/by-id/nvme-Samsung_SSD_990_PRO_4TB_S7DPNU0Y404280K";
@@ -50,6 +51,27 @@
   ];
 
   networking.hostName = "psi";
+
+  # Database management with icebox
+  services.icebox = {
+    enable = true;
+    root = "/workspace/shared/databases";
+
+    # Enable databases needed for research
+    databases = {
+      blast-nr.enable = true;
+      blast-nt.enable = true;
+      blast-swissprot.enable = true;
+      uniref90.enable = true;
+      uniref100.enable = true;
+      pdb.enable = true;
+      pdb-mmcif.enable = true;
+      rnacentral.enable = true;
+      pfam.enable = true;
+      rfam.enable = true;
+      # alphafold.enable = true;  # Very large, enable when needed
+    };
+  };
 
   system.stateVersion = "25.05";
 }

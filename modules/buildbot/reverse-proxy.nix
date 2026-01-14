@@ -1,9 +1,11 @@
 # Buildbot reverse proxy (deployed on eta)
-{config, ...}: let
+{ config, ... }:
+let
   inherit (config.networking.sbee) hosts;
   buildbotDomain = "buildbot.sjanglab.org";
-in {
-  imports = [../acme];
+in
+{
+  imports = [ ../acme ];
 
   services.nginx.virtualHosts.${buildbotDomain} = {
     forceSSL = true;

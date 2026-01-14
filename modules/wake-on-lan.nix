@@ -3,7 +3,8 @@
   pkgs,
   lib,
   ...
-}: {
+}:
+{
   systemd.network.links."10-wol" = lib.mkIf (config.networking.sbee.currentHost.mac != null) {
     matchConfig.MACAddress = config.networking.sbee.currentHost.mac;
     linkConfig = {

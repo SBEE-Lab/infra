@@ -1,8 +1,10 @@
 # Prometheus alertmanager and rules configuration
 # Note: Prometheus server itself is configured in vector/monitor-systems.nix
-{config, ...}: let
+{ config, ... }:
+let
   wgMgntAddr = config.networking.sbee.currentHost.wg-mgnt;
-in {
+in
+{
   imports = [
     ./rules.nix
   ];

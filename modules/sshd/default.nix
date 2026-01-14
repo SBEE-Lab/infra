@@ -2,21 +2,19 @@
   lib,
   config,
   ...
-}: let
+}:
+let
   cfg = config.networking.sbee.currentHost;
   cert = ./certs + "/${config.networking.hostName}-cert.pub";
 
   # ========== Nodes ==========
   isPublicNode = builtins.elem "public-ip" cfg.tags;
 
-  otherPublicIPs =
-    lib.mapAttrsToList
-    (_name: host: host.ipv4)
-    (lib.filterAttrs
-      (_name: host: builtins.elem "public-ip" host.tags)
-      config.networking.sbee.others);
+  otherPublicIPs = lib.mapAttrsToList (_name: host: host.ipv4) (
+    lib.filterAttrs (_name: host: builtins.elem "public-ip" host.tags) config.networking.sbee.others
+  );
 
-  hasWhitelist = otherPublicIPs != [];
+  hasWhitelist = otherPublicIPs != [ ];
 
   # ========== Constants ==========
   security = {
@@ -41,11 +39,12 @@
       maxAttempts = 5;
     };
   };
-in {
+in
+{
   # ========== SSH services ==========
   services.openssh = {
     enable = true;
-    ports = [security.ssh.port];
+    ports = [ security.ssh.port ];
 
     settings = {
       X11Forwarding = false;
@@ -113,13 +112,12 @@ in {
     enable = true;
     maxretry = security.fail2ban.maxRetry;
 
-    ignoreIP =
-      [
-        "127.0.0.1/8"
-        "::1/128"
-        "10.0.0.0/8"
-      ]
-      ++ otherPublicIPs;
+    ignoreIP = [
+      "127.0.0.1/8"
+      "::1/128"
+      "10.0.0.0/8"
+    ]
+    ++ otherPublicIPs;
 
     jails = {
       sshd = {
@@ -151,14 +149,13 @@ in {
   # ========== firewall with rate limiting ==========
   networking.firewall = {
     enable = true;
-    allowedTCPPorts = [security.ssh.port];
+    allowedTCPPorts = [ security.ssh.port ];
 
     extraCommands = lib.optionalString isPublicNode ''
       ${lib.optionalString hasWhitelist ''
         ${lib.concatMapStringsSep "\n" (ip: ''
-            iptables -I INPUT -s ${ip} -p tcp --dport ${toString security.ssh.port} -j ACCEPT
-          '')
-          otherPublicIPs}
+          iptables -I INPUT -s ${ip} -p tcp --dport ${toString security.ssh.port} -j ACCEPT
+        '') otherPublicIPs}
       ''}
 
       iptables -A INPUT ! -s 10.0.0.0/8 -p tcp --dport ${toString security.ssh.port} \
@@ -173,9 +170,8 @@ in {
     extraStopCommands = lib.optionalString isPublicNode ''
       ${lib.optionalString hasWhitelist ''
         ${lib.concatMapStringsSep "\n" (ip: ''
-            iptables -D INPUT -s ${ip} -p tcp --dport ${toString security.ssh.port} -j ACCEPT 2>/dev/null || true
-          '')
-          otherPublicIPs}
+          iptables -D INPUT -s ${ip} -p tcp --dport ${toString security.ssh.port} -j ACCEPT 2>/dev/null || true
+        '') otherPublicIPs}
       ''}
 
       iptables -D INPUT ! -s 10.0.0.0/8 -p tcp --dport ${toString security.ssh.port} \

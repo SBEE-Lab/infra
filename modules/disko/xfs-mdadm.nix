@@ -11,9 +11,15 @@
   lib,
   config,
   ...
-}: let
+}:
+let
   cfg = config.disko.xfsMdadm;
-  inherit (lib) mkOption mkEnableOption mkIf types;
+  inherit (lib)
+    mkOption
+    mkEnableOption
+    mkIf
+    types
+    ;
 
   defaultXfsOptions = [
     "defaults"
@@ -47,14 +53,15 @@
 
       extraXfsOptions = mkOption {
         type = types.listOf types.str;
-        default = [];
+        default = [ ];
         description = "Additional XFS mount options (appended to defaults)";
       };
     };
   };
 
   # Generate disk configurations for an array
-  mkArrayDisks = arrayName: arrayCfg:
+  mkArrayDisks =
+    arrayName: arrayCfg:
     builtins.mapAttrs (_diskName: diskPath: {
       type = "disk";
       device = diskPath;
@@ -70,8 +77,7 @@
           };
         };
       };
-    })
-    arrayCfg.disks;
+    }) arrayCfg.disks;
 
   # Generate mdadm configuration for an array
   mkArrayMdadm = arrayName: arrayCfg: {
@@ -88,22 +94,27 @@
   };
 
   # Merge all disk configs from all arrays
-  allDisks = lib.foldl' (acc: name: acc // mkArrayDisks name cfg.arrays.${name}) {} (builtins.attrNames cfg.arrays);
+  allDisks = lib.foldl' (acc: name: acc // mkArrayDisks name cfg.arrays.${name}) { } (
+    builtins.attrNames cfg.arrays
+  );
 
   # Merge all mdadm configs
-  allMdadm = lib.foldl' (acc: name: acc // mkArrayMdadm name cfg.arrays.${name}) {} (builtins.attrNames cfg.arrays);
-in {
+  allMdadm = lib.foldl' (acc: name: acc // mkArrayMdadm name cfg.arrays.${name}) { } (
+    builtins.attrNames cfg.arrays
+  );
+in
+{
   options.disko.xfsMdadm = {
     enable = mkEnableOption "XFS RAID1 storage arrays";
 
     arrays = mkOption {
       type = types.attrsOf arrayType;
-      default = {};
+      default = { };
       description = "RAID1 array configurations";
     };
   };
 
-  config = mkIf (cfg.enable && cfg.arrays != {}) {
+  config = mkIf (cfg.enable && cfg.arrays != { }) {
     # Enable mdadm RAID support
     boot.swraid = {
       enable = true;

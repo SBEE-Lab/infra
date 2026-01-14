@@ -4,10 +4,12 @@
   config,
   pkgs,
   ...
-}: let
+}:
+let
   tauWgMgnt = config.networking.sbee.hosts.tau.wg-mgnt;
   mirrorDir = "/backup/borg-mirror";
-in {
+in
+{
   # Ensure mirror directory exists
   systemd.tmpfiles.rules = [
     "d ${mirrorDir} 0750 root root -"
@@ -16,8 +18,8 @@ in {
   # Rsync borg repos from tau
   systemd.services.borg-mirror-sync = {
     description = "Mirror borg repos from tau";
-    after = ["network-online.target"];
-    wants = ["network-online.target"];
+    after = [ "network-online.target" ];
+    wants = [ "network-online.target" ];
 
     serviceConfig = {
       Type = "oneshot";
@@ -34,7 +36,7 @@ in {
 
   systemd.timers.borg-mirror-sync = {
     description = "Daily mirror of borg repos from tau";
-    wantedBy = ["timers.target"];
+    wantedBy = [ "timers.target" ];
     timerConfig = {
       OnCalendar = "*-*-* 06:00:00"; # After all borg backups complete
       Persistent = true;

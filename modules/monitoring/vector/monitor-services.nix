@@ -6,9 +6,11 @@
   config,
   lib,
   ...
-}: let
+}:
+let
   wgServAddr = config.networking.sbee.currentHost.wg-serv;
-in {
+in
+{
   imports = [
     ./default.nix
   ];
@@ -24,7 +26,7 @@ in {
           type = "http_server";
           address = "${wgServAddr}:9000";
           encoding = "json";
-          headers = ["*"];
+          headers = [ "*" ];
         };
       };
 
@@ -32,7 +34,7 @@ in {
         # parse nextflow logs
         parse_nextflow = {
           type = "remap";
-          inputs = ["nextflow_weblog"];
+          inputs = [ "nextflow_weblog" ];
           source = ''
             .log_type = "nextflow"
 
@@ -62,7 +64,7 @@ in {
         # save in loki
         nextflow_logs = {
           type = "loki";
-          inputs = ["parse_nextflow"];
+          inputs = [ "parse_nextflow" ];
           endpoint = "http://127.0.0.1:3100";
           encoding.codec = "json";
           labels = {
@@ -76,7 +78,7 @@ in {
         # backup file
         nextflow_backup = {
           type = "file";
-          inputs = ["parse_nextflow"];
+          inputs = [ "parse_nextflow" ];
           path = "/var/log/nextflow/weblog-%Y-%m-%d.log";
           encoding.codec = "json";
         };
@@ -141,7 +143,7 @@ in {
   ];
 
   systemd.services.vector.serviceConfig = {
-    SupplementaryGroups = ["systemd-journal"];
+    SupplementaryGroups = [ "systemd-journal" ];
     MemoryMax = lib.mkForce "512M";
     CPUQuota = lib.mkForce "50%";
   };

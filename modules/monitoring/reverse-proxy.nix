@@ -1,10 +1,12 @@
 # Grafana reverse proxy (deployed on eta)
 # Proxies requests to rho where Grafana is running on wg-serv
-{config, ...}: let
+{ config, ... }:
+let
   inherit (config.networking.sbee) hosts;
   loggingDomain = "logging.sjanglab.org";
-in {
-  imports = [../acme];
+in
+{
+  imports = [ ../acme ];
 
   services.nginx.virtualHosts.${loggingDomain} = {
     forceSSL = true;

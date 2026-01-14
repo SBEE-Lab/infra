@@ -2,9 +2,11 @@
   config,
   lib,
   ...
-}: let
+}:
+let
   wgMgntAddr = config.networking.sbee.hosts.rho.wg-mgnt;
-in {
+in
+{
   services.loki = {
     enable = true;
     configuration = {
@@ -54,7 +56,7 @@ in {
     group = "loki";
   };
 
-  users.groups.loki = lib.mkIf config.services.loki.enable {};
+  users.groups.loki = lib.mkIf config.services.loki.enable { };
 
   systemd.tmpfiles.rules = [
     "d ${config.services.loki.dataDir} 0700 loki loki - -"

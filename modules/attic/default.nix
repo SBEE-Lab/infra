@@ -2,8 +2,12 @@
   config,
   pkgs,
   ...
-}: {
-  environment.systemPackages = with pkgs; [attic-server attic-client];
+}:
+{
+  environment.systemPackages = with pkgs; [
+    attic-server
+    attic-client
+  ];
 
   services.atticd = {
     enable = true;
@@ -35,5 +39,5 @@
 
   sops.secrets.attic-credentials.sopsFile = ./secrets.yaml;
 
-  networking.firewall.interfaces.wg-serv.allowedTCPPorts = [8080];
+  networking.firewall.interfaces.wg-serv.allowedTCPPorts = [ 8080 ];
 }

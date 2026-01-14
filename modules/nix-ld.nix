@@ -3,12 +3,15 @@
   lib,
   pkgs,
   ...
-}: let
+}:
+let
   hasNvidia = builtins.elem "nvidia" config.services.xserver.videoDrivers;
-in {
+in
+{
   programs.nix-ld = {
     enable = true;
-    libraries = with pkgs;
+    libraries =
+      with pkgs;
       [
         stdenv.cc.cc.lib
         openssl

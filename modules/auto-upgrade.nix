@@ -3,7 +3,8 @@
   pkgs,
   lib,
   ...
-}: {
+}:
+{
   system.autoUpgrade.enable = lib.mkDefault true;
   system.autoUpgrade.flake = "github:SBEE-lab/infra";
   system.autoUpgrade.flags = [

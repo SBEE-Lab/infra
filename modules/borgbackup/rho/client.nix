@@ -1,9 +1,11 @@
 # PostgreSQL backup from rho to tau via borgbackup
 # Replaces pg_dump + rsync approach
-{config, ...}: let
+{ config, ... }:
+let
   pgPackage = config.services.postgresql.package;
   backupDir = "/var/backup/postgresql";
-in {
+in
+{
   # Ensure backup directory exists
   systemd.tmpfiles.rules = [
     "d ${backupDir} 0750 postgres postgres -"
@@ -12,8 +14,8 @@ in {
   # Pre-backup service: dump PostgreSQL databases
   systemd.services.postgresql-dump-for-borg = {
     description = "Dump PostgreSQL for borgbackup";
-    after = ["postgresql.service"];
-    requires = ["postgresql.service"];
+    after = [ "postgresql.service" ];
+    requires = [ "postgresql.service" ];
 
     serviceConfig = {
       Type = "oneshot";
@@ -29,12 +31,12 @@ in {
 
   # Borg job depends on the dump service
   systemd.services.borgbackup-job-rho-postgresql = {
-    after = ["postgresql-dump-for-borg.service"];
-    requires = ["postgresql-dump-for-borg.service"];
+    after = [ "postgresql-dump-for-borg.service" ];
+    requires = [ "postgresql-dump-for-borg.service" ];
   };
 
   services.borgbackup.jobs.rho-postgresql = {
-    paths = [backupDir];
+    paths = [ backupDir ];
     repo = "borg@${config.networking.sbee.hosts.tau.wg-mgnt}:/backup/borg/rho";
     encryption = {
       mode = "repokey-blake2";

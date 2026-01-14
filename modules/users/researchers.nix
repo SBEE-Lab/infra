@@ -16,7 +16,8 @@ let
   # testUserKeys = [
   # "ssh-ed25519 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA+bbbbbbbbbbbbbbbbbbbbbbbbbbbb"
   # ];
-in {
+in
+{
   # ADD YOUR USER ACCOUNT
   # users.users = {
   #   # specify your real name in comments
@@ -35,5 +36,5 @@ in {
   # DANGER ZONE!
   # Make sure all data is backed up before adding user names here. This will
   # delete all data of the associated user
-  users.deletedUsers = [];
+  users.deletedUsers = [ ];
 }

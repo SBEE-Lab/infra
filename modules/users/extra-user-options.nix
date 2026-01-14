@@ -3,9 +3,11 @@
   config,
   lib,
   ...
-}: let
+}:
+let
   globalConfig = config;
-in {
+in
+{
   options = {
     users.withSops = lib.mkOption {
       type = lib.types.bool;
@@ -23,7 +25,8 @@ in {
     users.users = lib.mkOption {
       type = lib.types.attrsOf (
         lib.types.submodule (
-          {config, ...}: {
+          { config, ... }:
+          {
             options.xrdpAccess = lib.mkOption {
               type = lib.types.bool;
               default = false;
@@ -39,8 +42,10 @@ in {
                 if
                   config.isNormalUser
                   && (builtins.elem "student" config.extraGroups || builtins.elem "reviewer" config.extraGroups)
-                then []
-                else ["all"];
+                then
+                  [ ]
+                else
+                  [ "all" ];
               description = ''
                 List of hosts the user is allowed to login. If "all", all hosts are allowed
               '';
@@ -65,7 +70,7 @@ in {
     assertions = lib.flatten (
       lib.mapAttrsToList (name: user: [
         {
-          assertion = user.isSystemUser || user.allowedHosts != [];
+          assertion = user.isSystemUser || user.allowedHosts != [ ];
           message = ''
             User ${name} has no allowedHosts option set.
             Please add at least one host to the list.
@@ -79,8 +84,7 @@ in {
             All students must have an expires option set.
           '';
         }
-      ])
-      config.users.users
+      ]) config.users.users
     );
 
     # sops.secrets = lib.mkIf config.services.xrdp.enable (
