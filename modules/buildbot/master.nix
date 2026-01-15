@@ -73,6 +73,10 @@ in
     PGPASSFILE = config.sops.secrets.buildbot-pgpass.path;
   };
 
+  systemd.services.buildbot-master.serviceConfig.LoadCredential = [
+    "niks3-auth-token:${config.sops.secrets.niks3-auth-token.path}"
+  ];
+
   services.buildbot-master.extraConfig = ''
     c["www"]["port"] = "tcp:8010:interface=${hosts.psi.wg-serv}"
     c["protocols"] = {"pb": {"port": "tcp:9989:interface=${hosts.psi.wg-serv}"}}
