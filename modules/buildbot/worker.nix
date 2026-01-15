@@ -2,6 +2,7 @@
 {
   config,
   inputs,
+  pkgs,
   ...
 }:
 let
@@ -15,6 +16,8 @@ in
     workerPasswordFile = config.sops.secrets.buildbot-worker-password.path;
     masterUrl = "tcp:host=${hosts.psi.wg-serv}:port=9989";
   };
+
+  systemd.services.buildbot-worker.path = [ inputs.niks3.packages.${pkgs.system}.default ];
 
   nix.settings.trusted-users = [ "buildbot-worker" ];
 
