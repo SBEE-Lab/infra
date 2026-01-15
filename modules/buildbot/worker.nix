@@ -3,10 +3,12 @@
   config,
   inputs,
   ...
-}: let
+}:
+let
   inherit (config.networking.sbee) hosts;
-in {
-  imports = [inputs.buildbot-nix.nixosModules.buildbot-worker];
+in
+{
+  imports = [ inputs.buildbot-nix.nixosModules.buildbot-worker ];
 
   services.buildbot-nix.worker = {
     enable = true;
@@ -14,7 +16,7 @@ in {
     masterUrl = "tcp:host=${hosts.psi.wg-serv}:port=9989";
   };
 
-  nix.settings.trusted-users = ["buildbot-worker"];
+  nix.settings.trusted-users = [ "buildbot-worker" ];
 
   sops.secrets = {
     buildbot-worker-password = {

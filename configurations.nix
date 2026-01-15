@@ -2,9 +2,9 @@
   self,
   inputs,
   ...
-}: let
-  inherit
-    (inputs)
+}:
+let
+  inherit (inputs)
     nixpkgs
     disko
     sops-nix
@@ -16,14 +16,15 @@
   pkgs = import nixpkgs {
     inherit system;
     config.allowUnfree = true;
-    overlays = import ./overlays {inherit inputs;};
+    overlays = import ./overlays { inherit inputs; };
   };
 
-  nixosSystem = modules:
+  nixosSystem =
+    modules:
     nixpkgs.lib.nixosSystem {
       inherit system;
-      specialArgs = {inherit self inputs;};
-      modules = modules ++ [{nixpkgs.pkgs = pkgs;}];
+      specialArgs = { inherit self inputs; };
+      modules = modules ++ [ { nixpkgs.pkgs = pkgs; } ];
     };
 
   commonModules = [
@@ -54,9 +55,11 @@
         config,
         lib,
         ...
-      }: let
+      }:
+      let
         sopsFile = ./. + "/hosts/${config.networking.hostName}.yaml";
-      in {
+      in
+      {
         users.withSops = builtins.pathExists sopsFile;
         sops.secrets = lib.mkIf config.users.withSops {
           root-password-hash.neededForUsers = true;
@@ -67,21 +70,20 @@
     )
   ];
 
-  computeModules =
-    commonModules
-    ++ [
-      ./modules/research-utility.nix
-      ./modules/project-space.nix
-      ./modules/workspace-space.nix
-      ./modules/blobs-space.nix
-      ./modules/nix-ld.nix
-      ./modules/icebox
-    ];
-in {
+  computeModules = commonModules ++ [
+    ./modules/research-utility.nix
+    ./modules/project-space.nix
+    ./modules/workspace-space.nix
+    ./modules/blobs-space.nix
+    ./modules/nix-ld.nix
+    ./modules/icebox
+  ];
+in
+{
   flake.nixosConfigurations = {
-    psi = nixosSystem (computeModules ++ [./hosts/psi.nix]);
-    rho = nixosSystem (commonModules ++ [./hosts/rho.nix]);
-    tau = nixosSystem (commonModules ++ [./hosts/tau.nix]);
-    eta = nixosSystem (commonModules ++ [./hosts/eta.nix]);
+    psi = nixosSystem (computeModules ++ [ ./hosts/psi.nix ]);
+    rho = nixosSystem (commonModules ++ [ ./hosts/rho.nix ]);
+    tau = nixosSystem (commonModules ++ [ ./hosts/tau.nix ]);
+    eta = nixosSystem (commonModules ++ [ ./hosts/eta.nix ]);
   };
 }

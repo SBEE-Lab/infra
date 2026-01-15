@@ -10,7 +10,8 @@
   config,
   lib,
   ...
-}: let
+}:
+let
   seungwonKeys = [
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINkKJdIzvxlWcry+brNiCGLBNkxrMxFDyo1anE4xRNkL"
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN48qMQAJGeDA+qs1o6T2+p9WyyYnyE1366IB6zzvmSD"
@@ -27,7 +28,8 @@
     "admin"
     "input"
   ];
-in {
+in
+{
   users.users = {
     root = {
       hashedPasswordFile = lib.mkIf config.users.withSops config.sops.secrets.root-password-hash.path;

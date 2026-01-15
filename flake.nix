@@ -1,7 +1,8 @@
 {
   description = "SBEE laboratory infrastructures flake";
-  outputs = inputs @ {flake-parts, ...}:
-    flake-parts.lib.mkFlake {inherit inputs;} {
+  outputs =
+    inputs@{ flake-parts, ... }:
+    flake-parts.lib.mkFlake { inherit inputs; } {
       systems = import inputs.systems;
       imports = [
         ./configurations.nix
@@ -12,13 +13,15 @@
         ./shells/flake-module.nix
         ./terraform/flake-module.nix
       ];
-      perSystem = {system, ...}: {
-        _module.args.pkgs = import inputs.nixpkgs {
-          inherit system;
-          config.allowUnfree = true;
-          overlays = import ./overlays {inherit inputs;};
+      perSystem =
+        { system, ... }:
+        {
+          _module.args.pkgs = import inputs.nixpkgs {
+            inherit system;
+            config.allowUnfree = true;
+            overlays = import ./overlays { inherit inputs; };
+          };
         };
-      };
     };
 
   inputs = {
