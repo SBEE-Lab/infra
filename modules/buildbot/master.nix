@@ -41,7 +41,7 @@ in
       {
         name = "Push to niks3 cache";
         environment = {
-          NIKS3_SERVER_URL = "https://cache.mulatta.io";
+          NIKS3_SERVER_URL = "https://niks3.mulatta.io";
         };
         command = [
           "bash"
