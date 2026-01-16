@@ -37,7 +37,6 @@ let
     ./modules/packages.nix
     ./modules/register-flake.nix
     ./modules/sshd
-    ./modules/tmux.nix
     ./modules/users/admins.nix
     ./modules/users/extra-user-options.nix
     ./modules/zram.nix

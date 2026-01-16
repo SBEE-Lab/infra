@@ -31,7 +31,7 @@
 
     # managed by toolz (release-25.05)
     # keep-sorted start
-    alphafold3
+    # alphafold3  # FIXME: overlay incompatible with nixpkgs 25.11 (Python 3.13)
     edirect
     flash
     foldseek

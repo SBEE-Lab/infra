@@ -45,14 +45,12 @@
     nixos-images.inputs.nixos-unstable.follows = "nixpkgs-unstable";
     nixos-images.url = "github:nix-community/nixos-images";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     sops-nix.url = "github:Mic92/sops-nix";
     srvos.inputs.nixpkgs.follows = "nixpkgs";
     srvos.url = "github:nix-community/srvos";
     systems.url = "github:nix-systems/default";
     toolz.inputs.flake-parts.follows = "flake-parts";
-    toolz.inputs.nixpkgs-unstable.follows = "nixpkgs-unstable";
-    toolz.inputs.nixpkgs.follows = "nixpkgs";
     toolz.inputs.systems.follows = "systems";
     toolz.inputs.treefmt-nix.follows = "treefmt-nix";
     toolz.url = "github:zmblr/toolz/release-25.05";

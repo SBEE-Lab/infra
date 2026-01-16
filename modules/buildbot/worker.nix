@@ -17,7 +17,9 @@ in
     masterUrl = "tcp:host=${hosts.psi.wg-serv}:port=9989";
   };
 
-  systemd.services.buildbot-worker.path = [ inputs.niks3.packages.${pkgs.system}.default ];
+  systemd.services.buildbot-worker.path = [
+    inputs.niks3.packages.${pkgs.stdenv.hostPlatform.system}.default
+  ];
 
   nix.settings.trusted-users = [ "buildbot-worker" ];
 
