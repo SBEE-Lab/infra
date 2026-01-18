@@ -28,23 +28,5 @@
     viennarna
     blast
     nextflow
-
-    # managed by toolz (release-25.05)
-    # keep-sorted start
-    # alphafold3  # FIXME: overlay incompatible with nixpkgs 25.11 (Python 3.13)
-    edirect
-    flash
-    foldseek
-    infernal
-    interproscan
-    jellyfish-full
-    kmc
-    locarna
-    ncbi-dataformat
-    ncbi-datasets
-    nupack
-    openzl
-    vsearch
-    # keep-sorted end
   ];
 }

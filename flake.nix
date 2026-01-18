@@ -50,10 +50,7 @@
     srvos.inputs.nixpkgs.follows = "nixpkgs";
     srvos.url = "github:nix-community/srvos";
     systems.url = "github:nix-systems/default";
-    toolz.inputs.flake-parts.follows = "flake-parts";
-    toolz.inputs.systems.follows = "systems";
-    toolz.inputs.treefmt-nix.follows = "treefmt-nix";
-    toolz.url = "github:zmblr/toolz/release-25.05";
+    toolz.url = "github:zmblr/toolz/release-25.11";
     treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
     treefmt-nix.url = "github:numtide/treefmt-nix";
     # keep-sorted end
