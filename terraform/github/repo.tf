@@ -131,6 +131,10 @@ locals {
       color       = "F5EB27"
       description = "Expired user"
     }
+    "auto-merge" = {
+      color       = "0E8A16"
+      description = "Automatically merge when checks pass"
+    }
   }
 }
 

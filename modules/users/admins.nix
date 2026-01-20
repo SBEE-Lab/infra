@@ -41,7 +41,7 @@ in
       isNormalUser = true;
       home = "/home/seungwon";
       inherit extraGroups;
-      shell = "/run/current-system/sw/bin/fish";
+      shell = "/run/current-system/sw/bin/zsh";
       uid = 1000;
       openssh.authorizedKeys.keys = seungwonKeys;
     };
