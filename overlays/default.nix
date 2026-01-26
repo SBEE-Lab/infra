@@ -1,7 +1,5 @@
 { inputs }:
 [
-  inputs.toolz.overlays.default
-
   (
     final: _prev:
     let
