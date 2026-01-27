@@ -70,7 +70,6 @@ let
   ];
 
   computeModules = commonModules ++ [
-    ./modules/research-utility.nix
     ./modules/project-space.nix
     ./modules/workspace-space.nix
     ./modules/blobs-space.nix

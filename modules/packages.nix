@@ -9,6 +9,8 @@ let
 in
 {
   environment.systemPackages = with pkgs; [
+    bashInteractive
+
     # monitoring
     nvme-cli
     pciutils
@@ -37,20 +39,6 @@ in
     fd
     rsync
     rclone
-    bashInteractive
-
-    # with research
-    dvc-with-remotes
-    ntfy-sh
-    parallel
-    aria2
-    b3sum
-    rblake3sum
-
-    # utility
-    zellij
-    minio-client
-    ts
     sd
     nix-output-monitor
   ];
