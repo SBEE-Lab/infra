@@ -1,4 +1,8 @@
-{ lib, ... }:
+{
+  lib,
+  pkgs,
+  ...
+}:
 {
   imports = [
     ../modules/disko/xfs-root.nix
@@ -71,6 +75,11 @@
       rfam.enable = true;
       # alphafold.enable = true;  # Very large, enable when needed
     };
+  };
+
+  programs.singularity = {
+    enable = true;
+    package = pkgs.apptainer;
   };
 
   system.stateVersion = "25.05";
