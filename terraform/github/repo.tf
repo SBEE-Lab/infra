@@ -10,7 +10,7 @@ resource "github_repository" "infra" {
   ]
 
   allow_auto_merge       = true
-  allow_merge_commit     = false
+  allow_merge_commit     = true
   allow_rebase_merge     = false
   allow_squash_merge     = true
   delete_branch_on_merge = true
@@ -101,11 +101,11 @@ resource "github_repository_ruleset" "user_branches" {
       require_code_owner_review       = true
     }
 
-    # required_status_checks {
-    #   required_check {
-    #     context = "buildbot/nix-build"
-    #   }
-    # }
+    required_status_checks {
+      required_check {
+        context = "buildbot/nix-build"
+      }
+    }
   }
 }
 
