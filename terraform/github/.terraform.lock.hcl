@@ -4,13 +4,13 @@
 provider "registry.opentofu.org/carlpett/sops" {
   version = "1.3.0"
   hashes = [
-    "h1:k4udDFReR4wmpSKBosgLqVfhhoElURDXL1r2VJoocIo=",
+    "h1:avma/AgQFJJQ5FhDYSv0USv6q0yD+QkgBN9eutY7j10=",
   ]
 }
 
 provider "registry.opentofu.org/integrations/github" {
-  version = "6.9.1"
+  version = "6.10.2"
   hashes = [
-    "h1:wCTnUaYlJMy1Dz6QbciurfXMxd7gFssx1PafeBb5O88=",
+    "h1:EzlEL4wW6L6d0a0/lmP18+5wWiyykbKu96Bw3WAL1g0=",
   ]
 }
