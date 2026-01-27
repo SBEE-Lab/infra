@@ -26,16 +26,11 @@
 
   inputs = {
     # keep-sorted start
-    attic.inputs.flake-compat.follows = "";
-    attic.inputs.nixpkgs.follows = "nixpkgs";
-    attic.url = "github:zhaofengli/attic";
     buildbot-nix.url = "github:nix-community/buildbot-nix";
     disko.inputs.nixpkgs.follows = "nixpkgs";
     disko.url = "github:nix-community/disko";
     flake-parts.inputs.nixpkgs-lib.follows = "nixpkgs";
     flake-parts.url = "github:hercules-ci/flake-parts";
-    niks3.inputs.nixpkgs.follows = "nixpkgs";
-    niks3.url = "github:Mic92/niks3";
     nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
     nix-index-database.url = "github:nix-community/nix-index-database";
     nixos-facter-modules.url = "github:numtide/nixos-facter-modules";
@@ -50,7 +45,6 @@
     srvos.inputs.nixpkgs.follows = "nixpkgs";
     srvos.url = "github:nix-community/srvos";
     systems.url = "github:nix-systems/default";
-    toolz.url = "github:zmblr/toolz/release-25.11";
     treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
     treefmt-nix.url = "github:numtide/treefmt-nix";
     # keep-sorted end
