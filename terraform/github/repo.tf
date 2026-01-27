@@ -101,11 +101,11 @@ resource "github_repository_ruleset" "user_branches" {
       require_code_owner_review       = true
     }
 
-    # required_status_checks {
-    #   required_check {
-    #     context = "buildbot/nix-build"
-    #   }
-    # }
+    required_status_checks {
+      required_check {
+        context = "buildbot/nix-build"
+      }
+    }
   }
 }
 
