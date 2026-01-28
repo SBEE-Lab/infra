@@ -32,7 +32,6 @@ in
       userAllowlist = [
         "SBEE-Lab"
         "mulatta"
-        "zmblr"
       ];
     };
 
