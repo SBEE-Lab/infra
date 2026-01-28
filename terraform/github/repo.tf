@@ -11,7 +11,7 @@ resource "github_repository" "infra" {
 
   allow_auto_merge       = true
   allow_merge_commit     = true
-  allow_rebase_merge     = false
+  allow_rebase_merge     = true
   allow_squash_merge     = true
   delete_branch_on_merge = true
 
@@ -65,16 +65,10 @@ resource "github_repository_ruleset" "infra" {
       required_review_thread_resolution = false
     }
 
-    commit_message_pattern {
-      pattern  = "^(feat|fix|docs|style|refactor|test|chore)(\\(.+\\))?: .{1,50}"
-      operator = "regex"
-      name     = "Conventional Commits"
-    }
-
-    commit_author_email_pattern {
-      pattern  = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
-      operator = "regex"
-      name     = "Valid email required"
+    required_status_checks {
+      required_check {
+        context = "buildbot/nix-eval"
+      }
     }
   }
 }
@@ -97,8 +91,8 @@ resource "github_repository_ruleset" "user_branches" {
     non_fast_forward = false
 
     pull_request {
-      required_approving_review_count = 1
-      require_code_owner_review       = true
+      required_approving_review_count = 0
+      require_code_owner_review       = false
     }
 
     required_status_checks {
