@@ -8,43 +8,39 @@ let
   domain = "cloud.sjanglab.org";
   collaboraPort = 9980;
   certDir = "/var/lib/acme/${domain}";
+
+  # Public key for acme-sync from eta (generated with gen-acme-sync-key.sh)
+  acmeSyncPubKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO7mZ/UfOMpnrHaIigljsGWXCQAovWezdPpA3WQy1Qgu acme-sync@eta";
 in
 {
-  # Create acme user/group for certificate directory ownership
-  users.users.acme = {
+  # acme-sync user for receiving certificates from eta
+  users.users.acme-sync = {
     isSystemUser = true;
-    group = "acme";
+    group = "acme-sync";
+    home = certDir;
+    shell = pkgs.bashInteractive;
+    openssh.authorizedKeys.keys = [ acmeSyncPubKey ];
   };
-  users.groups.acme = { };
+  users.groups.acme-sync.members = [ "nginx" ];
 
-  # Create certificate directory
+  # Create certificate directory owned by acme-sync
   systemd.tmpfiles.rules = [
-    "d ${certDir} 0750 acme nginx - -"
+    "d ${certDir} 0750 acme-sync acme-sync - -"
   ];
 
-  # Pull certificate from eta (runs daily and on boot)
-  systemd.services.acme-pull-from-eta = {
-    description = "Pull cloud.sjanglab.org certificate from eta";
+  # Reload nginx when certificates are updated
+  systemd.services.acme-sync-reload-nginx = {
+    description = "Reload nginx after certificate sync";
     serviceConfig = {
       Type = "oneshot";
-      ExecStart = pkgs.writeShellScript "pull-cert-from-eta" ''
-        ${pkgs.rsync}/bin/rsync -e "${pkgs.openssh}/bin/ssh -o StrictHostKeyChecking=accept-new" \
-          -avz --chmod=D750,F640 \
-          root@eta:/var/lib/acme/${domain}/ \
-          ${certDir}/
-        chown -R acme:nginx ${certDir}
-        ${pkgs.systemd}/bin/systemctl reload nginx || true
-      '';
+      ExecStart = "${pkgs.systemd}/bin/systemctl reload nginx";
     };
-    wants = [ "network-online.target" ];
-    after = [ "network-online.target" ];
   };
-  systemd.timers.acme-pull-from-eta = {
-    wantedBy = [ "timers.target" ];
-    timerConfig = {
-      OnBootSec = "5min";
-      OnUnitActiveSec = "1d";
-      RandomizedDelaySec = "1h";
+  systemd.paths.acme-sync-watch = {
+    wantedBy = [ "multi-user.target" ];
+    pathConfig = {
+      PathChanged = "${certDir}/fullchain.pem";
+      Unit = "acme-sync-reload-nginx.service";
     };
   };
 
