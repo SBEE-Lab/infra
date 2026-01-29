@@ -90,9 +90,6 @@ in
 
       Match Address 10.100.0.0/24
           PermitRootLogin prohibit-password
-
-      Match Address 10.200.0.0/24
-          PermitRootLogin no
     '';
   };
 
