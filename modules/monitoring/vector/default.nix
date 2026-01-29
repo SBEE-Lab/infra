@@ -11,7 +11,7 @@
 let
   inherit (config.networking) hostName;
 
-  systemCollector = config.networking.sbee.hosts.rho.wg-mgnt;
+  systemCollector = config.networking.sbee.hosts.rho.wg-admin;
   isSystemCollector = hostName == "rho";
 
   netStatsScript = pkgs.writeShellScript "net-stats.sh" ''

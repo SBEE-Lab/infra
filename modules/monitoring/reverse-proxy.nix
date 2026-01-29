@@ -1,5 +1,5 @@
 # Grafana reverse proxy (deployed on eta)
-# Proxies requests to rho where Grafana is running on wg-serv
+# Proxies requests to rho where Grafana is running on wg-admin
 { config, ... }:
 let
   inherit (config.networking.sbee) hosts;
@@ -14,7 +14,7 @@ in
 
     locations = {
       "/" = {
-        proxyPass = "http://${hosts.rho.wg-serv}:3000";
+        proxyPass = "http://${hosts.rho.wg-admin}:3000";
         extraConfig = ''
           proxy_set_header Host $host;
           proxy_set_header X-Real-IP $remote_addr;
@@ -24,7 +24,7 @@ in
       };
       # Grafana live (WebSocket)
       "/api/live/" = {
-        proxyPass = "http://${hosts.rho.wg-serv}:3000";
+        proxyPass = "http://${hosts.rho.wg-admin}:3000";
         proxyWebsockets = true;
         extraConfig = ''
           proxy_set_header Host $host;

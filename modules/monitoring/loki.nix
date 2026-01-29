@@ -4,7 +4,7 @@
   ...
 }:
 let
-  wgMgntAddr = config.networking.sbee.hosts.rho.wg-mgnt;
+  wgAdminAddr = config.networking.sbee.hosts.rho.wg-admin;
 in
 {
   services.loki = {
@@ -13,7 +13,7 @@ in
       auth_enabled = false;
 
       server = {
-        http_listen_address = wgMgntAddr;
+        http_listen_address = wgAdminAddr;
         http_listen_port = 3100;
       };
 
@@ -70,7 +70,7 @@ in
     };
   };
 
-  networking.firewall.interfaces."wg-mgnt".allowedTCPPorts = [
+  networking.firewall.interfaces."wg-admin".allowedTCPPorts = [
     3100 # Loki
   ];
 }
