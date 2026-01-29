@@ -87,4 +87,8 @@ in
     owner = "postgres";
     group = "postgres";
   };
+
+  # Disable postgresql-setup on replica - it waits for recovery to complete,
+  # but replicas are always in recovery mode
+  systemd.services.postgresql-setup.enable = false;
 }
