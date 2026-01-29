@@ -57,7 +57,7 @@ Available tasks:
   enable-service           Enable a service to start automatically on a remote host, i.e. inv enable-service --host rho --service nginx
   generate-password        Generate password hashes for users i.e. for root in ./hosts/$HOSTNAME.yaml
   generate-ssh-cert        Generate ssh cert for host, i.e. inv generate-ssh-cert bill
-  generate-wireguard-key   Generate wireguard private keys for a given hostname (wg-mgnt and wg-serv)
+  generate-wireguard-key   Generate wireguard private key for a given hostname (wg-admin)
   install                  format disks and install nixos, i.e.: inv install --machine rho --hostname root@rho.sbee.lab
   install-ssh-hostkeys     Install ssh host keys stored in sops files on a remote host, i.e. inv install-ssh-hostkeys --machine rho --hostname rho
   list-services            List services on a remote host, i.e. inv list-services --host rho --pattern nginx

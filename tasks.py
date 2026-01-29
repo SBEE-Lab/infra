@@ -258,27 +258,23 @@ def print_age_key(_: Any, host: str) -> None:
 @task
 def generate_wireguard_key(c: Any, hostname: str) -> None:
     """
-    Generate wireguard private keys for a given hostname (wg-mgnt and wg-serv)
+    Generate wireguard private key for a given hostname (wg-admin)
     """
     with TemporaryDirectory() as tmp:
-        # Generate keys for both wg-mgnt and wg-serv
-        for interface in ["wg-mgnt", "wg-serv"]:
-            c.run(
-                f"nix shell --inputs-from . nixpkgs#wireguard-tools -c sh -c '"
-                f"umask 077 && "
-                f"wg genkey > {tmp}/private_{interface} && "
-                f"wg pubkey < {tmp}/private_{interface} > {tmp}/public_{interface}"
-                f"'",
-                echo=True,
-            )
+        c.run(
+            f"nix shell --inputs-from . nixpkgs#wireguard-tools -c sh -c '"
+            f"umask 077 && "
+            f"wg genkey > {tmp}/private && "
+            f"wg pubkey < {tmp}/private > {tmp}/public"
+            f"'",
+            echo=True,
+        )
 
-            wg_key = (Path(tmp) / f"private_{interface}").read_text().strip()
-            wg_pubkey = (Path(tmp) / f"public_{interface}").read_text().strip()
+        wg_key = (Path(tmp) / "private").read_text().strip()
+        wg_pubkey = (Path(tmp) / "public").read_text().strip()
 
-            c.run(
-                f"sops --set '[\"{interface}-key\"] {json.dumps(wg_key)}' {ROOT}/hosts/{hostname}.yaml"
-            )
-            c.run(f"echo {wg_pubkey} > {ROOT}/modules/wireguard/keys/{hostname}_{interface}")
+        c.run(f"sops --set '[\"wg-admin-key\"] {json.dumps(wg_key)}' {ROOT}/hosts/{hostname}.yaml")
+        c.run(f"echo {wg_pubkey} > {ROOT}/modules/wireguard/keys/{hostname}_wg-admin")
 
 
 @task

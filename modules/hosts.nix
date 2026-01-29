@@ -29,23 +29,6 @@ let
       '';
     };
 
-    # Legacy options - kept for migration, will be removed
-    wg-mgnt = mkOption {
-      type = types.nullOr types.str;
-      default = null;
-      description = ''
-        Wireguard interface for management (wg-mgnt) address
-      '';
-    };
-
-    wg-serv = mkOption {
-      type = types.nullOr types.str;
-      default = null;
-      description = ''
-        Wireguard interface for service (wg-serv) address
-      '';
-    };
-
     gateway = mkOption {
       type = types.nullOr types.str;
       default = null;
@@ -120,8 +103,6 @@ in
         gateway = "141.164.52.1";
         mac = "56:00:05:a5:b3:57";
         wg-admin = "10.100.0.1";
-        wg-mgnt = "10.100.0.1";
-        wg-serv = "10.200.0.1";
         tags = [
           "public-ip"
           "vps-network"
@@ -132,8 +113,6 @@ in
         gateway = "117.16.251.254";
         mac = "bc:fc:e7:52:e1:ab";
         wg-admin = "10.100.0.2";
-        wg-mgnt = "10.100.0.2";
-        wg-serv = "10.200.0.2";
         tags = [
           "public-ip"
           "kren-dns"
@@ -144,8 +123,6 @@ in
         gateway = "10.80.169.254";
         mac = "9c:6b:00:9e:fa:de";
         wg-admin = "10.100.0.3";
-        wg-mgnt = "10.100.0.3";
-        wg-serv = "10.200.0.3";
         tags = [
           "nat-behind"
           "lab-network"
@@ -157,8 +134,6 @@ in
         gateway = "10.80.169.254";
         mac = "9c:6b:00:9e:f8:ef";
         wg-admin = "10.100.0.4";
-        wg-mgnt = "10.100.0.4";
-        wg-serv = "10.200.0.4";
         tags = [
           "nat-behind"
           "lab-network"
