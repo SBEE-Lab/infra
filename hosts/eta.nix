@@ -1,3 +1,4 @@
+{ ... }:
 {
   imports = [
     ../modules/hardware/vultr-vms.nix
