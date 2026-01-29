@@ -24,7 +24,7 @@
         ];
         extra_records = [
           {
-            name = "cloud.sbee.lab";
+            name = "cloud.sjanglab.org";
             type = "A";
             value = "100.64.0.3"; # tau headscale IP
           }
