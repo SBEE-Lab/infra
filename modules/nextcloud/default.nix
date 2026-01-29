@@ -7,9 +7,46 @@ let
   inherit (config.networking.sbee) hosts;
   domain = "cloud.sjanglab.org";
   collaboraPort = 9980;
+  certDir = "/var/lib/acme/${domain}";
 in
 {
-  imports = [ ../acme ];
+  # Create acme user/group for certificate directory ownership
+  users.users.acme = {
+    isSystemUser = true;
+    group = "acme";
+  };
+  users.groups.acme = { };
+
+  # Create certificate directory
+  systemd.tmpfiles.rules = [
+    "d ${certDir} 0750 acme nginx - -"
+  ];
+
+  # Pull certificate from eta (runs daily and on boot)
+  systemd.services.acme-pull-from-eta = {
+    description = "Pull cloud.sjanglab.org certificate from eta";
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = pkgs.writeShellScript "pull-cert-from-eta" ''
+        ${pkgs.rsync}/bin/rsync -e "${pkgs.openssh}/bin/ssh -o StrictHostKeyChecking=accept-new" \
+          -avz --chmod=D750,F640 \
+          root@eta:/var/lib/acme/${domain}/ \
+          ${certDir}/
+        chown -R acme:nginx ${certDir}
+        ${pkgs.systemd}/bin/systemctl reload nginx || true
+      '';
+    };
+    wants = [ "network-online.target" ];
+    after = [ "network-online.target" ];
+  };
+  systemd.timers.acme-pull-from-eta = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnBootSec = "5min";
+      OnUnitActiveSec = "1d";
+      RandomizedDelaySec = "1h";
+    };
+  };
 
   services.nextcloud = {
     enable = true;
@@ -78,20 +115,13 @@ in
     ];
   };
 
-  # ACME certificate
-  security.acme.certs.${domain} = {
-    dnsProvider = "cloudflare";
-    dnsResolver = "1.1.1.1:53";
-    environmentFile = config.sops.secrets.cloudflare-credentials.path;
-    webroot = null;
-  };
-
-  # Nginx with ACME certificate
+  # Nginx with certificate from eta (synced via rsync)
   services.nginx = {
     enable = true;
     virtualHosts.${domain} = {
       forceSSL = true;
-      enableACME = true;
+      sslCertificate = "${certDir}/fullchain.pem";
+      sslCertificateKey = "${certDir}/key.pem";
 
       # Collabora Online proxy paths
       locations = {
