@@ -34,7 +34,12 @@ in
     };
 
     extraApps = with config.services.nextcloud.package.packages.apps; {
-      inherit user_oidc;
+      inherit
+        user_oidc
+        calendar
+        tasks
+        whiteboard
+        ;
     };
 
     phpOptions = {
