@@ -19,6 +19,7 @@
       SSO_CLIENT_ID = "OfBSHOHF0txEZzpJgZAIahUAjfHSQQ18xNWGwyNV";
       SSO_SCOPES = "email profile openid";
       SSO_PKCE = true;
+      SSO_ALLOW_UNVERIFIED_EMAILS = true;
 
       ROCKET_PORT = 8000;
     };
