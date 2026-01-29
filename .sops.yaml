@@ -98,6 +98,11 @@ creation_rules:
     path_regex: modules/users/xrdp-passwords.yaml
   - key_groups:
       - age:
+          - age1zdhqm6ptcnuu3tf2lzcngqmf6eud7jfah7v8falfy5mdksmnfuzq35sq54
+          - age1axh7747a46nm8x6l42nalaptf6xh7q9t9z8qlwrwqg4xc89leqjsaaeu6r
+    path_regex: modules/vaultwarden/secrets.yaml
+  - key_groups:
+      - age:
           - age1axh7747a46nm8x6l42nalaptf6xh7q9t9z8qlwrwqg4xc89leqjsaaeu6r
     path_regex: terraform/cloudflare/secrets.yaml
   - key_groups:
