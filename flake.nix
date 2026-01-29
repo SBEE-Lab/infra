@@ -26,6 +26,7 @@
 
   inputs = {
     # keep-sorted start
+    authentik-nix.url = "github:nix-community/authentik-nix";
     buildbot-nix.url = "github:nix-community/buildbot-nix";
     disko.inputs.nixpkgs.follows = "nixpkgs";
     disko.url = "github:nix-community/disko";

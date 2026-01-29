@@ -4,6 +4,7 @@
     ../modules/disko/ext4-root.nix
     ../modules/ntfy.nix
     ../modules/headscale
+    ../modules/authentik
     ../modules/buildbot/reverse-proxy.nix
     ../modules/monitoring/vector
     ../modules/monitoring/reverse-proxy.nix
