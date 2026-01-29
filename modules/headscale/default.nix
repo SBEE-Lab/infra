@@ -16,11 +16,18 @@
       };
 
       dns = {
-        base_domain = "tail.sjanglab.org";
+        base_domain = "sbee.lab";
         magic_dns = true;
         nameservers.global = [
           "1.1.1.1"
           "8.8.8.8"
+        ];
+        extra_records = [
+          {
+            name = "cloud.sbee.lab";
+            type = "A";
+            value = "100.64.0.3"; # tau headscale IP
+          }
         ];
       };
 

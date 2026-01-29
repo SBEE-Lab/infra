@@ -51,6 +51,7 @@ let
       ];
       "modules/harmonia/secrets.yaml" = [ "psi" ];
       "modules/monitoring/secrets.yaml" = [ "rho" ];
+      "modules/nextcloud/secrets.yaml" = [ "tau" ];
       "modules/nfs/secrets.yaml" = [ "psi" ];
       "modules/users/xrdp-passwords.yaml" = [ "psi" ];
       "terraform/cloudflare/secrets.yaml" = [ ];
