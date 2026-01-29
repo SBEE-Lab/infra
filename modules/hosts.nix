@@ -21,6 +21,15 @@ let
       '';
     };
 
+    wg-admin = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      description = ''
+        WireGuard interface for admin access (unified)
+      '';
+    };
+
+    # Legacy options - kept for migration, will be removed
     wg-mgnt = mkOption {
       type = types.nullOr types.str;
       default = null;
@@ -86,13 +95,13 @@ in
     };
   };
   config = {
-    # Generate /etc/hosts entries for all hosts using WireGuard management IPs
+    # Generate /etc/hosts entries for all hosts using WireGuard admin IPs
     # This allows servers to resolve each other by hostname (e.g., ssh psi)
     networking.hosts = lib.mkMerge (
       lib.mapAttrsToList (
         name: host:
-        lib.optionalAttrs (host.wg-mgnt != null) {
-          ${host.wg-mgnt} = [ name ];
+        lib.optionalAttrs (host.wg-admin != null) {
+          ${host.wg-admin} = [ name ];
         }
       ) config.networking.sbee.hosts
     );
@@ -110,6 +119,7 @@ in
         ipv4 = "141.164.53.203";
         gateway = "141.164.52.1";
         mac = "56:00:05:a5:b3:57";
+        wg-admin = "10.100.0.1";
         wg-mgnt = "10.100.0.1";
         wg-serv = "10.200.0.1";
         tags = [
@@ -121,6 +131,7 @@ in
         ipv4 = "117.16.251.37";
         gateway = "117.16.251.254";
         mac = "bc:fc:e7:52:e1:ab";
+        wg-admin = "10.100.0.2";
         wg-mgnt = "10.100.0.2";
         wg-serv = "10.200.0.2";
         tags = [
@@ -132,6 +143,7 @@ in
         ipv4 = "10.80.169.39";
         gateway = "10.80.169.254";
         mac = "9c:6b:00:9e:fa:de";
+        wg-admin = "10.100.0.3";
         wg-mgnt = "10.100.0.3";
         wg-serv = "10.200.0.3";
         tags = [
@@ -144,6 +156,7 @@ in
         ipv4 = "10.80.169.40";
         gateway = "10.80.169.254";
         mac = "9c:6b:00:9e:f8:ef";
+        wg-admin = "10.100.0.4";
         wg-mgnt = "10.100.0.4";
         wg-serv = "10.200.0.4";
         tags = [
