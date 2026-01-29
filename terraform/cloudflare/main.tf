@@ -93,3 +93,13 @@ resource "cloudflare_dns_record" "headscale" {
   proxied = false
   comment = "Headscale coordination server"
 }
+
+resource "cloudflare_dns_record" "authentik" {
+  zone_id = data.sops_file.secrets.data["CLOUDFLARE_ZONE_ID"]
+  name    = "auth.sjanglab.org"
+  content = "141.164.53.203"
+  type    = "A"
+  ttl     = 300
+  proxied = false
+  comment = "Authentik SSO server"
+}

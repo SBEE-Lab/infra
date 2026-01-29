@@ -35,6 +35,11 @@ creation_rules:
     path_regex: modules/attic/secrets.yaml
   - key_groups:
       - age:
+          - age1zdhqm6ptcnuu3tf2lzcngqmf6eud7jfah7v8falfy5mdksmnfuzq35sq54
+          - age1axh7747a46nm8x6l42nalaptf6xh7q9t9z8qlwrwqg4xc89leqjsaaeu6r
+    path_regex: modules/authentik/secrets.yaml
+  - key_groups:
+      - age:
           - age18yuzugm0f2l7cc4sdmp5f442af2w897x9l9syeaef3yx3jzc5pjs9zez0f
           - age1axh7747a46nm8x6l42nalaptf6xh7q9t9z8qlwrwqg4xc89leqjsaaeu6r
     path_regex: modules/borgbackup/psi/secrets.yaml

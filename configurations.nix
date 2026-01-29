@@ -6,6 +6,7 @@
 let
   inherit (inputs)
     nixpkgs
+    authentik-nix
     disko
     sops-nix
     srvos
@@ -82,6 +83,12 @@ in
     psi = nixosSystem (computeModules ++ [ ./hosts/psi.nix ]);
     rho = nixosSystem (commonModules ++ [ ./hosts/rho.nix ]);
     tau = nixosSystem (commonModules ++ [ ./hosts/tau.nix ]);
-    eta = nixosSystem (commonModules ++ [ ./hosts/eta.nix ]);
+    eta = nixosSystem (
+      commonModules
+      ++ [
+        authentik-nix.nixosModules.default
+        ./hosts/eta.nix
+      ]
+    );
   };
 }
