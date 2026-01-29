@@ -103,3 +103,13 @@ resource "cloudflare_dns_record" "authentik" {
   proxied = false
   comment = "Authentik SSO server"
 }
+
+resource "cloudflare_dns_record" "vaultwarden" {
+  zone_id = data.sops_file.secrets.data["CLOUDFLARE_ZONE_ID"]
+  name    = "vault.sjanglab.org"
+  content = "141.164.53.203"
+  type    = "A"
+  ttl     = 300
+  proxied = false
+  comment = "Vaultwarden password manager"
+}
