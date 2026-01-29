@@ -37,7 +37,7 @@ in
 
   services.borgbackup.jobs.rho-postgresql = {
     paths = [ backupDir ];
-    repo = "borg@${config.networking.sbee.hosts.tau.wg-mgnt}:/backup/borg/rho";
+    repo = "borg@${config.networking.sbee.hosts.tau.wg-admin}:/backup/borg/rho";
     encryption = {
       mode = "repokey-blake2";
       passCommand = "cat ${config.sops.secrets.borg-passphrase-rho.path}";
