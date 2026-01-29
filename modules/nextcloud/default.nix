@@ -7,6 +7,7 @@ let
   inherit (config.networking.sbee) hosts;
   domain = "cloud.sjanglab.org";
   collaboraPort = 9980;
+  whiteboardPort = 3002;
   certDir = "/var/lib/acme/${domain}";
 
   # Public key for acme-sync from eta (generated with gen-acme-sync-key.sh)
@@ -76,12 +77,22 @@ in
         tasks
         whiteboard
         richdocuments
+        groupfolders
         ;
     };
 
     phpOptions = {
       "opcache.interned_strings_buffer" = "16";
     };
+  };
+
+  # Whiteboard real-time collaboration server
+  services.nextcloud-whiteboard-server = {
+    enable = true;
+    settings = {
+      NEXTCLOUD_URL = "https://${domain}";
+    };
+    secrets = [ config.sops.secrets.whiteboard-jwt.path ];
   };
 
   # Collabora Online for document editing
@@ -142,6 +153,15 @@ in
         "^~ /cool/" = {
           proxyPass = "http://127.0.0.1:${toString collaboraPort}";
         };
+        # Whiteboard WebSocket server
+        "/whiteboard/" = {
+          proxyPass = "http://127.0.0.1:${toString whiteboardPort}/";
+          proxyWebsockets = true;
+          extraConfig = ''
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header Host $host;
+          '';
+        };
       };
     };
   };
@@ -155,6 +175,9 @@ in
     sopsFile = ./secrets.yaml;
     owner = "nextcloud";
     group = "nextcloud";
+  };
+  sops.secrets.whiteboard-jwt = {
+    sopsFile = ./secrets.yaml;
   };
 
   networking.firewall.allowedTCPPorts = [
