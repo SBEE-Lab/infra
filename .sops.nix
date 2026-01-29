@@ -34,7 +34,10 @@ let
       }) keys.machines
     )
     // builtins.mapAttrs (_name: value: (map (x: keys.machines.${x}) value)) {
-      "modules/acme/secrets.yaml" = [ "eta" ];
+      "modules/acme/secrets.yaml" = [
+        "eta"
+        "tau"
+      ];
       "modules/attic/secrets.yaml" = [ "eta" ];
       "modules/authentik/secrets.yaml" = [ "eta" ];
       "modules/headscale/secrets.yaml" = [ "eta" ];

@@ -26,6 +26,7 @@ creation_rules:
   - key_groups:
       - age:
           - age1zdhqm6ptcnuu3tf2lzcngqmf6eud7jfah7v8falfy5mdksmnfuzq35sq54
+          - age13v0djuhkmnd06zvct0zc6sddykqpk3j9k8ev5sfgd6gtj82s0avs68psvj
           - age1axh7747a46nm8x6l42nalaptf6xh7q9t9z8qlwrwqg4xc89leqjsaaeu6r
     path_regex: modules/acme/secrets.yaml
   - key_groups:

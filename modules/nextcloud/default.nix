@@ -5,9 +5,12 @@
 }:
 let
   inherit (config.networking.sbee) hosts;
-  domain = "cloud.sbee.lab";
+  domain = "cloud.sjanglab.org";
+  collaboraPort = 9980;
 in
 {
+  imports = [ ../acme ];
+
   services.nextcloud = {
     enable = true;
     package = pkgs.nextcloud32;
@@ -39,6 +42,7 @@ in
         calendar
         tasks
         whiteboard
+        richdocuments
         ;
     };
 
@@ -47,37 +51,73 @@ in
     };
   };
 
-  # Nginx with self-signed certificate
+  # Collabora Online for document editing
+  services.collabora-online = {
+    enable = true;
+    port = collaboraPort;
+    settings = {
+      # Public URL for discovery/browser access
+      server_name = domain;
+      # Allow Nextcloud to connect
+      storage.wopi."@allow" = true;
+      # Disable SSL termination (nginx handles it)
+      ssl = {
+        enable = false;
+        termination = true;
+      };
+      # Allow same-host connections
+      net.post_allow.host = [
+        "127\\.0\\.0\\.1"
+        "::1"
+      ];
+    };
+    aliasGroups = [
+      {
+        host = "https://${domain}:443";
+      }
+    ];
+  };
+
+  # ACME certificate
+  security.acme.certs.${domain} = {
+    dnsProvider = "cloudflare";
+    dnsResolver = "1.1.1.1:53";
+    environmentFile = config.sops.secrets.cloudflare-credentials.path;
+    webroot = null;
+  };
+
+  # Nginx with ACME certificate
   services.nginx = {
     enable = true;
     virtualHosts.${domain} = {
       forceSSL = true;
-      sslCertificate = "/var/lib/nextcloud/ssl/cert.pem";
-      sslCertificateKey = "/var/lib/nextcloud/ssl/key.pem";
-    };
-  };
+      enableACME = true;
 
-  # Generate self-signed certificate on activation
-  systemd.services.nextcloud-ssl-cert = {
-    description = "Generate self-signed SSL certificate for Nextcloud";
-    wantedBy = [ "multi-user.target" ];
-    before = [ "nginx.service" ];
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
+      # Collabora Online proxy paths
+      locations = {
+        # Static files
+        "^~ /browser" = {
+          proxyPass = "http://127.0.0.1:${toString collaboraPort}";
+          proxyWebsockets = true;
+        };
+        # WOPI discovery and capabilities
+        "^~ /hosting/discovery" = {
+          proxyPass = "http://127.0.0.1:${toString collaboraPort}";
+        };
+        "^~ /hosting/capabilities" = {
+          proxyPass = "http://127.0.0.1:${toString collaboraPort}";
+        };
+        # Main document handling endpoint (WebSocket)
+        "~ ^/cool/(.*)/ws$" = {
+          proxyPass = "http://127.0.0.1:${toString collaboraPort}";
+          proxyWebsockets = true;
+        };
+        # Admin and other cool paths
+        "^~ /cool/" = {
+          proxyPass = "http://127.0.0.1:${toString collaboraPort}";
+        };
+      };
     };
-    script = ''
-      mkdir -p /var/lib/nextcloud/ssl
-      if [ ! -f /var/lib/nextcloud/ssl/cert.pem ]; then
-        ${pkgs.openssl}/bin/openssl req -x509 -nodes -days 3650 \
-          -newkey rsa:2048 \
-          -keyout /var/lib/nextcloud/ssl/key.pem \
-          -out /var/lib/nextcloud/ssl/cert.pem \
-          -subj "/CN=${domain}"
-        chown -R nginx:nginx /var/lib/nextcloud/ssl
-        chmod 600 /var/lib/nextcloud/ssl/key.pem
-      fi
-    '';
   };
 
   sops.secrets.nextcloud-db-password = {
