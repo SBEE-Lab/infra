@@ -25,8 +25,8 @@
       };
 
       oidc = {
-        issuer = "https://accounts.google.com";
-        client_id = "968535090506-9f4pglihfodqns9882mhqslg3licmj5p.apps.googleusercontent.com";
+        issuer = "https://auth.sjanglab.org/application/o/headscale/";
+        client_id = "4HgENmoHd0zxoqKYX6FgC2EtVKM1djT5lWEFacER";
         client_secret_path = config.sops.secrets.headscale-oidc-secret.path;
         scope = [
           "openid"
