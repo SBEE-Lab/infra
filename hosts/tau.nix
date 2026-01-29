@@ -4,6 +4,7 @@
     ../modules/disko/xfs-root.nix
     ../modules/disko/xfs-mdadm.nix
     ../modules/wake-on-lan.nix
+    ../modules/tailscale
     ../modules/postgresql/replica.nix
     ../modules/borgbackup/psi/server.nix
     ../modules/borgbackup/rho/server.nix
