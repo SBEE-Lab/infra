@@ -37,6 +37,11 @@ let
       "modules/acme/secrets.yaml" = [ "eta" ];
       "modules/attic/secrets.yaml" = [ "eta" ];
       "modules/headscale/secrets.yaml" = [ "eta" ];
+      "modules/tailscale/secrets.yaml" = [
+        "psi"
+        "rho"
+        "tau"
+      ];
       "modules/borgbackup/psi/secrets.yaml" = [ "psi" ];
       "modules/borgbackup/rho/secrets.yaml" = [ "rho" ];
       "modules/buildbot/secrets.yaml" = [
