@@ -8,6 +8,7 @@
     ../modules/disko/xfs-root.nix
     ../modules/disko/xfs-mdadm.nix
     ../modules/nvidia.nix
+    ../modules/tailscale
     ../modules/buildbot/master.nix
     ../modules/buildbot/worker.nix
     ../modules/borgbackup/psi/client.nix
