@@ -14,7 +14,7 @@ in
   services.buildbot-nix.worker = {
     enable = true;
     workerPasswordFile = config.sops.secrets.buildbot-worker-password.path;
-    masterUrl = "tcp:host=${hosts.psi.wg-serv}:port=9989";
+    masterUrl = "tcp:host=${hosts.psi.wg-admin}:port=9989";
   };
 
   systemd.services.buildbot-worker.path = [

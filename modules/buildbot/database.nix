@@ -5,12 +5,12 @@
   ...
 }:
 let
-  inherit (config.networking.sbee) currentHost hosts;
+  inherit (config.networking.sbee) hosts;
   psql = "${config.services.postgresql.package}/bin/psql --port=${toString config.services.postgresql.settings.port}";
 in
 {
   services.postgresql = {
-    settings.listen_addresses = lib.mkForce "${currentHost.wg-mgnt},${currentHost.wg-serv}";
+    # wg-admin already set in postgresql/default.nix
     ensureDatabases = [ "buildbot" ];
     ensureUsers = [
       {
@@ -19,7 +19,7 @@ in
       }
     ];
     authentication = lib.mkAfter ''
-      host buildbot buildbot ${hosts.psi.wg-serv}/32 scram-sha-256
+      host buildbot buildbot ${hosts.psi.wg-admin}/32 scram-sha-256
     '';
   };
 
@@ -36,5 +36,5 @@ in
 
   services.postgresqlBackup.databases = lib.mkAfter [ "buildbot" ];
 
-  networking.firewall.interfaces.wg-serv.allowedTCPPorts = [ 5432 ];
+  # PostgreSQL port already opened on wg-admin in postgresql/default.nix
 }

@@ -13,7 +13,7 @@ in
 
     locations = {
       "/" = {
-        proxyPass = "http://${hosts.psi.wg-serv}:8010";
+        proxyPass = "http://${hosts.psi.wg-admin}:8010";
         extraConfig = ''
           proxy_set_header Host $host;
           proxy_set_header X-Real-IP $remote_addr;
@@ -22,7 +22,7 @@ in
         '';
       };
       "/ws" = {
-        proxyPass = "http://${hosts.psi.wg-serv}:8010";
+        proxyPass = "http://${hosts.psi.wg-admin}:8010";
         proxyWebsockets = true;
         extraConfig = ''
           proxy_set_header Host $host;
@@ -33,7 +33,7 @@ in
         '';
       };
       "/sse" = {
-        proxyPass = "http://${hosts.psi.wg-serv}:8010";
+        proxyPass = "http://${hosts.psi.wg-admin}:8010";
         extraConfig = ''
           proxy_set_header Host $host;
           proxy_set_header X-Real-IP $remote_addr;

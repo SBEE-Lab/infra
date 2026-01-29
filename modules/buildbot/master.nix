@@ -65,7 +65,7 @@ in
     admins = [ "mulatta" ];
   };
 
-  services.buildbot-master.dbUrl = lib.mkForce "postgresql://buildbot@${hosts.rho.wg-serv}/buildbot";
+  services.buildbot-master.dbUrl = lib.mkForce "postgresql://buildbot@${hosts.rho.wg-admin}/buildbot";
   services.buildbot-master.buildbotUrl = lib.mkForce "https://${buildbotDomain}/";
 
   systemd.services.buildbot-master.environment = {
@@ -77,11 +77,11 @@ in
   ];
 
   services.buildbot-master.extraConfig = ''
-    c["www"]["port"] = "tcp:8010:interface=${hosts.psi.wg-serv}"
-    c["protocols"] = {"pb": {"port": "tcp:9989:interface=${hosts.psi.wg-serv}"}}
+    c["www"]["port"] = "tcp:8010:interface=${hosts.psi.wg-admin}"
+    c["protocols"] = {"pb": {"port": "tcp:9989:interface=${hosts.psi.wg-admin}"}}
   '';
 
-  networking.firewall.interfaces.wg-serv.allowedTCPPorts = [
+  networking.firewall.interfaces.wg-admin.allowedTCPPorts = [
     8010
     9989
   ];
