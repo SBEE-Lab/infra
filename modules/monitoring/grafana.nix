@@ -1,14 +1,13 @@
 # Grafana dashboard server (deployed on rho)
-# - Listens on wg-serv for user access
-# - Connects to Loki/Prometheus on wg-mgnt (internal)
+# - Listens on wg-admin for access
+# - Connects to Loki/Prometheus on wg-admin (internal)
 { config, ... }:
 let
   inherit (config.networking.sbee) currentHost;
-  wgServAddr = currentHost.wg-serv;
-  wgMgntAddr = currentHost.wg-mgnt;
+  wgAdminAddr = currentHost.wg-admin;
 
-  lokiUrl = "http://${wgMgntAddr}:3100";
-  prometheusUrl = "http://${wgMgntAddr}:9090";
+  lokiUrl = "http://${wgAdminAddr}:3100";
+  prometheusUrl = "http://${wgAdminAddr}:9090";
 in
 {
   services.grafana = {
@@ -16,7 +15,7 @@ in
 
     settings = {
       server = {
-        http_addr = wgServAddr;
+        http_addr = wgAdminAddr;
         http_port = 3000;
         domain = "logging.sjanglab.org";
         root_url = "https://logging.sjanglab.org";
@@ -75,5 +74,5 @@ in
     group = "grafana";
   };
 
-  networking.firewall.interfaces."wg-serv".allowedTCPPorts = [ 3000 ];
+  networking.firewall.interfaces."wg-admin".allowedTCPPorts = [ 3000 ];
 }

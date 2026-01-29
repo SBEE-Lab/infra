@@ -1,6 +1,6 @@
 # Vector service configuration for tau
 # - Nextflow webhook ingestion
-# - Local Loki for Nextflow logs (wg-serv)
+# - Local Loki for Nextflow logs (wg-admin)
 # - Also sends system logs/metrics to rho via default.nix
 {
   config,
@@ -8,7 +8,7 @@
   ...
 }:
 let
-  wgServAddr = config.networking.sbee.currentHost.wg-serv;
+  wgAdminAddr = config.networking.sbee.currentHost.wg-admin;
 in
 {
   imports = [
@@ -24,7 +24,7 @@ in
         # Nextflow webhook
         nextflow_weblog = {
           type = "http_server";
-          address = "${wgServAddr}:9000";
+          address = "${wgAdminAddr}:9000";
           encoding = "json";
           headers = [ "*" ];
         };
@@ -92,7 +92,7 @@ in
       auth_enabled = false;
 
       server = {
-        http_listen_address = wgServAddr;
+        http_listen_address = wgAdminAddr;
         http_listen_port = 3100;
         log_level = "warn";
       };
@@ -132,7 +132,7 @@ in
     };
   };
 
-  networking.firewall.interfaces."wg-serv".allowedTCPPorts = [
+  networking.firewall.interfaces."wg-admin".allowedTCPPorts = [
     9000 # Nextflow webhook
     3100 # Loki
   ];

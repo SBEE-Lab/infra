@@ -4,7 +4,7 @@
 # - Vector exporter for local metrics
 { config, ... }:
 let
-  wgMgntAddr = config.networking.sbee.currentHost.wg-mgnt;
+  wgAdminAddr = config.networking.sbee.currentHost.wg-admin;
 in
 {
   imports = [
@@ -46,14 +46,14 @@ in
     system_metrics_local = {
       type = "prometheus_exporter";
       inputs = [ "tag_metrics" ];
-      address = "${wgMgntAddr}:9598";
+      address = "${wgAdminAddr}:9598";
     };
   };
 
   # Prometheus server
   services.prometheus = {
     enable = true;
-    listenAddress = wgMgntAddr;
+    listenAddress = wgAdminAddr;
 
     # enable remote write receiver
     extraFlags = [
@@ -68,14 +68,14 @@ in
         scrape_interval = "60s";
         static_configs = [
           {
-            targets = [ "${wgMgntAddr}:9598" ];
+            targets = [ "${wgAdminAddr}:9598" ];
           }
         ];
       }
     ];
   };
 
-  networking.firewall.interfaces."wg-mgnt".allowedTCPPorts = [
+  networking.firewall.interfaces."wg-admin".allowedTCPPorts = [
     9090 # Prometheus
     9598 # Vector exporter
   ];
