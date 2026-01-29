@@ -10,6 +10,7 @@ in
     ../modules/ntfy.nix
     ../modules/headscale
     ../modules/authentik
+    ../modules/vaultwarden
     ../modules/buildbot/reverse-proxy.nix
     ../modules/monitoring/vector
     ../modules/monitoring/reverse-proxy.nix
