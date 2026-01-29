@@ -39,5 +39,5 @@
 
   sops.secrets.attic-credentials.sopsFile = ./secrets.yaml;
 
-  networking.firewall.interfaces.wg-serv.allowedTCPPorts = [ 8080 ];
+  networking.firewall.interfaces.wg-admin.allowedTCPPorts = [ 8080 ];
 }

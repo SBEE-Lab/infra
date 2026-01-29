@@ -21,7 +21,7 @@
       "backend.tf"
       "target/*"
     ];
-    repo = "borg@${config.networking.sbee.hosts.tau.wg-mgnt}:/backup/borg/psi";
+    repo = "borg@${config.networking.sbee.hosts.tau.wg-admin}:/backup/borg/psi";
     encryption = {
       mode = "repokey-blake2";
       passCommand = "cat ${config.sops.secrets.borg-passphrase.path}";

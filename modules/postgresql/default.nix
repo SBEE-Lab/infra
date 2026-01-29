@@ -14,7 +14,7 @@ in
 
     settings = {
       # Base: listen on wg-admin only (terraform, replication, buildbot)
-      listen_addresses = lib.mkDefault currentHost.wg-admin;
+      listen_addresses = lib.mkForce currentHost.wg-admin;
       port = 5432;
 
       wal_level = "replica";

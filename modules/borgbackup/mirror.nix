@@ -6,7 +6,7 @@
   ...
 }:
 let
-  tauWgMgnt = config.networking.sbee.hosts.tau.wg-mgnt;
+  tauWgAdmin = config.networking.sbee.hosts.tau.wg-admin;
   mirrorDir = "/backup/borg-mirror";
 in
 {
@@ -29,7 +29,7 @@ in
     script = ''
       ${pkgs.rsync}/bin/rsync -avz --delete \
         -e "ssh -p 10022" \
-        root@${tauWgMgnt}:/backup/borg/ \
+        root@${tauWgAdmin}:/backup/borg/ \
         ${mirrorDir}/
     '';
   };

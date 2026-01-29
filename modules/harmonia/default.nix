@@ -29,5 +29,5 @@ in
   nix.settings.allowed-users = [ "harmonia" ];
 
   # Open firewall on wireguard interface
-  networking.firewall.interfaces.wg-serv.allowedTCPPorts = [ port ];
+  networking.firewall.interfaces.wg-admin.allowedTCPPorts = [ port ];
 }
