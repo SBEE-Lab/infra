@@ -83,3 +83,13 @@ resource "cloudflare_dns_record" "logging" {
   proxied = false
   comment = "Grafana logging dashboard"
 }
+
+resource "cloudflare_dns_record" "headscale" {
+  zone_id = data.sops_file.secrets.data["CLOUDFLARE_ZONE_ID"]
+  name    = "hs.sjanglab.org"
+  content = "141.164.53.203"
+  type    = "A"
+  ttl     = 300
+  proxied = false
+  comment = "Headscale coordination server"
+}
