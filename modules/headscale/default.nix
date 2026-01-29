@@ -39,10 +39,13 @@
           "openid"
           "profile"
           "email"
+          "groups"
         ];
-        allowed_users = [
-          # Add allowed email addresses here
-          "lsw1167@gmail.com"
+        # Group-based access control via Authentik
+        allowed_groups = [
+          "sjanglab-admins"
+          "sjanglab-researchers"
+          "sjanglab-students"
         ];
       };
 
