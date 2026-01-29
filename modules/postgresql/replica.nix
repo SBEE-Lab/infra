@@ -1,5 +1,5 @@
 # PostgreSQL streaming replica configuration for tau
-# Replicates from rho (primary) via wg-mgnt
+# Replicates from rho (primary) via wg-admin
 {
   config,
   pkgs,
@@ -7,7 +7,7 @@
 }:
 let
   inherit (config.networking.sbee) hosts;
-  primaryHost = hosts.rho.wg-mgnt;
+  primaryHost = hosts.rho.wg-admin;
   pgPackage = pkgs.postgresql_17;
   pgDataDir = "/var/lib/postgresql/${pgPackage.psqlSchema}";
 in

@@ -13,9 +13,8 @@ in
     package = pkgs.postgresql_17;
 
     settings = {
-      # Base: listen on wg-mgnt only (terraform, replication)
-      # buildbot/database.nix will extend this to include wg-serv
-      listen_addresses = lib.mkDefault currentHost.wg-mgnt;
+      # Base: listen on wg-admin only (terraform, replication, buildbot)
+      listen_addresses = lib.mkDefault currentHost.wg-admin;
       port = 5432;
 
       wal_level = "replica";
@@ -50,11 +49,11 @@ in
       # Local peer authentication for terraform (wheel users on rho)
       local terraform terraform peer map=tf_map
 
-      # Replication from tau via wg-mgnt
-      host replication replicator ${hosts.tau.wg-mgnt}/32 scram-sha-256
+      # Replication from tau via wg-admin
+      host replication replicator ${hosts.tau.wg-admin}/32 scram-sha-256
 
-      # Terraform backend access from eta (SSH tunnel) via wg-mgnt
-      host terraform terraform ${hosts.eta.wg-mgnt}/32 scram-sha-256
+      # Terraform backend access from eta (SSH tunnel) via wg-admin
+      host terraform terraform ${hosts.eta.wg-admin}/32 scram-sha-256
     '';
   };
 
@@ -107,6 +106,6 @@ in
       '') terraformModules}
     '';
 
-  # Firewall: PostgreSQL from wg-mgnt (terraform, replication)
-  networking.firewall.interfaces.wg-mgnt.allowedTCPPorts = [ 5432 ];
+  # Firewall: PostgreSQL from wg-admin (terraform, replication)
+  networking.firewall.interfaces.wg-admin.allowedTCPPorts = [ 5432 ];
 }
