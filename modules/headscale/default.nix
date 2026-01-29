@@ -35,6 +35,7 @@
         ];
         allowed_users = [
           # Add allowed email addresses here
+          "lsw1167@gmail.com"
         ];
       };
 
