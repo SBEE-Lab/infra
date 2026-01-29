@@ -68,6 +68,11 @@ in
       allow_local_remote_servers = true; # authentik is on local network
       default_phone_region = "KR";
       maintenance_window_start = 1; # 1:00 UTC = 10:00 KST
+
+      # user_oidc: fetch claims from userinfo endpoint (not just id_token)
+      # Required because Authentik Property Mapping only applies to userinfo
+      user_oidc.enrich_login_id_token_with_userinfo = true;
+      loglevel = 1;
     };
 
     extraApps = with config.services.nextcloud.package.packages.apps; {
