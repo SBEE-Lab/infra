@@ -22,7 +22,10 @@ in
       wal_keep_size = "1GB";
     };
 
-    ensureDatabases = [ "terraform" ];
+    ensureDatabases = [
+      "terraform"
+      "nextcloud"
+    ];
     ensureUsers = [
       {
         name = "terraform";
@@ -34,6 +37,10 @@ in
           login = true;
           replication = true;
         };
+      }
+      {
+        name = "nextcloud";
+        ensureDBOwnership = true;
       }
     ];
 
@@ -54,6 +61,9 @@ in
 
       # Terraform backend access from eta (SSH tunnel) via wg-admin
       host terraform terraform ${hosts.eta.wg-admin}/32 scram-sha-256
+
+      # Nextcloud database access from tau via wg-admin
+      host nextcloud nextcloud ${hosts.tau.wg-admin}/32 scram-sha-256
     '';
   };
 
@@ -68,6 +78,10 @@ in
     owner = "postgres";
     group = "postgres";
   };
+  sops.secrets.pg-nextcloud-password = {
+    owner = "postgres";
+    group = "postgres";
+  };
 
   systemd.services.postgresql.postStart =
     let
@@ -78,14 +92,20 @@ in
         "vultr"
       ];
     in
-    lib.mkAfter ''
+    # mkOrder 2000 ensures this runs after ensureUsers (which uses mkAfter = 1500)
+    lib.mkOrder 2000 ''
       REPLICATOR_PW=$(cat ${config.sops.secrets.pg-replicator-password.path})
       TERRAFORM_PW=$(cat ${config.sops.secrets.pg-terraform-password.path})
+      NEXTCLOUD_PW=$(cat ${config.sops.secrets.pg-nextcloud-password.path})
 
-      ${psql} -tAc "ALTER USER replicator WITH PASSWORD '$REPLICATOR_PW'" -d postgres
-      ${psql} -tAc "ALTER USER terraform WITH PASSWORD '$TERRAFORM_PW'" -d postgres
+      # Set passwords only if roles exist (ensureUsers may run in parallel)
+      ${psql} -tAc "SELECT 1 FROM pg_roles WHERE rolname='replicator'" -d postgres | grep -q 1 && \
+        ${psql} -tAc "ALTER USER replicator WITH PASSWORD '$REPLICATOR_PW'" -d postgres
+      ${psql} -tAc "SELECT 1 FROM pg_roles WHERE rolname='terraform'" -d postgres | grep -q 1 && \
+        ${psql} -tAc "ALTER USER terraform WITH PASSWORD '$TERRAFORM_PW'" -d postgres
+      ${psql} -tAc "SELECT 1 FROM pg_roles WHERE rolname='nextcloud'" -d postgres | grep -q 1 && \
+        ${psql} -tAc "ALTER USER nextcloud WITH PASSWORD '$NEXTCLOUD_PW'" -d postgres
 
-      # Terraform backend 스키마 및 테이블 초기화
       ${lib.concatMapStringsSep "\n" (mod: ''
         ${psql} -d terraform <<SQL
           CREATE SCHEMA IF NOT EXISTS ${mod} AUTHORIZATION terraform;
