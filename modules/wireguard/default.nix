@@ -56,27 +56,16 @@ in
   config = {
     # wireguard configuration for current host
     networking.sbee.wireguard = {
-      wg-mgnt = {
-        interface = "wg-mgnt";
+      wg-admin = {
+        interface = "wg-admin";
         port = 51820;
-        address = "${cfg.wg-mgnt}/24";
-        peers = lib.mapAttrsToList (mkPeer "wg-mgnt" 51820) others;
-      };
-      wg-serv = {
-        interface = "wg-serv";
-        port = 51821;
-        address = "${cfg.wg-serv}/24";
-        peers = lib.mapAttrsToList (mkPeer "wg-serv" 51821) others;
+        address = "${cfg.wg-admin}/24";
+        peers = lib.mapAttrsToList (mkPeer "wg-admin" 51820) others;
       };
     };
 
     sops.secrets = {
-      "wg-mgnt-key" = {
-        mode = "0400";
-        owner = "systemd-network";
-        group = "systemd-network";
-      };
-      "wg-serv-key" = {
+      "wg-admin-key" = {
         mode = "0400";
         owner = "systemd-network";
         group = "systemd-network";
