@@ -25,6 +25,7 @@ in
     ensureDatabases = [
       "terraform"
       "nextcloud"
+      "n8n"
     ];
     ensureUsers = [
       {
@@ -40,6 +41,10 @@ in
       }
       {
         name = "nextcloud";
+        ensureDBOwnership = true;
+      }
+      {
+        name = "n8n";
         ensureDBOwnership = true;
       }
     ];
@@ -64,6 +69,9 @@ in
 
       # Nextcloud database access from tau via wg-admin
       host nextcloud nextcloud ${hosts.tau.wg-admin}/32 scram-sha-256
+
+      # n8n database access from tau via wg-admin
+      host n8n n8n ${hosts.tau.wg-admin}/32 scram-sha-256
     '';
   };
 
@@ -82,6 +90,10 @@ in
     owner = "postgres";
     group = "postgres";
   };
+  sops.secrets.pg-n8n-password = {
+    owner = "postgres";
+    group = "postgres";
+  };
 
   systemd.services.postgresql.postStart =
     let
@@ -97,6 +109,7 @@ in
       REPLICATOR_PW=$(cat ${config.sops.secrets.pg-replicator-password.path})
       TERRAFORM_PW=$(cat ${config.sops.secrets.pg-terraform-password.path})
       NEXTCLOUD_PW=$(cat ${config.sops.secrets.pg-nextcloud-password.path})
+      N8N_PW=$(cat ${config.sops.secrets.pg-n8n-password.path})
 
       # Set passwords only if roles exist (ensureUsers may run in parallel)
       ${psql} -tAc "SELECT 1 FROM pg_roles WHERE rolname='replicator'" -d postgres | grep -q 1 && \
@@ -105,6 +118,8 @@ in
         ${psql} -tAc "ALTER USER terraform WITH PASSWORD '$TERRAFORM_PW'" -d postgres
       ${psql} -tAc "SELECT 1 FROM pg_roles WHERE rolname='nextcloud'" -d postgres | grep -q 1 && \
         ${psql} -tAc "ALTER USER nextcloud WITH PASSWORD '$NEXTCLOUD_PW'" -d postgres
+      ${psql} -tAc "SELECT 1 FROM pg_roles WHERE rolname='n8n'" -d postgres | grep -q 1 && \
+        ${psql} -tAc "ALTER USER n8n WITH PASSWORD '$N8N_PW'" -d postgres
 
       ${lib.concatMapStringsSep "\n" (mod: ''
         ${psql} -d terraform <<SQL
