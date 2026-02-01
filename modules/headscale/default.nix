@@ -43,6 +43,11 @@ in
             type = "A";
             value = "100.64.0.1"; # psi headscale IP
           }
+          {
+            name = "docling.sjanglab.org";
+            type = "A";
+            value = "100.64.0.1"; # psi headscale IP
+          }
         ];
       };
 
