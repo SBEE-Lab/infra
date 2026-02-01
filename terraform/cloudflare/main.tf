@@ -113,3 +113,13 @@ resource "cloudflare_dns_record" "vaultwarden" {
   proxied = false
   comment = "Vaultwarden password manager"
 }
+
+resource "cloudflare_dns_record" "n8n" {
+  zone_id = data.sops_file.secrets.data["CLOUDFLARE_ZONE_ID"]
+  name    = "n8n.sjanglab.org"
+  content = "141.164.53.203"
+  type    = "A"
+  ttl     = 300
+  proxied = false
+  comment = "n8n workflow automation (webhook only)"
+}
