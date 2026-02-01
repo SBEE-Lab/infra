@@ -1,4 +1,7 @@
-{ config, ... }:
+{ config, pkgs, ... }:
+let
+  policyFile = pkgs.writeText "headscale-policy.json" (builtins.toJSON (import ./policy.nix));
+in
 {
   imports = [ ../acme ];
 
@@ -52,10 +55,10 @@
       logtail.enabled = false;
       metrics_listen_addr = "127.0.0.1:9090";
 
-      # ACL policy: admins get full access, researchers/students get service ports only
+      # ACL policy defined in Nix (see aclPolicy above)
       policy = {
         mode = "file";
-        path = ./policy.json;
+        path = policyFile;
       };
     };
   };
