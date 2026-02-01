@@ -14,6 +14,7 @@ in
     ../modules/buildbot/reverse-proxy.nix
     ../modules/monitoring/vector
     ../modules/monitoring/reverse-proxy.nix
+    ../modules/n8n/reverse-proxy.nix
   ];
 
   disko.rootDisk = "/dev/vda";
