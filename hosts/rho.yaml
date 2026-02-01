@@ -6,6 +6,7 @@ pg-replicator-password: ENC[AES256_GCM,data:zfvKP7hn+KRVB5ooogbl6Tvy7FJ5/BLDhDvi
 pg-terraform-password: ENC[AES256_GCM,data:VtsaFgS+r9Tq+PP8NUt325GQUZQ7etFtwgxvxl8/5r2JYOJwR1RULW/lpTO0uVcLQ+hMumgUgwn1LYe+ohxjYA==,iv:/lf18hn5rgAIR5W36mctwoImfIQHZqN49uFVWftyCvE=,tag:gazU1JF9rPxrQnT1cqDzqw==,type:str]
 wg-admin-key: ENC[AES256_GCM,data:P3ihqKFPR9QWdwcMDNwlyDlwgh7JCs5NQbfZgxQpXhVmwDXGcSmYYGchhng=,iv:KqxLTMZN8h38gSe6weZRQ5rV5OBoqM/7rPmk4/nDlpc=,tag:4nbtHeAoJgW3hPUs698JZQ==,type:str]
 pg-nextcloud-password: ENC[AES256_GCM,data:xarS677ySjk1oXcFsSnlUPIjeZcAdW0pjzoY2fcsQg==,iv:8tEQNYQFuoVg8nujTGTKM7ZrFgTXlCfjwBhm8txnKHQ=,tag:DbSSXDqvXReQZKGIgO0TZA==,type:str]
+pg-n8n-password: ENC[AES256_GCM,data:qAhC9VCFp0uB4Z11HudzXZuuzdLoPCGiO9+mWF4pzlhGnT0JLCC5vTVYNL0=,iv:foMeb8Us+3QIZ40sTCsbOMIsglLhF7qmkyzKPB0QnpU=,tag:Z6jO3zuocyOJC3r6HHL/Hg==,type:str]
 sops:
   age:
     - recipient: age1u2ymsehnq872lzj086yf87f6k0zq52x66qz84kp3s6crtcxsts3s9fsneq
@@ -26,7 +27,7 @@ sops:
         bVJsekJETkcvN3VIVW15WW4xS3hMNHMKmZMFzSJFqCPeQOK7gQx482fAh+VX2nVi
         1U3RNcuLko6vttqAw6OacdNVTyySSbODNEXaWi8gO6L+APzmj1EnYw==
         -----END AGE ENCRYPTED FILE-----
-  lastmodified: "2026-01-29T13:46:55Z"
-  mac: ENC[AES256_GCM,data:jkRiRPkkLNKjSycNRTRw4KDEQQhF0KowFRGQM01jYLs9CR1P1hpGyc3tgO8JHxIpV4q9JS0cJdUzyOlSV8z4yUGcm6HvbWkj9KShsOISF1xMtvPsTNCY7CnzAb0QQSafANI5Y98g14T1LBJ54QMGuXDR0h7sFcK1JNGcStGCweU=,iv:LlMkU7rRqnsTkWi7IYTqvbGJntUjt67k9hllJXXwwJk=,tag:gXwHFooC+6FRs/28dDgPrQ==,type:str]
+  lastmodified: "2026-02-01T15:02:46Z"
+  mac: ENC[AES256_GCM,data:mm3Ma0zqVRRyAiBIfmSdmTWyNJjouND58SdPvHjkSyEKz3Lbbj6q7pNmyT21SOe9LDpFL6OgGolgzxM9ISBtasZ5E30sG3jyBe5uzOY+cZ++0pTnfM5Ve2lj1WE6yiXsQcuDsWc9b6mh/uPTyfgeLU2TdlrH9Ug4hnja2MhXyzM=,iv:BxutiGuw8DZ8gsPiXgqq+J12n0wk1byxTcGe5RFu/Gg=,tag:Qm2s+wvR3Q/4hWWDBcu4mA==,type:str]
   unencrypted_suffix: _unencrypted
   version: 3.11.0
