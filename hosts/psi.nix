@@ -14,6 +14,7 @@
     ../modules/borgbackup/psi/client.nix
     ../modules/monitoring/vector
     ../modules/harmonia
+    ../modules/ollama
     ../modules/icebox/databases.nix
   ];
 
