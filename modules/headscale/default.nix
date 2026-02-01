@@ -31,6 +31,11 @@ in
             type = "A";
             value = "100.64.0.3"; # tau headscale IP
           }
+          {
+            name = "n8n.sjanglab.org";
+            type = "A";
+            value = "100.64.0.3"; # tau headscale IP
+          }
         ];
       };
 
