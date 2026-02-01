@@ -24,6 +24,15 @@
     sopsFile = ./secrets.yaml;
   };
 
-  # Allow Tailscale traffic
-  networking.firewall.trustedInterfaces = [ "tailscale0" ];
+  # Explicit port allowlist for Headscale users (no trustedInterfaces)
+  # - 80, 443: Web services (Nextcloud on tau)
+  # - 3000: Grafana (rho)
+  # - 8010: Buildbot (psi)
+  # SSH and internal services remain wg-admin only
+  networking.firewall.interfaces.tailscale0.allowedTCPPorts = [
+    80
+    443
+    3000
+    8010
+  ];
 }
