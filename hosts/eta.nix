@@ -3,6 +3,7 @@ let
   inherit (config.networking.sbee) hosts;
   domain = "cloud.sjanglab.org";
   ollamaDomain = "ollama.sjanglab.org";
+  doclingDomain = "docling.sjanglab.org";
 in
 {
   imports = [
@@ -65,6 +66,29 @@ in
           -avz --chmod=D750,F640 \
           /var/lib/acme/${ollamaDomain}/ \
           acme-sync-ollama@${hosts.psi.wg-admin}:/var/lib/acme/${ollamaDomain}/
+      '';
+    };
+    after = [ "network-online.target" ];
+    wants = [ "network-online.target" ];
+  };
+
+  # Sync docling cert to psi after ACME renewal
+  security.acme.certs.${doclingDomain}.postRun = ''
+    ${pkgs.systemd}/bin/systemctl start --no-block acme-sync-docling-to-psi.service || true
+  '';
+
+  # Sync docling.sjanglab.org cert to psi after ACME renewal
+  systemd.services.acme-sync-docling-to-psi = {
+    description = "Sync ${doclingDomain} certificate to psi";
+    serviceConfig = {
+      Type = "oneshot";
+      User = "acme";
+      ExecStart = pkgs.writeShellScript "sync-docling-cert-to-psi" ''
+        ${pkgs.rsync}/bin/rsync \
+          -e "${pkgs.openssh}/bin/ssh -i ${config.sops.secrets.acme-sync-ssh-key.path} -p 10022 -o StrictHostKeyChecking=accept-new" \
+          -avz --chmod=D750,F640 \
+          /var/lib/acme/${doclingDomain}/ \
+          acme-sync@${hosts.psi.wg-admin}:/var/lib/acme/${doclingDomain}/
       '';
     };
     after = [ "network-online.target" ];
