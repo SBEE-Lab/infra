@@ -15,8 +15,8 @@
     openFirewall = true;
     authKeyFile = config.sops.secrets.tailscale-authkey.path;
     extraUpFlags = [
-      "--login-server"
-      "https://hs.sjanglab.org"
+      "--login-server=https://hs.sjanglab.org"
+      "--advertise-tags=tag:server"
     ];
   };
 
