@@ -21,6 +21,9 @@
       SSO_PKCE = true;
       SSO_ALLOW_UNKNOWN_EMAIL_VERIFICATION = true;
 
+      # Organization
+      ORG_CREATION_USERS = "sjang.bioe@gmail.com";
+
       ROCKET_PORT = 8000;
     };
   };
