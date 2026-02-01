@@ -21,6 +21,8 @@ in
       dns = {
         base_domain = "sbee.lab";
         magic_dns = true;
+        # Route sjanglab.org queries to MagicDNS (Split DNS)
+        search_domains = [ "sjanglab.org" ];
         nameservers.global = [
           "1.1.1.1"
           "8.8.8.8"
@@ -35,6 +37,11 @@ in
             name = "n8n.sjanglab.org";
             type = "A";
             value = "100.64.0.3"; # tau headscale IP
+          }
+          {
+            name = "ollama.sjanglab.org";
+            type = "A";
+            value = "100.64.0.1"; # psi headscale IP
           }
         ];
       };
