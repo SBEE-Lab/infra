@@ -51,6 +51,12 @@
 
       logtail.enabled = false;
       metrics_listen_addr = "127.0.0.1:9090";
+
+      # ACL policy: admins get full access, researchers/students get service ports only
+      policy = {
+        mode = "file";
+        path = ./policy.json;
+      };
     };
   };
 
