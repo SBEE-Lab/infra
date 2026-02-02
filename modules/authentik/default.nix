@@ -46,4 +46,8 @@
     80
     443
   ];
+
+  # Allow Authentik outpost access from internal hosts via WireGuard
+  # Used for forward auth (nginx auth_request) on tau, psi
+  networking.firewall.interfaces.wg-admin.allowedTCPPorts = [ 9000 ];
 }
