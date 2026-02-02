@@ -5,9 +5,11 @@
   ...
 }:
 let
+  inherit (config.networking.sbee) hosts;
   port = 11434;
   domain = "ollama.sjanglab.org";
   certDir = "/var/lib/acme/${domain}";
+  authentikOutpost = "http://${hosts.eta.wg-admin}:9000";
 
   # Public key for acme-sync from eta
   acmeSyncPubKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO7mZ/UfOMpnrHaIigljsGWXCQAovWezdPpA3WQy1Qgu acme-sync@eta";
@@ -79,10 +81,46 @@ in
       sslCertificate = "${certDir}/fullchain.pem";
       sslCertificateKey = "${certDir}/key.pem";
 
+      # Authentik outpost - auth endpoint (internal, for auth_request)
+      locations."/outpost.goauthentik.io/auth/nginx" = {
+        proxyPass = "${authentikOutpost}/outpost.goauthentik.io/auth/nginx";
+        extraConfig = ''
+          internal;
+          proxy_pass_request_body off;
+          proxy_set_header Content-Length "";
+          proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
+          proxy_set_header Authorization $http_authorization;
+        '';
+      };
+
+      # Authentik outpost - start/callback (external, for redirects)
+      locations."/outpost.goauthentik.io" = {
+        proxyPass = "${authentikOutpost}/outpost.goauthentik.io";
+        extraConfig = ''
+          proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
+          proxy_set_header Authorization $http_authorization;
+        '';
+      };
+
+      # Signin redirect - same domain, not auth.sjanglab.org
+      locations."@authentik_signin" = {
+        extraConfig = ''
+          internal;
+          return 302 /outpost.goauthentik.io/start?rd=$scheme://$http_host$request_uri;
+        '';
+      };
+
+      # Main location - protected by Authentik forward auth
       locations."/" = {
         proxyPass = "http://127.0.0.1:${toString port}";
         recommendedProxySettings = false; # Override Host header manually
         extraConfig = ''
+          # Authentik forward auth
+          auth_request /outpost.goauthentik.io/auth/nginx;
+          auth_request_set $authentik_email $upstream_http_x_authentik_email;
+          error_page 401 = @authentik_signin;
+          proxy_set_header X-authentik-email $authentik_email;
+
           # Override Host header for ollama
           proxy_set_header Host 127.0.0.1:${toString port};
           proxy_set_header X-Real-IP $remote_addr;
