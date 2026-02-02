@@ -1,7 +1,57 @@
-{ config, ... }:
+{ config, pkgs, ... }:
 let
   inherit (config.networking.sbee) hosts;
   n8nDomain = "n8n.sjanglab.org";
+  authentikOutpost = "http://${hosts.eta.wg-admin}:9000";
+
+  # External hook for Authentik forward auth integration
+  # Reads X-authentik-email header and issues n8n session cookie
+  hooksFile = pkgs.writeText "n8n-forward-auth-hooks.js" ''
+    const { resolve } = require('path');
+    const fs = require('fs');
+    const n8nBasePath = '${pkgs.n8n}/lib/n8n';
+    const pnpmDir = resolve(n8nBasePath, 'node_modules/.pnpm');
+    const routerDir = fs.readdirSync(pnpmDir).find(dir => dir.startsWith('router@'));
+    const Layer = require(resolve(pnpmDir, routerDir, 'node_modules/router/lib/layer'));
+    const { issueCookie } = require(resolve(n8nBasePath, 'packages/cli/dist/auth/jwt'));
+
+    const ignoreAuthRegexp = /^\/(assets|healthz|webhook|webhook-test|rest\/oauth2-credential)/;
+
+    module.exports = {
+      n8n: {
+        ready: [
+          async function ({ app }, config) {
+            const { stack } = app.router;
+            const index = stack.findIndex((l) => l.name === 'cookieParser');
+            stack.splice(index + 1, 0, new Layer('/', {
+              strict: false, end: false
+            }, async (req, res, next) => {
+              if (ignoreAuthRegexp.test(req.url)) return next();
+              if (!config.get('userManagement.isInstanceOwnerSetUp', false)) return next();
+              if (req.cookies?.['n8n-auth']) return next();
+              if (!process.env.N8N_FORWARD_AUTH_HEADER) return next();
+
+              const allowedHost = process.env.N8N_SSO_HOSTNAME;
+              if (allowedHost && req.headers.host !== allowedHost) return next();
+
+              const email = req.headers[process.env.N8N_FORWARD_AUTH_HEADER.toLowerCase()];
+              if (!email) return next();
+
+              const user = await this.dbCollections.User.findOneBy({ email });
+              if (!user) {
+                res.statusCode = 401;
+                res.end("User '" + email + "' not found.");
+                return;
+              }
+              if (!user.role) user.role = {};
+              issueCookie(res, user);
+              return next();
+            }));
+          },
+        ],
+      },
+    };
+  '';
 in
 {
   services.n8n = {
@@ -22,6 +72,11 @@ in
       # Executions pruning
       EXECUTIONS_DATA_PRUNE = "true";
       EXECUTIONS_DATA_MAX_AGE = "336"; # 2 weeks in hours
+
+      # Forward auth via Authentik
+      EXTERNAL_HOOK_FILES = "${hooksFile}";
+      N8N_FORWARD_AUTH_HEADER = "X-authentik-email";
+      N8N_SSO_HOSTNAME = n8nDomain;
 
       # PostgreSQL (rho primary)
       DB_TYPE = "postgresdb";
@@ -91,9 +146,56 @@ in
       sslCertificate = "/var/lib/acme/${n8nDomain}/fullchain.pem";
       sslCertificateKey = "/var/lib/acme/${n8nDomain}/key.pem";
 
+      # Authentik outpost - auth endpoint (internal, for auth_request)
+      locations."/outpost.goauthentik.io/auth/nginx" = {
+        proxyPass = "${authentikOutpost}/outpost.goauthentik.io/auth/nginx";
+        extraConfig = ''
+          internal;
+          proxy_pass_request_body off;
+          proxy_set_header Content-Length "";
+          proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
+          proxy_set_header Authorization $http_authorization;
+        '';
+      };
+
+      # Authentik outpost - start/callback (external, for redirects)
+      locations."/outpost.goauthentik.io" = {
+        proxyPass = "${authentikOutpost}/outpost.goauthentik.io";
+        extraConfig = ''
+          proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
+          proxy_set_header Authorization $http_authorization;
+        '';
+      };
+
+      # Signin redirect - same domain, not auth.sjanglab.org
+      locations."@authentik_signin" = {
+        extraConfig = ''
+          internal;
+          return 302 /outpost.goauthentik.io/start?rd=$scheme://$http_host$request_uri;
+        '';
+      };
+
+      # Webhook endpoints - no auth required
+      locations."~ ^/(webhook|webhook-test)/" = {
+        proxyPass = "http://127.0.0.1:5678";
+        proxyWebsockets = true;
+      };
+
+      # Healthz endpoint - no auth required
+      locations."= /healthz" = {
+        proxyPass = "http://127.0.0.1:5678";
+      };
+
+      # Main location - protected by Authentik forward auth
       locations."/" = {
         proxyPass = "http://127.0.0.1:5678";
         proxyWebsockets = true;
+        extraConfig = ''
+          auth_request /outpost.goauthentik.io/auth/nginx;
+          auth_request_set $authentik_email $upstream_http_x_authentik_email;
+          error_page 401 = @authentik_signin;
+          proxy_set_header X-authentik-email $authentik_email;
+        '';
       };
     };
   };
