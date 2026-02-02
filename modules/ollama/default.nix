@@ -13,6 +13,7 @@ let
 
   # Public key for acme-sync from eta
   acmeSyncPubKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO7mZ/UfOMpnrHaIigljsGWXCQAovWezdPpA3WQy1Qgu acme-sync@eta";
+
 in
 {
   services.ollama = {
@@ -26,12 +27,28 @@ in
     user = "ollama";
     group = "ollama";
     environmentVariables = {
-      CUDA_VISIBLE_DEVICES = "all";
+      # Note: CUDA_VISIBLE_DEVICES="all" breaks GPU detection, leave unset
       OLLAMA_NUM_PARALLEL = "2";
       OLLAMA_KEEP_ALIVE = "5m";
       # Allow requests from nginx proxy
       OLLAMA_ORIGINS = "https://ollama.sjanglab.org,https://*.sjanglab.org";
+      # CUDA libraries (wrapper doesn't propagate properly in systemd)
+      LD_LIBRARY_PATH = lib.concatStringsSep ":" [
+        "${pkgs.ollama-cuda}/lib/ollama"
+        "/run/opengl-driver/lib"
+        "${pkgs.cudaPackages.cuda_cudart}/lib"
+        "${pkgs.cudaPackages.libcublas}/lib"
+      ];
     };
+    # Managed models - automatically downloaded and synced
+    loadModels = [
+      "qwen2.5-72b"
+      "llama3.3-70b"
+      "openbiollm-70b"
+      "biomistral"
+      "bge-m3"
+    ];
+    syncModels = true;
   };
 
   # Create ollama user/group for /workspace access
@@ -42,8 +59,18 @@ in
   };
   users.groups.ollama = { };
 
-  # Disable DynamicUser to allow /workspace access with static user
-  systemd.services.ollama.serviceConfig.DynamicUser = lib.mkForce false;
+  # Minimal overrides for CUDA GPU access
+  # NixOS ollama module sets hardening defaults that break CUDA
+  systemd.services.ollama.serviceConfig = {
+    # Required: module always sets DynamicUser=true, need false for /workspace
+    DynamicUser = lib.mkForce false;
+    # Required: CUDA JIT compilation needs executable memory
+    MemoryDenyWriteExecute = lib.mkForce false;
+    # Required: UID mapping breaks /dev/nvidia* access
+    PrivateUsers = lib.mkForce false;
+    # Required: module sets "closed", need "auto" for GPU devices
+    DevicePolicy = lib.mkForce "auto";
+  };
 
   # acme-sync user for receiving certificates from eta
   users.users.acme-sync-ollama = {
