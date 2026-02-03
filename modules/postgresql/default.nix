@@ -8,6 +8,16 @@ let
   inherit (config.networking.sbee) currentHost hosts;
 in
 {
+  imports = [ ../gatus/check.nix ];
+
+  gatusCheck.push = [
+    {
+      name = "PostgreSQL";
+      group = "db";
+      systemdService = "postgresql.service";
+    }
+  ];
+
   services.postgresql = {
     enable = true;
     package = pkgs.postgresql_17;

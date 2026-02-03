@@ -12,7 +12,18 @@ let
   authentikOutpost = "http://${hosts.eta.wg-admin}:9000";
 in
 {
-  imports = [ ../acme/sync.nix ];
+  imports = [
+    ../acme/sync.nix
+    ../gatus/check.nix
+  ];
+
+  gatusCheck.push = [
+    {
+      name = "Ollama";
+      group = "ai";
+      url = "http://127.0.0.1:${toString port}";
+    }
+  ];
 
   acmeSyncer.mkReceiver = [
     {

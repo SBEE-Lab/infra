@@ -5,7 +5,19 @@
   ...
 }:
 {
-  imports = [ ./acme ];
+  imports = [
+    ./acme
+    ./gatus/check.nix
+  ];
+
+  gatusCheck.pull = [
+    {
+      name = "ntfy";
+      url = "https://ntfy.sjanglab.org/v1/health";
+      group = "infra";
+    }
+  ];
+
   services.ntfy-sh = {
     enable = true;
     package = pkgs.ntfy-sh;

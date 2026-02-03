@@ -1,6 +1,17 @@
 { config, ... }:
 {
-  imports = [ ../acme ];
+  imports = [
+    ../acme
+    ../gatus/check.nix
+  ];
+
+  gatusCheck.pull = [
+    {
+      name = "Authentik";
+      url = "https://auth.sjanglab.org";
+      group = "auth";
+    }
+  ];
 
   services.authentik = {
     enable = true;
