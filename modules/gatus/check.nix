@@ -33,6 +33,7 @@ let
     pkgs.writeShellScript "gatus-push-${mkKey ep}" (
       if ep.systemdService != null then
         ''
+          set -euo pipefail
           if ${pkgs.systemd}/bin/systemctl is-active --quiet ${ep.systemdService}; then
             success=true
             error=""
@@ -47,6 +48,7 @@ let
         ''
       else
         ''
+          set -euo pipefail
           status=$(${pkgs.curl}/bin/curl -sf --max-time 30 -o /dev/null -w "%{http_code}" "${ep.url}" 2>/dev/null) || true
           if [ "$status" = "${toString ep.expectedStatus}" ]; then
             success=true
@@ -121,6 +123,12 @@ in
 
   # Push: systemd timers on the declaring host
   config = lib.mkIf (cfg.push != [ ]) {
+    # Validate: each push entry must have exactly one of url or systemdService
+    assertions = map (ep: {
+      assertion = (ep.url != null) != (ep.systemdService != null);
+      message = "gatusCheck.push '${ep.name}': exactly one of 'url' or 'systemdService' must be set";
+    }) cfg.push;
+
     # Resolve gatus.sjanglab.org → eta WG IP for hosts behind NAT/WG
     networking.hosts.${config.networking.sbee.hosts.eta.wg-admin} = [ "gatus.sjanglab.org" ];
 

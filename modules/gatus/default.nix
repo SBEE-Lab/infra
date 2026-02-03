@@ -2,7 +2,7 @@
 let
   inherit (config.networking.sbee) hosts;
   domain = "gatus.sjanglab.org";
-  port = 8081;
+  port = 8081; # 8080 is used by headscale
   systemCollector = hosts.rho.wg-admin;
   cfg = config.gatusCheck;
 in
