@@ -1,12 +1,9 @@
 {
-  config,
   lib,
   pkgs,
   ...
 }:
 let
-  inherit (config.networking.sbee) hosts;
-  authentikAuth = import ../authentik/nginx-locations.nix { inherit hosts; };
   port = 11434;
   domain = "ollama.sjanglab.org";
   certDir = "/var/lib/acme/${domain}";
@@ -97,27 +94,25 @@ in
       sslCertificate = "${certDir}/fullchain.pem";
       sslCertificateKey = "${certDir}/key.pem";
 
-      locations = authentikAuth.locations // {
-        "/" = {
-          proxyPass = "http://127.0.0.1:${toString port}";
-          recommendedProxySettings = false; # Override Host header manually
-          extraConfig = authentikAuth.protectLocation + ''
+      # Access control: Headscale ACL (network-level, no forward auth)
+      locations."/" = {
+        proxyPass = "http://127.0.0.1:${toString port}";
+        recommendedProxySettings = false; # Override Host header manually
+        extraConfig = ''
+          # Override Host header for ollama
+          proxy_set_header Host 127.0.0.1:${toString port};
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto $scheme;
 
-            # Override Host header for ollama
-            proxy_set_header Host 127.0.0.1:${toString port};
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
+          # Ollama streaming responses
+          proxy_buffering off;
+          proxy_read_timeout 600s;
+          proxy_send_timeout 600s;
 
-            # Ollama streaming responses
-            proxy_buffering off;
-            proxy_read_timeout 600s;
-            proxy_send_timeout 600s;
-
-            # Large model responses
-            client_max_body_size 100M;
-          '';
-        };
+          # Large model responses
+          client_max_body_size 100M;
+        '';
       };
     };
   };

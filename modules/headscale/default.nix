@@ -1,11 +1,12 @@
-{ config, pkgs, ... }:
+{ config, ... }:
 let
-  policyFile = pkgs.writeText "headscale-policy.json" (builtins.toJSON (import ./policy.nix));
+  policyPath = "/var/lib/headscale/policy.json";
 in
 {
   imports = [
     ../acme
     ../gatus/check.nix
+    ./acl-sync.nix
   ];
 
   gatusCheck.pull = [
@@ -83,10 +84,10 @@ in
       logtail.enabled = false;
       metrics_listen_addr = "127.0.0.1:9090";
 
-      # ACL policy defined in Nix (see aclPolicy above)
+      # ACL policy: static rules + dynamic groups from Authentik (see acl-sync.nix)
       policy = {
         mode = "file";
-        path = policyFile;
+        path = policyPath;
       };
     };
   };
@@ -97,6 +98,24 @@ in
     group = "headscale";
     mode = "0400";
   };
+
+  # Fallback policy for initial boot (before first acl-sync run)
+  # Uses permissive rules; acl-sync overwrites with group-based ACLs
+  systemd.tmpfiles.rules =
+    let
+      fallback = builtins.toJSON {
+        groups = { };
+        acls = [
+          {
+            action = "accept";
+            src = [ "autogroup:member" ];
+            dst = [ "*:*" ];
+          }
+        ];
+        ssh = [ ];
+      };
+    in
+    [ "f ${policyPath} 0640 headscale headscale - ${fallback}" ];
 
   # ACME certificate
   security.acme.certs."hs.sjanglab.org" = {
