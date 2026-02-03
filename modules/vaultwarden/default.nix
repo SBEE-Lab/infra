@@ -51,12 +51,13 @@
     dnsProvider = "cloudflare";
     environmentFile = config.sops.secrets.cloudflare-credentials.path;
     webroot = null;
+    group = "nginx";
   };
 
   # Nginx reverse proxy
   services.nginx.virtualHosts."vault.sjanglab.org" = {
     forceSSL = true;
-    enableACME = true;
+    useACMEHost = "vault.sjanglab.org";
 
     locations."/" = {
       proxyPass = "http://127.0.0.1:8000";

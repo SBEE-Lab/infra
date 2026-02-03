@@ -34,12 +34,13 @@
     dnsProvider = "cloudflare";
     environmentFile = config.sops.secrets.cloudflare-credentials.path;
     webroot = null;
+    group = "nginx";
   };
 
   # Nginx reverse proxy
   services.nginx.virtualHosts."auth.sjanglab.org" = {
     forceSSL = true;
-    enableACME = true;
+    useACMEHost = "auth.sjanglab.org";
 
     locations."/" = {
       proxyPass = "http://127.0.0.1:9000";
