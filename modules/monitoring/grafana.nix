@@ -44,6 +44,8 @@ in
         default_theme = "system";
       };
 
+      # Anonymous read-only access: intentional for wg-admin peers.
+      # Grafana only listens on wg-admin, so only WG-authenticated hosts can reach it.
       "auth.anonymous" = {
         enabled = true;
         org_name = "Public";

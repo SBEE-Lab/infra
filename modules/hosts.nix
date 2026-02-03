@@ -5,40 +5,33 @@
   ...
 }:
 let
-  hostOptions = with lib; {
-    ipv4 = mkOption {
-      type = types.str;
-      description = ''
-        own ipv4 address
-      '';
+  hostOptions = {
+    ipv4 = lib.mkOption {
+      type = lib.types.str;
+      description = "Public or private IPv4 address";
     };
 
-    mac = mkOption {
-      type = types.nullOr types.str;
+    mac = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
       default = null;
-      description = ''
-        MAC address of the NIC port used as a gateway
-      '';
+      description = "MAC address of the NIC port used as a gateway";
     };
 
-    wg-admin = mkOption {
-      type = types.nullOr types.str;
+    wg-admin = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
       default = null;
-      description = ''
-        WireGuard interface for admin access (unified)
-      '';
+      description = "WireGuard interface for admin access (unified)";
     };
 
-    gateway = mkOption {
-      type = types.nullOr types.str;
+    gateway = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
       default = null;
-      description = ''
-        Default gateway for this host
-      '';
+      description = "Default gateway for this host";
     };
-    tags = mkOption {
-      type = types.listOf (
-        types.enum [
+
+    tags = lib.mkOption {
+      type = lib.types.listOf (
+        lib.types.enum [
           "public-ip"
           "nat-behind"
           "lab-network"
@@ -59,18 +52,18 @@ let
   };
 in
 {
-  options = with lib; {
-    networking.sbee.hosts = mkOption {
-      type = with types; attrsOf (submodule [ { options = hostOptions; } ]);
+  options = {
+    networking.sbee.hosts = lib.mkOption {
+      type = lib.types.attrsOf (lib.types.submodule [ { options = hostOptions; } ]);
       description = "A host in our cluster";
     };
-    networking.sbee.currentHost = mkOption {
-      type = with types; submodule [ { options = hostOptions; } ];
+    networking.sbee.currentHost = lib.mkOption {
+      type = lib.types.submodule [ { options = hostOptions; } ];
       default = config.networking.sbee.hosts.${config.networking.hostName};
       description = "The host that is described by this configuration";
     };
-    networking.sbee.others = mkOption {
-      type = with types; attrsOf (submodule [ { options = hostOptions; } ]);
+    networking.sbee.others = lib.mkOption {
+      type = lib.types.attrsOf (lib.types.submodule [ { options = hostOptions; } ]);
       default = lib.filterAttrs (
         name: _: name != config.networking.hostName
       ) config.networking.sbee.hosts;

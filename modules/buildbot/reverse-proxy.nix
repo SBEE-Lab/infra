@@ -1,4 +1,5 @@
 # Buildbot reverse proxy (deployed on eta)
+# No nginx auth: Buildbot uses its own Authentik OIDC integration for login
 { config, ... }:
 let
   inherit (config.networking.sbee) hosts;
