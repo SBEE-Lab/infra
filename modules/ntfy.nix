@@ -29,11 +29,8 @@
       listen-http = "127.0.0.1:2586";
       behind-proxy = true;
 
-      auth-users = [
-        "mulatta:$2b$12$EdDkCKfL2BL35SdzCFznBe2xm8jOL9IM6IaH3nlZV6UQ70j/iGOZ2:admin"
-      ];
-      auth-access = [
-      ];
+      # Admin user managed in auth-file DB (/var/lib/ntfy/user.db)
+      # Provision: ntfy user add --role=admin <username>
       auth-default-access = "deny-all";
       auth-file = "/var/lib/ntfy/user.db";
 
