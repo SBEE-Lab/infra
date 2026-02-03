@@ -11,7 +11,19 @@ let
   certDir = "/var/lib/acme/${domain}";
 in
 {
-  imports = [ ../acme/sync.nix ];
+  imports = [
+    ../acme/sync.nix
+    ../gatus/check.nix
+  ];
+
+  gatusCheck.push = [
+    {
+      name = "Nextcloud";
+      group = "apps";
+      url = "http://127.0.0.1:80/status.php";
+      expectedStatus = 301;
+    }
+  ];
 
   acmeSyncer.mkReceiver = [
     { inherit domain; }

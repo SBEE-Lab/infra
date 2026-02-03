@@ -12,6 +12,15 @@ in
     ../loki.nix
     ../grafana.nix
     ../prometheus
+    ../../gatus/check.nix
+  ];
+
+  gatusCheck.push = [
+    {
+      name = "Prometheus";
+      group = "monitoring";
+      url = "http://127.0.0.1:9090/-/healthy";
+    }
   ];
 
   services.vector.settings.sinks = {

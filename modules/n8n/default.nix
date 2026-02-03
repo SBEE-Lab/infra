@@ -54,7 +54,18 @@ let
   '';
 in
 {
-  imports = [ ../acme/sync.nix ];
+  imports = [
+    ../acme/sync.nix
+    ../gatus/check.nix
+  ];
+
+  gatusCheck.push = [
+    {
+      name = "n8n";
+      group = "apps";
+      url = "http://127.0.0.1:5678/healthz";
+    }
+  ];
 
   acmeSyncer.mkReceiver = [
     {

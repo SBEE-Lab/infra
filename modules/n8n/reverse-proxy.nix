@@ -12,6 +12,15 @@ in
   imports = [
     ../acme
     ../acme/sync.nix
+    ../gatus/check.nix
+  ];
+
+  gatusCheck.pull = [
+    {
+      name = "n8n (webhook)";
+      url = "https://n8n.sjanglab.org/healthz";
+      group = "apps";
+    }
   ];
 
   acmeSyncer.mkSender = [

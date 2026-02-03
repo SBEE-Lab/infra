@@ -3,7 +3,18 @@ let
   policyFile = pkgs.writeText "headscale-policy.json" (builtins.toJSON (import ./policy.nix));
 in
 {
-  imports = [ ../acme ];
+  imports = [
+    ../acme
+    ../gatus/check.nix
+  ];
+
+  gatusCheck.pull = [
+    {
+      name = "Headscale";
+      url = "https://hs.sjanglab.org/health";
+      group = "auth";
+    }
+  ];
 
   services.headscale = {
     enable = true;

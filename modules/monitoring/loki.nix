@@ -7,6 +7,16 @@ let
   wgAdminAddr = config.networking.sbee.hosts.rho.wg-admin;
 in
 {
+  imports = [ ../gatus/check.nix ];
+
+  gatusCheck.push = [
+    {
+      name = "Loki";
+      group = "monitoring";
+      url = "http://127.0.0.1:3100/ready";
+    }
+  ];
+
   services.loki = {
     enable = true;
     configuration = {

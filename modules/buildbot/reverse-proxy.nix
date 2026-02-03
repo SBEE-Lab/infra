@@ -5,7 +5,18 @@ let
   buildbotDomain = "buildbot.sjanglab.org";
 in
 {
-  imports = [ ../acme ];
+  imports = [
+    ../acme
+    ../gatus/check.nix
+  ];
+
+  gatusCheck.pull = [
+    {
+      name = "Buildbot";
+      url = "https://buildbot.sjanglab.org";
+      group = "ci";
+    }
+  ];
 
   services.nginx.virtualHosts.${buildbotDomain} = {
     forceSSL = true;

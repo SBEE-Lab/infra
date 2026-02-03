@@ -41,6 +41,12 @@ let
       "modules/attic/secrets.yaml" = [ "eta" ];
       "modules/authentik/secrets.yaml" = [ "eta" ];
       "modules/headscale/secrets.yaml" = [ "eta" ];
+      "modules/gatus/secrets.yaml" = [
+        "eta"
+        "psi"
+        "rho"
+        "tau"
+      ];
       "modules/vaultwarden/secrets.yaml" = [ "eta" ];
       "modules/tailscale/secrets.yaml" = [
         "psi"

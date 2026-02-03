@@ -1,6 +1,17 @@
 { config, ... }:
 {
-  imports = [ ../acme ];
+  imports = [
+    ../acme
+    ../gatus/check.nix
+  ];
+
+  gatusCheck.pull = [
+    {
+      name = "Vaultwarden";
+      url = "https://vault.sjanglab.org/alive";
+      group = "apps";
+    }
+  ];
 
   services.vaultwarden = {
     enable = true;

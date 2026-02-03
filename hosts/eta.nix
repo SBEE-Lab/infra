@@ -10,6 +10,7 @@ in
     ../modules/headscale
     ../modules/authentik
     ../modules/vaultwarden
+    ../modules/gatus
     ../modules/buildbot/reverse-proxy.nix
     ../modules/monitoring/vector
     ../modules/monitoring/reverse-proxy.nix

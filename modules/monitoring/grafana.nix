@@ -10,6 +10,16 @@ let
   prometheusUrl = "http://${wgAdminAddr}:9090";
 in
 {
+  imports = [ ../gatus/check.nix ];
+
+  gatusCheck.push = [
+    {
+      name = "Grafana";
+      group = "monitoring";
+      url = "http://127.0.0.1:3000/api/health";
+    }
+  ];
+
   services.grafana = {
     enable = true;
 
