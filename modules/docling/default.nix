@@ -1,7 +1,5 @@
-{ config, ... }:
+_:
 let
-  inherit (config.networking.sbee) hosts;
-  authentikAuth = import ../authentik/nginx-locations.nix { inherit hosts; };
   domain = "docling.sjanglab.org";
   doclingPort = 5001;
   certDir = "/var/lib/acme/${domain}";
@@ -42,14 +40,13 @@ in
       sslCertificate = "${certDir}/fullchain.pem";
       sslCertificateKey = "${certDir}/key.pem";
 
-      locations = authentikAuth.locations // {
-        "/" = {
-          proxyPass = "http://127.0.0.1:${toString doclingPort}";
-          extraConfig = authentikAuth.protectLocation + ''
-            client_max_body_size 100M;
-            proxy_read_timeout 300s;
-          '';
-        };
+      # Access control: Headscale ACL (network-level, no forward auth)
+      locations."/" = {
+        proxyPass = "http://127.0.0.1:${toString doclingPort}";
+        extraConfig = ''
+          client_max_body_size 100M;
+          proxy_read_timeout 300s;
+        '';
       };
     };
   };
