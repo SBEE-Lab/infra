@@ -72,11 +72,12 @@
     dnsProvider = "cloudflare";
     environmentFile = config.sops.secrets.cloudflare-credentials.path;
     webroot = null;
+    group = "nginx";
   };
 
   services.nginx.virtualHosts."ntfy.sjanglab.org" = {
     forceSSL = true;
-    enableACME = true;
+    useACMEHost = "ntfy.sjanglab.org";
 
     locations."/" = {
       proxyPass = "http://127.0.0.1:2586";
