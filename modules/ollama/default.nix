@@ -10,12 +10,16 @@ let
   domain = "ollama.sjanglab.org";
   certDir = "/var/lib/acme/${domain}";
   authentikOutpost = "http://${hosts.eta.wg-admin}:9000";
-
-  # Public key for acme-sync from eta
-  acmeSyncPubKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO7mZ/UfOMpnrHaIigljsGWXCQAovWezdPpA3WQy1Qgu acme-sync@eta";
-
 in
 {
+  imports = [ ../acme/sync.nix ];
+
+  acmeSyncer.mkReceiver = [
+    {
+      inherit domain;
+      user = "acme-sync-ollama";
+    }
+  ];
   services.ollama = {
     enable = true;
     package = pkgs.ollama-cuda;
@@ -70,32 +74,6 @@ in
     PrivateUsers = lib.mkForce false;
     # Required: module sets "closed", need "auto" for GPU devices
     DevicePolicy = lib.mkForce "auto";
-  };
-
-  # acme-sync user for receiving certificates from eta
-  users.users.acme-sync-ollama = {
-    isSystemUser = true;
-    group = "acme-sync-ollama";
-    home = certDir;
-    shell = "/run/current-system/sw/bin/bash";
-    openssh.authorizedKeys.keys = [ acmeSyncPubKey ];
-  };
-  users.groups.acme-sync-ollama.members = [ "nginx" ];
-
-  # Reload nginx when certificates are updated
-  systemd.services.acme-sync-ollama-reload-nginx = {
-    description = "Reload nginx after ollama certificate sync";
-    serviceConfig = {
-      Type = "oneshot";
-      ExecStart = "${config.systemd.package}/bin/systemctl reload nginx";
-    };
-  };
-  systemd.paths.acme-sync-ollama-watch = {
-    wantedBy = [ "multi-user.target" ];
-    pathConfig = {
-      PathChanged = "${certDir}/fullchain.pem";
-      Unit = "acme-sync-ollama-reload-nginx.service";
-    };
   };
 
   services.nginx = {
@@ -173,6 +151,5 @@ in
   systemd.tmpfiles.rules = [
     "d /workspace/ollama 0755 ollama ollama -"
     "d /workspace/ollama/models 0755 ollama ollama -"
-    "d ${certDir} 0750 acme-sync-ollama acme-sync-ollama - -"
   ];
 }

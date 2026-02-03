@@ -9,41 +9,13 @@ let
   collaboraPort = 9980;
   whiteboardPort = 3002;
   certDir = "/var/lib/acme/${domain}";
-
-  # Public key for acme-sync from eta (generated with gen-acme-sync-key.sh)
-  acmeSyncPubKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO7mZ/UfOMpnrHaIigljsGWXCQAovWezdPpA3WQy1Qgu acme-sync@eta";
 in
 {
-  # acme-sync user for receiving certificates from eta
-  users.users.acme-sync = {
-    isSystemUser = true;
-    group = "acme-sync";
-    home = certDir;
-    shell = pkgs.bashInteractive;
-    openssh.authorizedKeys.keys = [ acmeSyncPubKey ];
-  };
-  users.groups.acme-sync.members = [ "nginx" ];
+  imports = [ ../acme/sync.nix ];
 
-  # Create certificate directory owned by acme-sync
-  systemd.tmpfiles.rules = [
-    "d ${certDir} 0750 acme-sync acme-sync - -"
+  acmeSyncer.mkReceiver = [
+    { inherit domain; }
   ];
-
-  # Reload nginx when certificates are updated
-  systemd.services.acme-sync-reload-nginx = {
-    description = "Reload nginx after certificate sync";
-    serviceConfig = {
-      Type = "oneshot";
-      ExecStart = "${pkgs.systemd}/bin/systemctl reload nginx";
-    };
-  };
-  systemd.paths.acme-sync-watch = {
-    wantedBy = [ "multi-user.target" ];
-    pathConfig = {
-      PathChanged = "${certDir}/fullchain.pem";
-      Unit = "acme-sync-reload-nginx.service";
-    };
-  };
 
   services.nextcloud = {
     enable = true;

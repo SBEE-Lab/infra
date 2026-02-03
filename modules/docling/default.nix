@@ -1,43 +1,17 @@
-{ config, pkgs, ... }:
+{ config, ... }:
 let
   inherit (config.networking.sbee) hosts;
   domain = "docling.sjanglab.org";
   doclingPort = 5001;
   certDir = "/var/lib/acme/${domain}";
   authentikOutpost = "http://${hosts.eta.wg-admin}:9000";
-  acmeSyncPubKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO7mZ/UfOMpnrHaIigljsGWXCQAovWezdPpA3WQy1Qgu acme-sync@eta";
 in
 {
-  # acme-sync user for receiving certificates from eta
-  users.users.acme-sync = {
-    isSystemUser = true;
-    group = "acme-sync";
-    home = certDir;
-    shell = pkgs.bashInteractive;
-    openssh.authorizedKeys.keys = [ acmeSyncPubKey ];
-  };
-  users.groups.acme-sync.members = [ "nginx" ];
+  imports = [ ../acme/sync.nix ];
 
-  # Certificate directory
-  systemd.tmpfiles.rules = [
-    "d ${certDir} 0750 acme-sync acme-sync - -"
+  acmeSyncer.mkReceiver = [
+    { inherit domain; }
   ];
-
-  # Reload nginx on cert update
-  systemd.services.acme-sync-reload-nginx = {
-    description = "Reload nginx after certificate sync";
-    serviceConfig = {
-      Type = "oneshot";
-      ExecStart = "${pkgs.systemd}/bin/systemctl reload nginx";
-    };
-  };
-  systemd.paths.acme-sync-watch = {
-    wantedBy = [ "multi-user.target" ];
-    pathConfig = {
-      PathChanged = "${certDir}/fullchain.pem";
-      Unit = "acme-sync-reload-nginx.service";
-    };
-  };
 
   # Docker container with GPU
   virtualisation.oci-containers = {
