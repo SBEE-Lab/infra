@@ -1,8 +1,8 @@
 { config, pkgs, ... }:
 let
   inherit (config.networking.sbee) hosts;
+  authentikAuth = import ../authentik/nginx-locations.nix { inherit hosts; };
   n8nDomain = "n8n.sjanglab.org";
-  authentikOutpost = "http://${hosts.eta.wg-admin}:9000";
 
   # External hook for Authentik forward auth integration
   # Reads X-authentik-email header and issues n8n session cookie
@@ -134,56 +134,24 @@ in
       sslCertificate = "/var/lib/acme/${n8nDomain}/fullchain.pem";
       sslCertificateKey = "/var/lib/acme/${n8nDomain}/key.pem";
 
-      # Authentik outpost - auth endpoint (internal, for auth_request)
-      locations."/outpost.goauthentik.io/auth/nginx" = {
-        proxyPass = "${authentikOutpost}/outpost.goauthentik.io/auth/nginx";
-        extraConfig = ''
-          internal;
-          proxy_pass_request_body off;
-          proxy_set_header Content-Length "";
-          proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
-          proxy_set_header Authorization $http_authorization;
-        '';
-      };
+      locations = authentikAuth.locations // {
+        # Webhook endpoints - no auth required
+        "~ ^/(webhook|webhook-test)/" = {
+          proxyPass = "http://127.0.0.1:5678";
+          proxyWebsockets = true;
+        };
 
-      # Authentik outpost - start/callback (external, for redirects)
-      locations."/outpost.goauthentik.io" = {
-        proxyPass = "${authentikOutpost}/outpost.goauthentik.io";
-        extraConfig = ''
-          proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
-          proxy_set_header Authorization $http_authorization;
-        '';
-      };
+        # Healthz endpoint - no auth required
+        "= /healthz" = {
+          proxyPass = "http://127.0.0.1:5678";
+        };
 
-      # Signin redirect - same domain, not auth.sjanglab.org
-      locations."@authentik_signin" = {
-        extraConfig = ''
-          internal;
-          return 302 /outpost.goauthentik.io/start?rd=$scheme://$http_host$request_uri;
-        '';
-      };
-
-      # Webhook endpoints - no auth required
-      locations."~ ^/(webhook|webhook-test)/" = {
-        proxyPass = "http://127.0.0.1:5678";
-        proxyWebsockets = true;
-      };
-
-      # Healthz endpoint - no auth required
-      locations."= /healthz" = {
-        proxyPass = "http://127.0.0.1:5678";
-      };
-
-      # Main location - protected by Authentik forward auth
-      locations."/" = {
-        proxyPass = "http://127.0.0.1:5678";
-        proxyWebsockets = true;
-        extraConfig = ''
-          auth_request /outpost.goauthentik.io/auth/nginx;
-          auth_request_set $authentik_email $upstream_http_x_authentik_email;
-          error_page 401 = @authentik_signin;
-          proxy_set_header X-authentik-email $authentik_email;
-        '';
+        # Main location - protected by Authentik forward auth
+        "/" = {
+          proxyPass = "http://127.0.0.1:5678";
+          proxyWebsockets = true;
+          extraConfig = authentikAuth.protectLocation;
+        };
       };
     };
   };

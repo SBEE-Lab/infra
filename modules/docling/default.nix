@@ -1,10 +1,10 @@
 { config, ... }:
 let
   inherit (config.networking.sbee) hosts;
+  authentikAuth = import ../authentik/nginx-locations.nix { inherit hosts; };
   domain = "docling.sjanglab.org";
   doclingPort = 5001;
   certDir = "/var/lib/acme/${domain}";
-  authentikOutpost = "http://${hosts.eta.wg-admin}:9000";
 in
 {
   imports = [
@@ -42,48 +42,14 @@ in
       sslCertificate = "${certDir}/fullchain.pem";
       sslCertificateKey = "${certDir}/key.pem";
 
-      # Authentik outpost - auth endpoint (internal, for auth_request)
-      locations."/outpost.goauthentik.io/auth/nginx" = {
-        proxyPass = "${authentikOutpost}/outpost.goauthentik.io/auth/nginx";
-        extraConfig = ''
-          internal;
-          proxy_pass_request_body off;
-          proxy_set_header Content-Length "";
-          proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
-          proxy_set_header Authorization $http_authorization;
-        '';
-      };
-
-      # Authentik outpost - start/callback (external, for redirects)
-      locations."/outpost.goauthentik.io" = {
-        proxyPass = "${authentikOutpost}/outpost.goauthentik.io";
-        extraConfig = ''
-          proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
-          proxy_set_header Authorization $http_authorization;
-        '';
-      };
-
-      # Signin redirect - same domain, not auth.sjanglab.org
-      locations."@authentik_signin" = {
-        extraConfig = ''
-          internal;
-          return 302 /outpost.goauthentik.io/start?rd=$scheme://$http_host$request_uri;
-        '';
-      };
-
-      # Main location - protected by Authentik forward auth
-      locations."/" = {
-        proxyPass = "http://127.0.0.1:${toString doclingPort}";
-        extraConfig = ''
-          # Authentik forward auth
-          auth_request /outpost.goauthentik.io/auth/nginx;
-          auth_request_set $authentik_email $upstream_http_x_authentik_email;
-          error_page 401 = @authentik_signin;
-          proxy_set_header X-authentik-email $authentik_email;
-
-          client_max_body_size 100M;
-          proxy_read_timeout 300s;
-        '';
+      locations = authentikAuth.locations // {
+        "/" = {
+          proxyPass = "http://127.0.0.1:${toString doclingPort}";
+          extraConfig = authentikAuth.protectLocation + ''
+            client_max_body_size 100M;
+            proxy_read_timeout 300s;
+          '';
+        };
       };
     };
   };
