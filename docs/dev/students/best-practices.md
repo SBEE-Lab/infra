@@ -8,7 +8,6 @@
 | `/workspace/<username>/` | 대용량 임시 데이터 | 백업 안 됨, 정리 필요 |
 
 - 불필요한 데이터는 주기적으로 정리하세요
-- `node_modules`, `.cache`, `__pycache__` 등은 재생성 가능하므로 삭제해도 됩니다
 
 ## GPU 사용 에티켓
 
