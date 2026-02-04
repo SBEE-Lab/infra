@@ -60,6 +60,11 @@ nav = [
 
 extra_css = ["stylesheets/extra.css"]
 
+[project.markdown_extensions]
+attr_list = {}
+[project.markdown_extensions.toc]
+permalink = true
+
 [[project.markdown_extensions.pymdownx.superfences.custom_fences]]
 name = "mermaid"
 class = "mermaid"

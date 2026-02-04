@@ -49,4 +49,4 @@ Authentik outpost는 `wg-admin` 인터페이스(포트 9000)에서만 접근 가
 | `sjanglab-researchers` | AI + 앱 접근 | `tag:ai`, `tag:apps` |
 | `sjanglab-students` | 앱만 접근 | `tag:apps` |
 
-Authentik 그룹은 Headscale ACL과 15분마다 자동 동기화됩니다. 상세 매커니즘은 [네트워크 — ACL 동기화](network.md#acl-%EB%8F%99%EA%B8%B0%ED%99%94-%EB%A7%A4%EC%BB%A4%EB%8B%88%EC%A6%98)를 참조하세요.
+Authentik 그룹은 Headscale ACL과 15분마다 자동 동기화됩니다. 상세 매커니즘은 [네트워크 — ACL 동기화](network.md#acl-sync)를 참조하세요.

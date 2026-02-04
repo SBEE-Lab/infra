@@ -68,7 +68,7 @@ NAT 뒤 호스트(rho, tau)는 엔드포인트가 없으며, 공인 IP 호스트
 - Magic DNS: `sbee.lab`
 - Split DNS: `sjanglab.org` 쿼리를 내부 DNS로 라우팅
 
-### ACL 그룹
+### ACL 그룹 { #acl-groups }
 
 Authentik 그룹과 15분마다 자동 동기화됩니다.
 
@@ -89,7 +89,7 @@ Authentik 그룹과 15분마다 자동 동기화됩니다.
 
 > †n8n은 네트워크 수준에서 `tag:apps`로 접근 가능하나, Authentik Forward Auth에서 관리자만 허용합니다.
 
-### ACL 동기화 매커니즘
+### ACL 동기화 매커니즘 { #acl-sync }
 
 ```mermaid
 sequenceDiagram

@@ -43,7 +43,7 @@ flowchart LR
   auth --> svc["서비스"]
 ```
 
-Authentik 그룹이 Headscale ACL과 동기화되어 네트워크 수준의 접근 제어가 이루어집니다. 상세는 [인증](authentication.md)과 [네트워크 — ACL](network.md#acl-%EA%B7%B8%EB%A3%B9)을 참조하세요.
+Authentik 그룹이 Headscale ACL과 동기화되어 네트워크 수준의 접근 제어가 이루어집니다. 상세는 [인증](authentication.md)과 [네트워크 — ACL](network.md#acl-groups)을 참조하세요.
 
 ## 리포지토리 구조
 
