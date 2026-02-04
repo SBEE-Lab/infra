@@ -17,15 +17,15 @@ VPN으로 SBEE Lab 웹 서비스를 사용하기 위한 가이드입니다.
 
 ## 서비스 접속 경로
 
-VPN 연결 후 아래 서비스에 접근할 수 있습니다. 모든 서비스는 Authentik SSO 또는 Headscale ACL로 인증됩니다.
+| 서비스 | URL | 네트워크 | 인증 |
+|--------|-----|----------|------|
+| [Nextcloud](nextcloud.md) | `cloud.sjanglab.org` | VPN 필수 | OIDC |
+| [Vaultwarden](vaultwarden.md) | `vault.sjanglab.org` | 공개 | OIDC |
+| [n8n](n8n.md) | `n8n.sjanglab.org` | VPN 필수 | Forward Auth |
+| [Ollama](ollama.md) | `ollama.sjanglab.org` | VPN 필수 | Headscale ACL |
+| [Docling](docling.md) | `docling.sjanglab.org` | VPN 필수 | Headscale ACL |
 
-| 서비스 | URL | 용도 | 인증 |
-|--------|-----|------|------|
-| [Nextcloud](nextcloud.md) | `cloud.sjanglab.org` | 파일, 캘린더, 문서 협업 | OIDC |
-| [Vaultwarden](vaultwarden.md) | `vault.sjanglab.org` | 비밀번호 관리 | OIDC |
-| [Ollama](ollama.md) | `ollama.sjanglab.org` | LLM 추론 API | 네트워크 ACL |
-| [Docling](docling.md) | `docling.sjanglab.org` | 문서 변환 API | 네트워크 ACL |
-| [n8n](n8n.md) | `n8n.sjanglab.org` | 워크플로우 자동화 | Forward Auth |
+Vaultwarden은 VPN 없이도 접근 가능합니다. 나머지 서비스는 [VPN 연결](vpn-setup.md) 후 사용할 수 있습니다.
 
 ## 접근 권한
 
@@ -33,12 +33,8 @@ VPN 연결 후 아래 서비스에 접근할 수 있습니다. 모든 서비스�
 |--------|--------|--------|------|
 | Nextcloud | O | O | O |
 | Vaultwarden | O | O | O |
-| n8n | O | O | O |
+| n8n | O | X | X |
 | Ollama | O | O | X |
 | Docling | O | O | X |
 
-!!! info "서버에 SSH로 접속하여 연구 작업을 수행하려면"
-
-```
-[개발자 가이드](../dev/index.md)를 참조하세요.
-```
+> **SSH 접속이 필요한 경우**: 서버에 SSH로 직접 접속하여 연구 작업을 수행하려면 [개발자 가이드](../dev/index.md)를 참조하세요.
