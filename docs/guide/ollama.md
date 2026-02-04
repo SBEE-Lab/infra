@@ -2,9 +2,11 @@
 
 `https://ollama.sjanglab.org` — GPU 가속 LLM 추론 API입니다. psi 서버의 NVIDIA GPU에서 실행됩니다.
 
-## 접근 권한
-
-관리자와 연구원만 접근 가능합니다 (Headscale ACL `tag:ai`). 별도 로그인 없이 VPN 연결만으로 사용합니다.
+| 항목 | 내용 |
+|------|------|
+| **네트워크** | VPN 필수 (Headscale 연결 필요) |
+| **인증** | Headscale ACL만 (별도 로그인 불필요) |
+| **접근 권한** | 관리자, 연구원 (학생 불가) |
 
 ## 사용 가능 모델
 
@@ -47,6 +49,20 @@ response = client.chat.completions.create(
     model="qwen2.5-72b",
     messages=[{"role": "user", "content": "Hello"}],
 )
+```
+
+### Ollama CLI
+
+`OLLAMA_HOST` 환경 변수를 설정하면 로컬 Ollama CLI로 원격 서버를 직접 사용할 수 있습니다:
+
+```bash
+export OLLAMA_HOST=https://ollama.sjanglab.org
+
+# 모델 목록
+ollama list
+
+# 대화
+ollama run qwen2.5-72b
 ```
 
 ## 참고사항

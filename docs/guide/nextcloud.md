@@ -2,6 +2,12 @@
 
 `https://cloud.sjanglab.org` — 파일 저장, 캘린더, 실시간 문서 협업을 제공합니다.
 
+| 항목 | 내용 |
+|------|------|
+| **네트워크** | VPN 필수 (Headscale 연결 필요) |
+| **인증** | Authentik SSO (OIDC) |
+| **접근 권한** | 관리자, 연구원, 학생 |
+
 ## 로그인
 
 Authentik SSO로 로그인합니다. 첫 접속 시 "Authentik으로 로그인" 버튼을 클릭합니다.

@@ -10,13 +10,13 @@ SBEE Lab의 NixOS 기반 연구 인프라 문서입니다.
 
 ## 서비스
 
-| 서비스 | URL | 용도 |
-|--------|-----|------|
-| Nextcloud | [cloud.sjanglab.org](https://cloud.sjanglab.org) | 파일, 캘린더, 문서 협업 |
-| Vaultwarden | [vault.sjanglab.org](https://vault.sjanglab.org) | 비밀번호 관리 |
-| Ollama | [ollama.sjanglab.org](https://ollama.sjanglab.org) | LLM API |
-| Docling | [docling.sjanglab.org](https://docling.sjanglab.org) | 문서 변환 |
-| n8n | [n8n.sjanglab.org](https://n8n.sjanglab.org) | 워크플로우 자동화 |
+| 서비스 | URL | 용도 | 네트워크 |
+|--------|-----|------|----------|
+| Nextcloud | [cloud.sjanglab.org](https://cloud.sjanglab.org) | 파일, 캘린더, 문서 협업 | VPN 필수 |
+| Vaultwarden | [vault.sjanglab.org](https://vault.sjanglab.org) | 비밀번호 관리 | 공개 |
+| n8n | [n8n.sjanglab.org](https://n8n.sjanglab.org) | 워크플로우 자동화 | VPN 필수 |
+| Ollama | [ollama.sjanglab.org](https://ollama.sjanglab.org) | LLM API | VPN 필수 |
+| Docling | [docling.sjanglab.org](https://docling.sjanglab.org) | 문서 변환 | VPN 필수 |
 
 ## 어떤 가이드를 봐야 하나요?
 
