@@ -11,7 +11,7 @@
 
 - **위치**: KREN 네트워크
 - **공인 IP**: 117.16.251.37
-- **역할**: GPU 연산, CI/CD, 생물정보 DB
+- **역할**: GPU 연산, CI/CD, 생물정보 DB, Nix 바이너리 캐시 (Harmonia)
 - **태그**: `public-ip`, `kren-dns`
 - **스토리지**:
   - Root: Samsung 990 PRO 4TB NVMe (`/`)

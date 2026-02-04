@@ -28,7 +28,7 @@ nav = [
     { "GPU 컴퓨팅" = "dev/gpu-computing.md" },
     { "Apptainer" = "dev/apptainer.md" },
     { "생물정보 DB" = "dev/bioinformatics-db.md" },
-    { "데이터센터" = "dev/datacenter.md" },
+    { "Nix 개발 환경" = "dev/nix-environment.md" },
     { "학생" = [
       { "모범 사례" = "dev/students/best-practices.md" },
       { "계정 만료" = "dev/students/account-expiration.md" },
@@ -47,6 +47,9 @@ nav = [
     { "네트워크" = "admin/network.md" },
     { "인증" = "admin/authentication.md" },
     { "비밀 관리" = "admin/secrets-management.md" },
+    { "보안" = "admin/security.md" },
+    { "코드 기여" = "admin/contributing.md" },
+    { "데이터센터" = "admin/datacenter.md" },
   ] },
   { "참조" = [
     { "FAQ" = "reference/faq.md" },
@@ -56,6 +59,11 @@ nav = [
 ]
 
 extra_css = ["stylesheets/extra.css"]
+
+[[project.markdown_extensions.pymdownx.superfences.custom_fences]]
+name = "mermaid"
+class = "mermaid"
+format = "pymdownx.superfences.fence_code_format"
 
 [project.theme]
 language = "ko"
@@ -104,7 +112,6 @@ toggle.name = "시스템 설정 따르기"
 repo = "fontawesome/brands/github"
 
 [project.extra]
-homepage = "https://sjanglab.org"
 generator = false
 
 [[project.extra.social]]
