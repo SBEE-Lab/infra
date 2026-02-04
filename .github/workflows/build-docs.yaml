@@ -3,9 +3,9 @@ on:
   push:
     branches: [main]
     paths:
-      - 'docs/**'
-      - 'zensical.toml'
-      - '.github/workflows/build-docs.yaml'
+      - "docs/**"
+      - "zensical.toml"
+      - ".github/workflows/build-docs.yaml"
   workflow_dispatch:
 permissions:
   contents: read
@@ -25,7 +25,6 @@ jobs:
           extra_nix_config: |
             accept-flake-config = true
             experimental-features = nix-command flakes
-            max-jobs = 0
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v5
