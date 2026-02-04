@@ -95,6 +95,13 @@ Windows에서는 시스템 트레이의 Tailscale 아이콘이 **Connected** 상
 
 VPN 연결 후 Magic DNS로 서비스에 접근할 수 있습니다.
 
+```mermaid
+flowchart LR
+  user["사용자<br/>Tailscale VPN"] --> hs["Headscale<br/>hs.sjanglab.org"]
+  hs --> psi["psi (100.64.0.1)<br/>Ollama · Docling"]
+  hs --> tau["tau (100.64.0.3)<br/>Nextcloud · n8n"]
+```
+
 | 도메인 | 내부 IP | 호스트 | 서비스 |
 |--------|---------|--------|--------|
 | `cloud.sjanglab.org` | 100.64.0.3 | tau | Nextcloud |

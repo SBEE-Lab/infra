@@ -12,6 +12,19 @@ SSH로 서버에 접속하여 사용하는 연구 컴퓨팅 환경입니다.
 
 ## 스토리지 구조 (psi 기준)
 
+```mermaid
+graph TD
+  subgraph ssd["NVMe RAID0 (16TB, 고속)"]
+    project["/project/&lt;user&gt;/<br/>개인 프로젝트 ✅ 백업"]
+    workspace["/workspace/&lt;user&gt;/<br/>임시 작업 공간 ❌ 백업"]
+    shared["/workspace/shared/databases/<br/>생물정보 DB ❌ 백업"]
+  end
+  subgraph hdd["HDD RAID0 (60TB)"]
+    data["/data/<br/>장기 데이터 저장"]
+  end
+  blobs["/blobs/<br/>대용량 파일 ✅ 백업"]
+```
+
 | 경로 | 용도 | 백업 |
 |------|------|------|
 | `/project/<username>/` | 개인 프로젝트 (장기 작업 데이터) | O |

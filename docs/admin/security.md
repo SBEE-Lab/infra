@@ -20,13 +20,30 @@
 
 eta가 유일한 인터넷 노출 SSH 호스트입니다. 다른 호스트(psi, rho, tau)는 `wg-admin` 인터페이스에서만 SSH를 수신합니다.
 
-```
-인터넷 → eta (jump.sjanglab.org:10022) → wg-admin → psi/rho/tau
+```mermaid
+flowchart LR
+  inet["인터넷"] -- "포트 10022" --> eta["eta<br/>jump.sjanglab.org"]
+  eta -- "wg-admin" --> psi["psi<br/>10.100.0.2"]
+  eta -- "wg-admin" --> rho["rho<br/>10.100.0.3"]
+  eta -- "wg-admin" --> tau["tau<br/>10.100.0.4"]
 ```
 
 ### SSH 속도 제한
 
 eta에 적용되는 방어 계층:
+
+```mermaid
+flowchart TD
+  conn["SSH 연결 시도"] --> ipt{"iptables<br/>60초 내 NEW 5회 초과?"}
+  ipt -- "초과" --> drop["즉시 DROP"]
+  ipt -- "통과" --> sshd["sshd 인증"]
+  sshd -- "성공" --> ok["접속 허용"]
+  sshd -- "실패" --> log["sshd 로그 기록"]
+  log --> f1["fail2ban sshd<br/>10분 내 3회 → 24시간 차단"]
+  log --> f2["fail2ban aggressive<br/>24시간 내 공격 패턴 → 7일 차단"]
+```
+
+iptables(연결 빈도)와 fail2ban(인증 실패 로그)은 **독립적인 병렬 계층**입니다. iptables는 TCP 연결 시점에 즉시 판단하고, fail2ban은 sshd 로그를 감시하여 사후 차단합니다.
 
 | 계층 | 조건 | 차단 |
 |------|------|------|
@@ -147,7 +164,7 @@ sops updatekeys hosts/psi.yaml
 
 ## TLS 인증서
 
-모든 도메인은 Let's Encrypt ACME + Cloudflare DNS 챌린지로 인증서를 자동 발급합니다.
+모든 도메인은 eta에서 Let's Encrypt ACME + Cloudflare DNS 챌린지로 인증서를 발급합니다. 다른 호스트에서 사용하는 인증서는 `acme-sync` 서비스가 rsync로 동기화하고, 대상 호스트의 systemd path unit이 파일 변경을 감지하여 nginx를 자동 리로드합니다.
 
 | 도메인 | 발급 호스트 | 사용 호스트 |
 |--------|-----------|-----------|
@@ -197,11 +214,13 @@ Linux 감사 데몬으로 다음을 추적합니다:
 
 ### 로그 파이프라인
 
+```mermaid
+flowchart LR
+  src["auditd / journald"] --> vec["Vector"]
+  vec --> loki["Loki (rho)"]
+  loki --> graf["Grafana"]
+  graf --> ntfy["ntfy (알림)"]
 ```
-auditd/journald → Vector (에이전트) → Loki (중앙 저장) → Grafana (대시보드)
-```
-
-알림은 Grafana → ntfy를 통해 푸시됩니다.
 
 ## 시스템 안정성
 
@@ -210,9 +229,10 @@ auditd/journald → Vector (에이전트) → Loki (중앙 저장) → Grafana (
 | 설정 | 값 |
 |------|-----|
 | 소스 | `github:SBEE-lab/infra` |
-| 스케줄 | 매월 마지막 토요일 |
-| 재부팅 | 커널 업데이트 감지 시 24시간 후 자동 |
-| 지터 | ±20분 (동시 재부팅 방지) |
+| 업그레이드 | `system.autoUpgrade`가 주기적으로 최신 설정 적용 |
+| 재부팅 체크 | 매월 마지막 토요일 (`auto-reboot` 서비스) |
+| 재부팅 조건 | 커널 변경 시에만 24시간 후 자동 재부팅 |
+| 지터 | ±20분 (호스트별 분산) |
 
 ### 서비스 복구
 

@@ -24,6 +24,14 @@ cat ~/.ssh/id_ed25519.pub  # 이 내용을 관리자에게 전달
 
 모든 SSH 접속은 점프 호스트(`jump.sjanglab.org`)를 경유합니다. 포트는 `10022`입니다.
 
+```mermaid
+flowchart LR
+  user["로컬 PC"] -- "SSH :10022" --> eta["eta<br/>jump.sjanglab.org"]
+  eta -- "ProxyJump<br/>wg-admin" --> psi["psi .2"]
+  eta -- "ProxyJump<br/>wg-admin" --> rho["rho .3"]
+  eta -- "ProxyJump<br/>wg-admin" --> tau["tau .4"]
+```
+
 ```bash
 # eta (점프 호스트) 직접 접속
 ssh -p 10022 <username>@jump.sjanglab.org

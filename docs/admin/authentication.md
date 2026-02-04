@@ -18,21 +18,35 @@
 
 n8n 등 Forward Auth를 사용하는 서비스의 인증 흐름:
 
-```
-1. 사용자 → nginx
-2. nginx → Authentik outpost (10.100.0.1:9000) 인증 확인
-3. 미인증 → Authentik 로그인 페이지로 리다이렉트
-4. 인증 완료 → X-authentik-email 헤더와 함께 서비스로 전달
+```mermaid
+sequenceDiagram
+  participant U as 사용자
+  participant N as nginx
+  participant A as Authentik outpost<br/>(10.100.0.1:9000)
+  participant S as 서비스 (n8n 등)
+
+  U->>N: 요청
+  N->>A: 인증 확인 (/outpost.goauthentik.io/auth)
+  alt 미인증
+    A-->>N: 401
+    N-->>U: 로그인 페이지로 리다이렉트
+    U->>A: 로그인
+    A-->>U: 인증 완료, 원래 URL로 리다이렉트
+  else 인증됨
+    A-->>N: 200 + 사용자 정보 헤더
+    N->>S: X-authentik-email 헤더와 함께 전달
+    S-->>U: 응답
+  end
 ```
 
 Authentik outpost는 `wg-admin` 인터페이스(포트 9000)에서만 접근 가능합니다.
 
 ### 그룹
 
-| 그룹 | 용도 |
-|------|------|
-| `sjanglab-admins` | 전체 접근 권한 |
-| `sjanglab-researchers` | AI + 앱 접근 |
-| `sjanglab-students` | 앱만 접근 |
+| 그룹 | 용도 | Headscale ACL 태그 |
+|------|------|-------------------|
+| `sjanglab-admins` | 전체 접근 권한 | `tag:ai`, `tag:apps`, `tag:monitoring` |
+| `sjanglab-researchers` | AI + 앱 접근 | `tag:ai`, `tag:apps` |
+| `sjanglab-students` | 앱만 접근 | `tag:apps` |
 
-그룹은 Headscale ACL과 15분마다 자동 동기화됩니다.
+Authentik 그룹은 Headscale ACL과 15분마다 자동 동기화됩니다. 상세 매커니즘은 [네트워크 — ACL 동기화](network.md#acl-%EB%8F%99%EA%B8%B0%ED%99%94-%EB%A7%A4%EC%BB%A4%EB%8B%88%EC%A6%98)를 참조하세요.

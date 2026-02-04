@@ -11,6 +11,13 @@ VPN으로 SBEE Lab 웹 서비스를 사용하기 위한 가이드입니다.
 
 ## 온보딩 순서
 
+```mermaid
+flowchart LR
+  A["접근 권한 요청"] --> B["VPN 설정<br/>(Tailscale)"]
+  B --> C["첫 로그인<br/>(Authentik SSO)"]
+  C --> D["서비스 사용"]
+```
+
 1. 관리자에게 [접근 권한 요청](requesting-access.md)
 1. [VPN 설정](vpn-setup.md) (Tailscale)
 1. [첫 로그인](first-login.md) (Authentik SSO)

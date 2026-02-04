@@ -6,6 +6,15 @@
 
 ### 구성
 
+```mermaid
+flowchart LR
+  gh["GitHub 웹훅"] --> master["Buildbot Master<br/>psi :8010"]
+  master --> w["Workers ×8<br/>psi (8GB/워커)"]
+  master --> db["PostgreSQL<br/>rho"]
+  w -- "nix-eval → nix-build" --> result["빌드 결과"]
+  result --> gh
+```
+
 - **Master**: psi (포트 8010)
 - **Workers**: psi (8개 평가 워커, 8GB 메모리/워커)
 - **DB**: PostgreSQL (rho)
@@ -47,6 +56,29 @@ Buildbot 관리자를 변경하려면:
 ### 빌드 재트리거
 
 실패한 빌드는 Buildbot 웹 UI에서 수동으로 재트리거할 수 있습니다. `https://buildbot.sjanglab.org`에 GitHub 계정으로 로그인한 뒤, 해당 빌드 페이지에서 **Rebuild** 버튼을 클릭합니다.
+
+## Flake 입력 자동 업데이트
+
+GitHub Actions가 매일 `nix flake update`를 실행하여 의존성을 최신 상태로 유지합니다.
+
+```mermaid
+flowchart LR
+  cron["GitHub Actions<br/>(매일 03:00 KST)"] -- "nix flake update" --> pr["PR 자동 생성<br/>(flake.lock 변경)"]
+  pr -- "auto-merge<br/>(squash)" --> main["main 브랜치"]
+  main -- "매월 마지막 토요일" --> upgrade["NixOS<br/>system.autoUpgrade"]
+```
+
+| 항목 | 설정 |
+|------|------|
+| 워크플로우 | `.github/workflows/update-flake-inputs.yml` |
+| 스케줄 | `0 18 * * *` (매일 18:00 UTC / 03:00 KST) |
+| 도구 | `Mic92/update-flake-inputs` |
+| 인증 | GitHub App (APP_ID + APP_PRIVATE_KEY) |
+| 병합 | auto-merge 워크플로우가 PR을 자동 squash 병합 |
+
+흐름: flake.lock 변경 → PR 생성 → 자동 squash 병합 → main에 반영 → 각 호스트가 매월 마지막 토요일에 `system.autoUpgrade`로 적용.
+
+> Buildbot은 flake 업데이트와 무관합니다. Buildbot은 PR CI 빌드만 담당하고, flake 입력 업데이트는 GitHub Actions가 전담합니다.
 
 ## Nix 바이너리 캐시
 
