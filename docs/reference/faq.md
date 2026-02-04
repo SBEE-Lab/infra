@@ -35,4 +35,4 @@ VPN 연결 후 `https://cloud.sjanglab.org`에 접속해야 합니다. 직접 IP
 `/workspace/`는 백업 대상이 아닙니다. 중요한 데이터는 `/project/<username>/`에 저장하세요.
 
 **Q: 특정 생물정보 DB가 오래되었습니다.**
-`icebox sync <database>`로 수동 동기화할 수 있습니다. 자동 동기화 주기는 [생물정보 DB](../research/bioinformatics-db.md)를 참조하세요.
+`icebox sync <database>`로 수동 동기화할 수 있습니다. 자동 동기화 주기는 [생물정보 DB](../dev/bioinformatics-db.md)를 참조하세요.

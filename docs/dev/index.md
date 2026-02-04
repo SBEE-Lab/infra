@@ -1,4 +1,4 @@
-# 연구 환경
+# 개발자 가이드
 
 SSH로 서버에 접속하여 사용하는 연구 컴퓨팅 환경입니다.
 
@@ -26,4 +26,5 @@ SSH로 서버에 접속하여 사용하는 연구 컴퓨팅 환경입니다.
 - [GPU 컴퓨팅](gpu-computing.md) — CUDA, Docker, 컨테이너
 - [Apptainer](apptainer.md) — HPC 컨테이너 환경
 - [생물정보 DB](bioinformatics-db.md) — BLAST, UniProt, PDB 등
+- [데이터센터](datacenter.md) — 물리 서버 관리, 전원, 네트워크
 - [학생 가이드](students/best-practices.md) — 모범 사례, 계정 만료
