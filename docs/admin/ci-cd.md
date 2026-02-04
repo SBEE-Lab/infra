@@ -18,18 +18,47 @@
 
 ### 권한
 
-- 빌드 트리거 가능: `SBEE-Lab` 조직, `mulatta` 사용자
-- 웹 관리자: `mulatta`
+| 항목 | 값 | 설정 위치 |
+|------|-----|-----------|
+| 빌드 트리거 | `SBEE-Lab` 조직, `mulatta` 사용자 | `master.nix`: `github.authType.app` |
+| 웹 관리자 | `mulatta` | `master.nix`: `admins` |
+| 인증 | GitHub OAuth | `master.nix`: `authBackend = "github"` |
+
+관련 시크릿 (`modules/buildbot/secrets.yaml`, sops 암호화):
+
+| 시크릿 | 용도 |
+|--------|------|
+| `github-app-private-key` | GitHub App 인증 (웹훅 수신) |
+| `github-oauth-secret` | 웹 UI 로그인 |
+| `github-webhook-secret` | 웹훅 HMAC 검증 |
+| `buildbot-workers` | 워커 인증 |
+| `buildbot-pgpass` | PostgreSQL 접근 |
+| `niks3-auth-token` | 외부 캐시 푸시 |
+
+### 관리자 변경
+
+Buildbot 관리자를 변경하려면:
+
+1. `modules/buildbot/master.nix`에서 `admins` 목록 수정
+1. GitHub App 설정에서 조직/사용자 권한 업데이트
+1. OAuth 시크릿 갱신 필요 시 `sops modules/buildbot/secrets.yaml`로 편집
+1. `inv deploy --hosts psi`
+
+### 빌드 재트리거
+
+실패한 빌드는 Buildbot 웹 UI에서 수동으로 재트리거할 수 있습니다. `https://buildbot.sjanglab.org`에 GitHub 계정으로 로그인한 뒤, 해당 빌드 페이지에서 **Rebuild** 버튼을 클릭합니다.
 
 ## Nix 바이너리 캐시
 
-### Attic (주 캐시, eta)
-
-- URL: `https://cache.sjanglab.org`
-- 리텐션: 14일 (미사용 패키지)
-- 토큰 생성: `inv attic-make-token --sub <name> --caches main --push --pull`
-
 ### Harmonia (내부 캐시)
 
-- 호스트 간 빌드 결과 공유
-- `wg-admin:5000`에서 제공
+psi에서 빌드한 `/nix/store` 경로를 Harmonia 데몬이 네트워크로 제공합니다. 다른 호스트가 배포 시 이 캐시에서 빌드 결과를 가져오므로 중복 빌드를 피할 수 있습니다.
+
+| 항목 | 값 |
+|------|-----|
+| 호스트 | psi |
+| 포트 | 5000 (`wg-admin` 인터페이스) |
+| 주소 | `http://10.100.0.2:5000` |
+| 서명 키 | `secrets.yaml` (sops 암호화) |
+
+모든 호스트(rho, tau, eta)는 이 주소를 Nix substituter로 자동 설정되어 있습니다.

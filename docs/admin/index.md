@@ -40,6 +40,29 @@ Authentik 그룹(`sjanglab-admins`, `sjanglab-researchers`, `sjanglab-students`)
 - [ ] `inv deploy` 테스트 (staging)
 - [ ] Grafana 대시보드 접근 확인 (`https://logging.sjanglab.org`)
 
+## 관리자 인수인계
+
+관리자 역할을 이관할 때 아래 시스템을 모두 업데이트해야 합니다.
+
+| 시스템 | 작업 | 파일/위치 |
+|--------|------|-----------|
+| **SSH** | 새 관리자 키 추가, `root` 키 교체, `trusted-users` 추가 | `modules/users/admins.nix` |
+| **sops** | 새 관리자 age 공개키 등록 → `sops updatekeys` | `pubkeys.json` |
+| **Buildbot** | `admins` 목록 변경, GitHub OAuth/App 권한 이전 | `modules/buildbot/master.nix` |
+| **Authentik** | `sjanglab-admins` 그룹에 추가, 기존 관리자 수퍼유저 권한 이전 | `auth.sjanglab.org` |
+| **GitHub** | `SBEE-Lab` 조직 Owner 권한 부여 | GitHub 설정 |
+
+절차:
+
+1. 새 관리자의 SSH 키와 age 키를 확보합니다
+1. `admins.nix`에 사용자 추가 (아래 [사용자 관리](user-management.md) 참조)
+1. `pubkeys.json`에 age 키 추가 후 `sops updatekeys` 실행
+1. `inv deploy --hosts psi,rho,tau,eta` (전체 배포)
+1. Buildbot `master.nix`의 `admins` 목록에 GitHub 사용자명 추가 → 재배포
+1. Authentik, GitHub에서 권한 부여
+
+> 이전 관리자 계정은 즉시 삭제하지 않고, 인수인계 완료 후 비활성화합니다.
+
 ## 가이드 목록
 
 - [사용자 관리](user-management.md) — 계정 추가/삭제, 만료 관리
@@ -53,3 +76,6 @@ Authentik 그룹(`sjanglab-admins`, `sjanglab-researchers`, `sjanglab-students`)
 - [네트워크](network.md) — 토폴로지, WireGuard, Headscale, 방화벽
 - [인증](authentication.md) — Authentik SSO, OIDC, Forward Auth
 - [비밀 관리](secrets-management.md) — sops-nix, age 암호화
+- [보안](security.md) — 네트워크, 계정, SSH, TLS, 감사 정책
+- [코드 기여](contributing.md) — 코드 스타일, 커밋 규칙, PR 워크플로우
+- [데이터센터](datacenter.md) — 물리 서버 관리, 전원, GPU 점검

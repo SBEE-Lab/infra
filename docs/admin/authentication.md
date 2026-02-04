@@ -11,7 +11,7 @@
 | Headscale | OIDC | VPN 로그인 시 그룹 기반 접근 제어 |
 | Nextcloud | OIDC (`user_oidc`) | SSO 로그인 |
 | Vaultwarden | OIDC (PKCE) | SSO 로그인 |
-| n8n | Forward Auth | nginx에서 인증 후 이메일 헤더 전달 |
+| n8n | Forward Auth | nginx에서 인증 후 이메일 헤더 전달 (Headscale ACL + Forward Auth 이중 보호) |
 | Buildbot | GitHub OAuth + OIDC | CI/CD 대시보드 접근 |
 
 ### Forward Auth 흐름
