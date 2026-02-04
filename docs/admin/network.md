@@ -1,4 +1,12 @@
-# 네트워크 토폴로지
+# 네트워크
+
+## 3계층 네트워크 개요
+
+| 레이어 | 기술 | 용도 | 대역 |
+|--------|------|------|------|
+| WireGuard | `wg-admin` | 인프라 관리 (SSH, DB, 모니터링) | `10.100.0.0/24` |
+| Headscale | Tailscale 호환 | 사용자 서비스 접근 | `100.64.0.0/10` |
+| 공인 IP | nginx 리버스 프록시 | 외부 노출 (eta만) | `141.164.53.203` |
 
 ## 호스트 목록
 
@@ -38,6 +46,22 @@ Authentik 그룹과 15분마다 자동 동기화됩니다.
 | `sjanglab-admins` | `tag:ai`, `tag:apps`, `tag:monitoring` |
 | `sjanglab-researchers` | `tag:ai`, `tag:apps` |
 | `sjanglab-students` | `tag:apps` |
+
+### ACL 태그 소유권
+
+| 태그 | 소유 그룹 | 설명 |
+|------|----------|------|
+| `tag:server` | `sjanglab-admins` | 서버 노드 |
+| `tag:ai` | `sjanglab-admins` | AI 서비스 (Ollama, Docling) |
+| `tag:apps` | `sjanglab-admins` | 앱 서비스 (Nextcloud, n8n) |
+| `tag:monitoring` | `sjanglab-admins` | 모니터링 (Grafana) |
+
+### ACL 동기화 매커니즘
+
+1. systemd 타이머가 15분마다 `acl-sync` 스크립트를 실행
+1. Authentik API에서 그룹 멤버십을 조회
+1. 정적 ACL 규칙과 동적 그룹 정보를 병합하여 새 ACL 파일 생성
+1. Headscale이 inotify로 ACL 파일 변경을 감지하여 자동 리로드
 
 ## 방화벽 정책
 
