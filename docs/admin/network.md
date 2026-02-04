@@ -53,8 +53,10 @@ Authentik 그룹과 15분마다 자동 동기화됩니다.
 |------|----------|------|
 | `tag:server` | `sjanglab-admins` | 서버 노드 |
 | `tag:ai` | `sjanglab-admins` | AI 서비스 (Ollama, Docling) |
-| `tag:apps` | `sjanglab-admins` | 앱 서비스 (Nextcloud, n8n) |
+| `tag:apps` | `sjanglab-admins` | 앱 서비스 (Nextcloud, n8n†) |
 | `tag:monitoring` | `sjanglab-admins` | 모니터링 (Grafana) |
+
+> †n8n은 네트워크 수준에서 `tag:apps`로 접근 가능하나, Authentik Forward Auth에서 관리자만 허용합니다.
 
 ### ACL 동기화 매커니즘
 
