@@ -11,36 +11,36 @@
     {
       devShells.docs = pkgs.mkShellNoCC { inputsFrom = [ config.packages.docs ]; };
 
-      packages = {
-        docs =
-          pkgs.runCommand "docs"
-            {
-              buildInputs = [ config.packages.zensical ];
-              files = fileset.toSource {
-                root = ../.;
-                fileset = docsFiles;
-              };
-            }
-            ''
-              cp --no-preserve=mode -r $files/* .
+      packages.docs =
+        pkgs.runCommand "docs"
+          {
+            buildInputs = [ config.packages.zensical ];
+            files = fileset.toSource {
+              root = ../.;
+              fileset = docsFiles;
+            };
+          }
+          ''
+            cp --no-preserve=mode -r $files/* .
 
-              zensical build --clean
+            zensical build --clean
 
-              mkdir -p $out
-              cp -r site/* $out/
-            '';
+            mkdir -p $out
+            cp -r site/* $out/
+          '';
 
-        docs-linkcheck = pkgs.testers.lycheeLinkCheck rec {
-          extraConfig = {
-            include_mail = true;
-            include_verbatim = true;
-            exclude = [ "docker:.*" ];
-          };
-          remap = {
-            "https://sjanglab.org" = site;
-          };
-          site = config.packages.docs;
+      checks.docs-linkcheck = pkgs.testers.lycheeLinkCheck rec {
+        extraConfig = {
+          include_mail = true;
+          include_verbatim = true;
+          exclude = [ "docker:.*" ];
         };
+        remap = {
+          "https://sjanglab.org" = site;
+          # Resolve directory-style URLs to index.html for fragment checking
+          "file://(.+)/([a-z][-a-z0-9]*)#(.*)" = "file://$1/$2/index.html#$3";
+        };
+        site = config.packages.docs;
       };
 
       apps.docs-serve = {

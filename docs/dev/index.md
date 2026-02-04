@@ -35,7 +35,7 @@ graph TD
 
 ## 시작하기
 
-서버 SSH 접속이 필요하면 관리자에게 **사용자명, SSH 공개키, 접근 호스트**를 전달합니다. 상세 절차는 [SSH 접속 — 접근 요청](ssh-access.md#%EC%A0%91%EA%B7%BC-%EC%9A%94%EC%B2%AD)을 참조하세요.
+서버 SSH 접속이 필요하면 관리자에게 **사용자명, SSH 공개키, 접근 호스트**를 전달합니다. 상세 절차는 [SSH 접속 — 접근 요청](ssh-access.md#requesting-access)을 참조하세요.
 
 ## 가이드 목록
 
