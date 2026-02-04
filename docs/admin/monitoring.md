@@ -7,9 +7,31 @@
 
 ## 스택 구성
 
-```
-각 호스트 (Vector) → rho (Prometheus + Loki) → Grafana
-각 호스트 (Push) → eta (Gatus) → ntfy (알림)
+```mermaid
+flowchart LR
+  subgraph hosts["각 호스트"]
+    vec["Vector"]
+  end
+
+  subgraph rho["rho"]
+    prom["Prometheus"]
+    loki["Loki"]
+    graf["Grafana"]
+  end
+
+  subgraph eta["eta"]
+    gatus["Gatus"]
+  end
+
+  ntfy["ntfy (알림)"]
+
+  vec -- "메트릭" --> prom
+  vec -- "로그" --> loki
+  prom --> graf
+  loki --> graf
+  hosts -- "헬스체크 Push" --> gatus
+  gatus --> ntfy
+  graf --> ntfy
 ```
 
 ### Vector (로그/메트릭 수집)

@@ -2,6 +2,37 @@
 
 ## 3계층 네트워크 개요
 
+```mermaid
+graph TB
+  internet["인터넷"]
+
+  subgraph public["공인 IP (외부 노출)"]
+    eta_pub["eta<br/>141.164.53.203"]
+  end
+
+  subgraph wg["wg-admin (10.100.0.0/24)"]
+    direction LR
+    eta_wg["eta .1"]
+    psi_wg["psi .2"]
+    rho_wg["rho .3"]
+    tau_wg["tau .4"]
+  end
+
+  subgraph hs["Headscale (100.64.0.0/10)"]
+    direction LR
+    users["사용자 VPN 클라이언트"]
+  end
+
+  internet -- "80, 443, 10022" --> eta_pub
+  eta_pub --- eta_wg
+  eta_wg --- psi_wg
+  eta_wg --- rho_wg
+  eta_wg --- tau_wg
+  users -- "Magic DNS" --> eta_wg
+  users -- "Magic DNS" --> psi_wg
+  users -- "Magic DNS" --> tau_wg
+```
+
 | 레이어 | 기술 | 용도 | 대역 |
 |--------|------|------|------|
 | WireGuard | `wg-admin` | 인프라 관리 (SSH, DB, 모니터링) | `10.100.0.0/24` |
@@ -59,6 +90,21 @@ Authentik 그룹과 15분마다 자동 동기화됩니다.
 > †n8n은 네트워크 수준에서 `tag:apps`로 접근 가능하나, Authentik Forward Auth에서 관리자만 허용합니다.
 
 ### ACL 동기화 매커니즘
+
+```mermaid
+sequenceDiagram
+  participant T as systemd 타이머 (15분)
+  participant S as acl-sync 스크립트
+  participant A as Authentik API
+  participant H as Headscale
+
+  T->>S: 실행
+  S->>A: 그룹 멤버십 조회
+  A-->>S: 그룹/사용자 목록
+  S->>S: 정적 ACL + 동적 그룹 병합
+  S->>H: ACL 파일 갱신
+  H->>H: inotify 감지 → 리로드
+```
 
 1. systemd 타이머가 15분마다 `acl-sync` 스크립트를 실행
 1. Authentik API에서 그룹 멤버십을 조회

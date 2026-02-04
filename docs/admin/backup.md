@@ -2,6 +2,27 @@
 
 Borg Backup으로 증분 백업을 수행합니다.
 
+## 백업 흐름
+
+```mermaid
+flowchart LR
+  psi["psi<br/>/project, /blobs"]
+  rho_data["rho<br/>PostgreSQL 덤프"]
+
+  subgraph tau["tau (백업 저장소)"]
+    borg_psi["/backup/borg/psi"]
+    borg_rho["/backup/borg/rho"]
+  end
+
+  subgraph rho["rho (미러)"]
+    mirror["/backup/borg-mirror/"]
+  end
+
+  psi -- "03:00 Borg" --> borg_psi
+  rho_data -- "04:00 Borg" --> borg_rho
+  tau -- "06:00 rsync" --> mirror
+```
+
 ## 백업 스케줄
 
 | 소스 | 대상 | 시간 | 데이터 |
@@ -25,11 +46,13 @@ tau의 Borg 저장소를 rho로 미러링합니다:
 
 ## 보관 정책
 
-| 주기 | psi | rho (PostgreSQL) |
-|------|-----|------------------|
+| 주기 | psi (파일) | rho (PostgreSQL) |
+|------|-----------|------------------|
 | 일간 | 7 | 7 |
 | 주간 | 4 | 4 |
 | 월간 | 3 | 6 |
+
+> PostgreSQL 덤프는 데이터 복구 기간을 길게 확보하기 위해 월간 보관을 6개월로 설정합니다.
 
 ## 제외 항목
 

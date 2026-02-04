@@ -75,6 +75,15 @@ psi 서버는 **분기별 1회 (연 4회)** GPU 냉각수 점검을 받습니다
 
 ### 정리 절차 (서버 종료가 필요한 경우)
 
+```mermaid
+flowchart TD
+  A["1. 사전 공지"] --> B["2. 실행 중인 작업 확인<br/>(nvidia-smi, docker ps)"]
+  B --> C["3. Buildbot 워커 중지"]
+  C --> D["4. 서버 종료<br/>(inv shutdown)"]
+  D --> E["5. 점검 완료 후 복구<br/>(IPMI 원격 기동)"]
+  E --> F["6. 서비스 상태 확인<br/>(systemctl --failed, nvidia-smi)"]
+```
+
 **1단계 — 사전 공지**: 사용자에게 점검 일정과 종료 시간을 안내합니다.
 
 **2단계 — 실행 중인 작업 확인**:

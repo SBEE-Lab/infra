@@ -17,13 +17,24 @@ inv deploy --hosts psi,rho,tau,eta
 모든 호스트에 자동 업그레이드가 설정되어 있습니다:
 
 - **소스**: `github:SBEE-lab/infra`
-- **스케줄**: 매월 마지막 토요일
-- **재부팅**: 커널 업데이트 감지 시 24시간 후 자동 재부팅
-- **지터**: 20분 (동시 재부팅 방지)
+- **업그레이드 체크**: `system.autoUpgrade`가 주기적으로 최신 커밋을 가져와 `nixos-rebuild switch` 실행
+- **재부팅 체크**: 매월 마지막 토요일에 `auto-reboot` 서비스가 커널 업데이트 여부를 확인
+- **재부팅**: 커널이 변경된 경우에만 24시간 후 자동 재부팅 (`shutdown -r +1440`)
+- **지터**: ±20분 (호스트별 재부팅 시점 분산)
 
 ## 사전 빌드 (Harmonia 캐시)
 
 배포 전 psi에서 미리 빌드하면 다른 호스트의 배포 시간을 크게 줄일 수 있습니다.
+
+```mermaid
+flowchart LR
+  admin["관리자"] -- "inv build-all" --> psi["psi<br/>nix build"]
+  psi -- "/nix/store" --> harmonia["Harmonia<br/>10.100.0.2:5000"]
+  harmonia -- "substituter" --> rho["rho"]
+  harmonia -- "substituter" --> tau["tau"]
+  harmonia -- "substituter" --> eta["eta"]
+  admin -- "inv deploy" --> rho & tau & eta
+```
 
 **동작 원리**: psi에서 `nix build`를 실행하면 결과물이 `/nix/store`에 저장됩니다. Harmonia 데몬이 이 `/nix/store`를 네트워크로 제공하므로, 다른 호스트(rho, tau, eta)가 배포 시 psi의 캐시에서 빌드 결과를 바로 가져옵니다.
 
