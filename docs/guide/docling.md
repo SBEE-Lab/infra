@@ -10,12 +10,55 @@
 
 ## API 사용
 
+### 동기 방식 (소용량 파일)
+
 ```bash
 # PDF를 마크다운으로 변환
-curl -X POST https://docling.sjanglab.org/v1/convert \
-  -F "file=@paper.pdf" \
+curl -X POST https://docling.sjanglab.org/v1/convert/file \
+  -F "files=@paper.pdf" \
   -H "Accept: application/json"
+
+# 결과를 파일로 저장
+curl -X POST https://docling.sjanglab.org/v1/convert/file \
+  -F "files=@paper.pdf" \
+  -H "Accept: application/json" \
+  -o output.json
 ```
+
+### 비동기 방식 (대용량 파일)
+
+동기 요청 타임아웃(120초)을 초과하는 대용량 문서는 비동기 API를 사용합니다.
+
+```bash
+# 1. 비동기 변환 요청 → task_id 반환
+curl -X POST https://docling.sjanglab.org/v1/convert/file/async \
+  -F "files=@paper.pdf" \
+  -H "Accept: application/json"
+
+# 2. 상태 확인
+curl https://docling.sjanglab.org/v1/status/poll/{task_id}
+
+# 3. 완료 후 결과 가져오기
+curl https://docling.sjanglab.org/v1/result/{task_id} -o output.json
+
+# 마크다운만 추출 (jq 경로는 응답 구조에 따라 다를 수 있음)
+curl -s https://docling.sjanglab.org/v1/result/{task_id} | jq -r '.document.md_content' > paper.md
+```
+
+!!! warning "curl 경로 주의"
+curl의 `-F` 옵션에서 `~`는 홈 디렉토리로 확장되지 않습니다.
+`$HOME` 또는 절대 경로를 사용하세요.
+
+````
+```bash
+# ❌ 작동 안 함
+curl -F "files=@~/Downloads/paper.pdf" ...
+
+# ✅ 올바른 방법
+curl -F "files=@$HOME/Downloads/paper.pdf" ...
+curl -F "files=@/Users/username/Downloads/paper.pdf" ...
+```
+````
 
 ## MCP 서버
 
@@ -40,5 +83,5 @@ MCP 설정 예시:
 ## 참고사항
 
 - 최대 업로드 크기: 100MB
-- 요청 타임아웃: 300초 (대용량 문서의 경우)
+- 동기 요청 타임아웃: 120초 (초과 시 비동기 API 사용)
 - GPU 가속으로 처리됩니다 (psi 서버)
