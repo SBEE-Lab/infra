@@ -10,12 +10,14 @@
   };
 
   acls = [
-    # Admins: AI (psi:443) + apps (tau:443) + monitoring (rho:3000)
+    # Admins: AI (psi,rho:80,443) + apps (tau:80,443) + monitoring (rho:3000)
     {
       action = "accept";
       src = [ "group:sjanglab-admins" ];
       dst = [
+        "tag:ai:80"
         "tag:ai:443"
+        "tag:apps:80"
         "tag:apps:443"
         "tag:monitoring:3000"
       ];
@@ -26,7 +28,9 @@
       action = "accept";
       src = [ "group:sjanglab-researchers" ];
       dst = [
+        "tag:ai:80"
         "tag:ai:443"
+        "tag:apps:80"
         "tag:apps:443"
       ];
     }
@@ -36,6 +40,7 @@
       action = "accept";
       src = [ "group:sjanglab-students" ];
       dst = [
+        "tag:apps:80"
         "tag:apps:443"
       ];
     }

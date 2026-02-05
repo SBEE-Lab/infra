@@ -19,12 +19,12 @@ let
       "$AUTHENTIK_URL/api/v3/core/groups/?include_users=true&page_size=100")
 
     # Build groups JSON: map Authentik groups to headscale ACL groups
-    # Only include sjanglab-* groups; map usernames for headscale
+    # Only include sjanglab-* groups; filter users with @ (headscale requirement)
     groups=$(echo "$response" | ${pkgs.jq}/bin/jq -c '
       [.results[] | select(.name | startswith("sjanglab-"))] |
       map({
         key: ("group:" + .name),
-        value: [.users_obj[]? | .username]
+        value: [.users_obj[]? | .username | select(contains("@"))]
       }) | from_entries
     ')
 
@@ -41,8 +41,27 @@ let
 
     echo "ACL sync complete: $(echo "$groups" | ${pkgs.jq}/bin/jq -r 'to_entries | map(.key + ": " + (.value | length | tostring)) | join(", ")')"
   '';
+
+  # Sanitize policy.json before headscale starts (remove usernames without @)
+  sanitizeScript = pkgs.writeShellScript "headscale-policy-sanitize" ''
+    set -euo pipefail
+    if [ -f "${policyPath}" ]; then
+      ${pkgs.jq}/bin/jq '
+        .groups = (.groups // {} | to_entries | map({
+          key: .key,
+          value: [.value[]? | select(contains("@"))]
+        }) | from_entries)
+      ' "${policyPath}" > "${policyPath}.tmp"
+      mv "${policyPath}.tmp" "${policyPath}"
+      echo "Policy sanitized: removed usernames without @"
+    fi
+  '';
 in
 {
+  # Sanitize policy.json before headscale starts
+  systemd.services.headscale.serviceConfig.ExecStartPre = [
+    "${sanitizeScript}"
+  ];
   sops.secrets.authentik-api-token = {
     sopsFile = ./secrets.yaml;
     owner = "headscale";

@@ -1,0 +1,106 @@
+services:
+  es01:
+    image: elasticsearch:8.11.3
+    container_name: ragflow-es01
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - cluster.name=ragflow
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - cluster.routing.allocation.disk.watermark.low=5gb
+      - cluster.routing.allocation.disk.watermark.high=3gb
+      - cluster.routing.allocation.disk.watermark.flood_stage=2gb
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD", "curl", "-s", "http://localhost:9200/_cluster/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+    networks:
+      - ragflow
+  mysql:
+    image: mysql:8.0.39
+    container_name: ragflow-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: rag_flow
+    volumes:
+      - mysqldata:/var/lib/mysql
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --max_connections=1000
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+    networks:
+      - ragflow
+  redis:
+    image: valkey/valkey:8
+    container_name: ragflow-redis
+    command: valkey-server --requirepass ${REDIS_PASSWORD} --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "valkey-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+    networks:
+      - ragflow
+  ragflow:
+    image: infiniflow/ragflow:v0.23.1
+    container_name: ragflow
+    depends_on:
+      es01:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8080:80"
+      - "127.0.0.1:9380:9380"
+    volumes:
+      - ragflowdata:/ragflow/logs
+      - ./nginx/ragflow.conf:/etc/nginx/conf.d/ragflow.conf:ro
+      - ./nginx/entrypoint-wrapper.sh:/ragflow/entrypoint-wrapper.sh:ro
+    entrypoint: ["/bin/bash", "/ragflow/entrypoint-wrapper.sh"]
+    environment:
+      - DOC_ENGINE=elasticsearch
+      - DEVICE=cpu
+      - ES_HOST=es01
+      - ES_PORT=9200
+      - MYSQL_HOST=mysql
+      - MYSQL_PORT=3306
+      - MYSQL_DBNAME=rag_flow
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      # MinIO: use host network (NixOS native service)
+      - MINIO_HOST=host.docker.internal
+      - MINIO_PORT=9000
+      - MINIO_USER=${MINIO_USER}
+      - MINIO_PASSWORD=${MINIO_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - TZ=Asia/Seoul
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+    networks:
+      - ragflow
+volumes:
+  esdata:
+  mysqldata:
+  redisdata:
+  ragflowdata:
+networks:
+  ragflow:
+    driver: bridge
