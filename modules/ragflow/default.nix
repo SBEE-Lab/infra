@@ -30,6 +30,7 @@ in
     "L+ ${dataDir}/docker-compose.yml - - - - ${./docker-compose.yml}"
     "L+ ${dataDir}/nginx/ragflow.conf - - - - ${./nginx/ragflow.conf}"
     "L+ ${dataDir}/nginx/entrypoint-wrapper.sh - - - - ${./nginx/entrypoint-wrapper.sh}"
+    "L+ ${dataDir}/service_conf.yaml.template - - - - ${./service_conf.yaml.template}"
   ];
 
   # Environment file with secrets

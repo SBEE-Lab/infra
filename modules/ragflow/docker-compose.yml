@@ -3,6 +3,7 @@ services:
     image: elasticsearch:8.11.3
     container_name: ragflow-es01
     environment:
+      - TZ=Asia/Seoul
       - discovery.type=single-node
       - xpack.security.enabled=false
       - cluster.name=ragflow
@@ -24,6 +25,7 @@ services:
     image: mysql:8.0.39
     container_name: ragflow-mysql
     environment:
+      TZ: Asia/Seoul
       MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_DATABASE: rag_flow
     volumes:
@@ -43,6 +45,8 @@ services:
   redis:
     image: valkey/valkey:8
     container_name: ragflow-redis
+    environment:
+      - TZ=Asia/Seoul
     command: valkey-server --requirepass ${REDIS_PASSWORD} --maxmemory 256mb --maxmemory-policy allkeys-lru
     volumes:
       - redisdata:/data
@@ -71,6 +75,7 @@ services:
       - ragflowdata:/ragflow/logs
       - ./nginx/ragflow.conf:/etc/nginx/conf.d/ragflow.conf:ro
       - ./nginx/entrypoint-wrapper.sh:/ragflow/entrypoint-wrapper.sh:ro
+      - ./service_conf.yaml.template:/ragflow/conf/service_conf.yaml.template:ro
     entrypoint: ["/bin/bash", "/ragflow/entrypoint-wrapper.sh"]
     environment:
       - DOC_ENGINE=elasticsearch
@@ -90,9 +95,13 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - OIDC_CLIENT_ID=${OIDC_CLIENT_ID}
+      - OIDC_CLIENT_SECRET=${OIDC_CLIENT_SECRET}
       - TZ=Asia/Seoul
     extra_hosts:
       - "host.docker.internal:host-gateway"
+      - "vllm.sjanglab.org:100.64.0.1" # psi via Headscale
+      - "tei.sjanglab.org:100.64.0.1" # psi via Headscale
     restart: unless-stopped
     networks:
       - ragflow
