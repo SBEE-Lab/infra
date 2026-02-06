@@ -1,10 +1,6 @@
-# Static ACL rules — groups are populated dynamically by acl-sync
-#
-# Tag assignment (manual, one-time):
-#   headscale nodes tag -i <psi-id> -t tag:ai,tag:server
-#   headscale nodes tag -i <tau-id> -t tag:apps,tag:server
-#   headscale nodes tag -i <rho-id> -t tag:monitoring,tag:server
-#   headscale nodes tag -i <eta-id> -t tag:server
+# Static ACL rules
+# - Groups: populated dynamically by acl-sync.nix (from Authentik)
+# - Tags: assigned by tag-sync.nix (declarative)
 {
   tagOwners = {
     "tag:server" = [ "group:sjanglab-admins" ];
