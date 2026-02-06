@@ -7,6 +7,7 @@ in
     ../acme
     ../gatus/check.nix
     ./acl-sync.nix
+    ./tag-sync.nix
   ];
 
   gatusCheck.pull = [
