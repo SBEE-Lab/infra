@@ -14,7 +14,8 @@
     ../modules/borgbackup/psi/client.nix
     ../modules/monitoring/vector
     ../modules/harmonia
-    ../modules/ollama
+    # ../modules/ollama  # disabled for vLLM testing
+    ../modules/vllm
     ../modules/icebox/databases.nix
     ../modules/docling
     ../modules/tei
