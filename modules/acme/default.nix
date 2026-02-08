@@ -17,6 +17,12 @@
         webroot = null;
         group = "nginx";
       };
+      "tei.sjanglab.org" = {
+        dnsProvider = "cloudflare";
+        environmentFile = config.sops.secrets.cloudflare-credentials.path;
+        webroot = null;
+        group = "nginx";
+      };
     };
   };
 
