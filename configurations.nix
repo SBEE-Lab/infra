@@ -20,12 +20,25 @@ let
     overlays = import ./overlays { inherit inputs; };
   };
 
+  # CUDA-enabled pkgs for GPU hosts (psi)
+  pkgsCuda = import nixpkgs {
+    inherit system;
+    config = {
+      allowUnfree = true;
+      cudaSupport = true;
+    };
+    overlays = import ./overlays { inherit inputs; };
+  };
+
   nixosSystem =
-    modules:
+    {
+      modules,
+      useCuda ? false,
+    }:
     nixpkgs.lib.nixosSystem {
       inherit system;
       specialArgs = { inherit self inputs; };
-      modules = modules ++ [ { nixpkgs.pkgs = pkgs; } ];
+      modules = modules ++ [ { nixpkgs.pkgs = if useCuda then pkgsCuda else pkgs; } ];
     };
 
   commonModules = [
@@ -80,15 +93,17 @@ let
 in
 {
   flake.nixosConfigurations = {
-    psi = nixosSystem (computeModules ++ [ ./hosts/psi.nix ]);
-    rho = nixosSystem (commonModules ++ [ ./hosts/rho.nix ]);
-    tau = nixosSystem (commonModules ++ [ ./hosts/tau.nix ]);
-    eta = nixosSystem (
-      commonModules
-      ++ [
+    psi = nixosSystem {
+      modules = computeModules ++ [ ./hosts/psi.nix ];
+      useCuda = true;
+    };
+    rho = nixosSystem { modules = commonModules ++ [ ./hosts/rho.nix ]; };
+    tau = nixosSystem { modules = commonModules ++ [ ./hosts/tau.nix ]; };
+    eta = nixosSystem {
+      modules = commonModules ++ [
         authentik-nix.nixosModules.default
         ./hosts/eta.nix
-      ]
-    );
+      ];
+    };
   };
 }

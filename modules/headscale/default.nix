@@ -66,6 +66,11 @@ in
             type = "A";
             value = "100.64.0.1"; # psi headscale IP
           }
+          {
+            name = "vllm.sjanglab.org";
+            type = "A";
+            value = "100.64.0.1"; # psi headscale IP
+          }
         ];
       };
 

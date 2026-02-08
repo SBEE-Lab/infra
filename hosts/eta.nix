@@ -40,12 +40,32 @@ in
       serviceName = "acme-sync-tei-to-psi";
       remoteHost = hosts.psi.wg-admin;
     }
+    {
+      domain = "vllm.sjanglab.org";
+      serviceName = "acme-sync-vllm-to-psi";
+      remoteUser = "acme-sync-vllm";
+      remoteHost = hosts.psi.wg-admin;
+    }
   ];
 
   disko.rootDisk = "/dev/vda";
 
-  # ACME certificate for ollama.sjanglab.org (internal only)
+  # ACME certificates for internal services
   security.acme.certs."ollama.sjanglab.org" = {
+    dnsProvider = "cloudflare";
+    environmentFile = config.sops.secrets.cloudflare-credentials.path;
+    webroot = null;
+    group = "acme";
+  };
+
+  security.acme.certs."vllm.sjanglab.org" = {
+    dnsProvider = "cloudflare";
+    environmentFile = config.sops.secrets.cloudflare-credentials.path;
+    webroot = null;
+    group = "acme";
+  };
+
+  security.acme.certs."tei.sjanglab.org" = {
     dnsProvider = "cloudflare";
     environmentFile = config.sops.secrets.cloudflare-credentials.path;
     webroot = null;
