@@ -35,6 +35,11 @@ in
       serviceName = "acme-sync-docling-to-psi";
       remoteHost = hosts.psi.wg-admin;
     }
+    {
+      domain = "tei.sjanglab.org";
+      serviceName = "acme-sync-tei-to-psi";
+      remoteHost = hosts.psi.wg-admin;
+    }
   ];
 
   disko.rootDisk = "/dev/vda";
