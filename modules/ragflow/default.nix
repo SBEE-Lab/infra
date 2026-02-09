@@ -96,7 +96,8 @@ in
   # RAGFlow container via oci-containers
   virtualisation.oci-containers.backend = "docker";
   virtualisation.oci-containers.containers.ragflow = {
-    image = "infiniflow/ragflow:v0.23.1";
+    # Pinned to latest (2026-02-08) for WebDAV async generator fix (f56bceb2)
+    image = "infiniflow/ragflow@sha256:652a00a14036c859f1d72c90bbd242f33afb085a43749822cd5d9a58f463ea53";
     ports = [
       "127.0.0.1:8080:80"
       "127.0.0.1:9380:9380"
