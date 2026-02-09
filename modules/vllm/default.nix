@@ -30,7 +30,7 @@ let
         "--max-model-len"
         "32768"
         "--gpu-memory-utilization"
-        "0.90" # More memory available since TEI handles embed/rerank
+        "0.80" # Leave ~10GB for TEI embed/rerank
         "--enforce-eager" # Skip CUDA graph capture to avoid OOM
       ];
     };
