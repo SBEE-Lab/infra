@@ -23,7 +23,8 @@ in
     configDir = "/var/lib/minio/config";
     listenAddress = "0.0.0.0:${toString apiPort}";
     consoleAddress = "0.0.0.0:${toString consolePort}";
-    region = "ap-northeast-2";
+    # No region: RAGFlow's minio-py client doesn't pass region parameter,
+    # causing AuthorizationHeaderMalformed when server expects specific region
 
     # Credentials from sops template
     rootCredentialsFile = config.sops.templates."minio-credentials".path;
