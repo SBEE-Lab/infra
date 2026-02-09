@@ -126,7 +126,7 @@ in
     }
   ];
 
-  # Nginx reverse proxy
+  # Nginx reverse proxy (chat only, embedding/rerank use tei.sjanglab.org)
   services.nginx = {
     enable = true;
     recommendedProxySettings = true;
@@ -137,28 +137,6 @@ in
       sslCertificate = "/var/lib/acme/${domain}/fullchain.pem";
       sslCertificateKey = "/var/lib/acme/${domain}/key.pem";
 
-      # Embedding API -> TEI (port 8201, more efficient for embeddings)
-      locations."/v1/embeddings" = {
-        proxyPass = "http://127.0.0.1:8201";
-        extraConfig = ''
-          proxy_buffering off;
-          proxy_read_timeout 300s;
-          client_max_body_size 10M;
-        '';
-      };
-
-      # Rerank API -> TEI (port 8202)
-      # Rewrite /v1/score to /rerank for TEI compatibility
-      locations."/v1/score" = {
-        proxyPass = "http://127.0.0.1:8202/rerank";
-        extraConfig = ''
-          proxy_buffering off;
-          proxy_read_timeout 300s;
-          client_max_body_size 10M;
-        '';
-      };
-
-      # Chat API + default -> port 8100
       locations."/" = {
         proxyPass = "http://127.0.0.1:8100";
         extraConfig = ''
