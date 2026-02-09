@@ -36,6 +36,8 @@ in
     "L+ ${dataDir}/nginx/entrypoint-wrapper.sh - - - - ${./nginx/entrypoint-wrapper.sh}"
     "L+ ${dataDir}/service_conf.yaml.template - - - - ${./service_conf.yaml.template}"
     "L+ ${dataDir}/init-llm.sql - - - - ${./init-llm.sql}"
+    "d ${dataDir}/patches 0755 root root -"
+    "L+ ${dataDir}/patches/apply.py - - - - ${./patches/apply.py}"
   ];
 
   # Atomic secrets from sops
@@ -52,6 +54,7 @@ in
     minio_password.sopsFile = ./secrets.yaml;
     oidc_client_id.sopsFile = ./secrets.yaml;
     oidc_client_secret.sopsFile = ./secrets.yaml;
+    ragflow_secret_key.sopsFile = ./secrets.yaml;
   };
 
   # Generate ragflow-env from atomic secrets (no duplication in secrets.yaml)
@@ -64,6 +67,7 @@ in
       MINIO_PASSWORD=${config.sops.placeholder.minio_password}
       OIDC_CLIENT_ID=${config.sops.placeholder.oidc_client_id}
       OIDC_CLIENT_SECRET=${config.sops.placeholder.oidc_client_secret}
+      RAGFLOW_SECRET_KEY=${config.sops.placeholder.ragflow_secret_key}
     '';
   };
 
@@ -107,6 +111,7 @@ in
       "${dataDir}/nginx/ragflow.conf:/etc/nginx/conf.d/ragflow.conf:ro"
       "${dataDir}/nginx/entrypoint-wrapper.sh:/ragflow/entrypoint-wrapper.sh:ro"
       "${dataDir}/service_conf.yaml.template:/ragflow/conf/service_conf.yaml.template:ro"
+      "${dataDir}/patches/apply.py:/ragflow/patches/apply.py:ro"
     ];
     entrypoint = "/bin/bash";
     cmd = [ "/ragflow/entrypoint-wrapper.sh" ];
