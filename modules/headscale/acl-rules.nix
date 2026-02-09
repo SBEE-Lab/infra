@@ -10,6 +10,15 @@
   };
 
   acls = [
+    # Server-to-server: AI services on HTTPS only
+    # rho (RAGFlow) -> psi (vLLM/TEI)
+    # tau (n8n) -> psi (AI APIs)
+    {
+      action = "accept";
+      src = [ "tag:server" ];
+      dst = [ "tag:server:443" ];
+    }
+
     # Admins: AI (psi,rho:80,443) + apps (tau:80,443) + monitoring (rho:3000)
     {
       action = "accept";
