@@ -19,10 +19,10 @@ minio:
   host: '${MINIO_HOST:-minio}:${MINIO_PORT:-9000}'
   bucket: '${MINIO_BUCKET:-}'
   prefix_path: '${MINIO_PREFIX_PATH:-}'
-es:
+os:
   hosts: 'http://${ES_HOST:-es01}:${ES_PORT:-9200}'
-  username: '${ES_USER:-elastic}'
-  password: '${ELASTIC_PASSWORD:-infini_rag_flow}'
+  username: ''
+  password: ''
 redis:
   db: 1
   username: '${REDIS_USERNAME:-}'
@@ -52,6 +52,6 @@ user_default_llm:
       base_url: 'https://tei.sjanglab.org/v1'
     rerank_model:
       name: 'BAAI/bge-reranker-v2-m3'
-      factory: 'Huggingface'
+      factory: 'HuggingFace'
       api_key: 'none'
       base_url: 'https://tei.sjanglab.org'

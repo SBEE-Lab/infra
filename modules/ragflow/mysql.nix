@@ -4,14 +4,10 @@
 # - Direct access without docker exec
 # - Declarative user/database management
 # - Integrated backup via borgbackup
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}:
+{ config, pkgs, ... }:
 let
   dataDir = "/var/lib/ragflow";
+  passwordFile = config.sops.secrets.mysql_password.path;
 in
 {
   services.mysql = {
@@ -41,14 +37,16 @@ in
     ];
   };
 
-  # Set password and run init SQL after MySQL starts
-  # Password is extracted from ragflow-env (.env file)
+  # Ensure sops secrets are available before MySQL starts
+  systemd.services.mysql.after = [ "sops-nix.service" ];
+  systemd.services.mysql.wants = [ "sops-nix.service" ];
+
+  # Set password from sops secret after MySQL starts
   systemd.services.mysql.postStart =
     let
       mysql = "${config.services.mysql.package}/bin/mysql";
-      envFile = "${dataDir}/.env";
     in
-    lib.mkAfter ''
+    ''
       # Wait for MySQL to be ready
       for i in $(seq 1 30); do
         if ${mysql} -e "SELECT 1" &>/dev/null; then
@@ -57,15 +55,16 @@ in
         sleep 1
       done
 
-      # Extract password from .env file
-      if [ -f "${envFile}" ]; then
-        RAGFLOW_PW=$(grep '^MYSQL_PASSWORD=' "${envFile}" | cut -d= -f2-)
+      # Set password from sops secret
+      if [ -f "${passwordFile}" ]; then
+        RAGFLOW_PW=$(cat ${passwordFile})
 
-        # Set ragflow user password
-        ${mysql} -e "ALTER USER 'ragflow'@'localhost' IDENTIFIED BY '$RAGFLOW_PW';"
+        # Set ragflow user password (use mysql_native_password for compatibility)
+        ${mysql} -e "ALTER USER 'ragflow'@'localhost' IDENTIFIED WITH mysql_native_password BY '$RAGFLOW_PW';"
 
         # Allow connection from RAGFlow Docker network (172.30.0.0/24)
-        ${mysql} -e "CREATE USER IF NOT EXISTS 'ragflow'@'172.30.0.%' IDENTIFIED BY '$RAGFLOW_PW';"
+        ${mysql} -e "CREATE USER IF NOT EXISTS 'ragflow'@'172.30.0.%' IDENTIFIED WITH mysql_native_password BY '$RAGFLOW_PW';"
+        ${mysql} -e "ALTER USER 'ragflow'@'172.30.0.%' IDENTIFIED WITH mysql_native_password BY '$RAGFLOW_PW';"
         ${mysql} -e "GRANT ALL PRIVILEGES ON rag_flow.* TO 'ragflow'@'172.30.0.%';"
         ${mysql} -e "FLUSH PRIVILEGES;"
       fi
