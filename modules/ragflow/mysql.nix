@@ -22,6 +22,10 @@ in
       # Connection limits
       max_connections = 1000;
 
+      # Skip reverse DNS lookup on client connections
+      # Without this, connections from Docker (172.30.0.x) wait ~10s for PTR timeout
+      skip-name-resolve = true;
+
       # Listen on localhost + RAGFlow Docker bridge (172.30.0.1)
       bind-address = "127.0.0.1,172.30.0.1";
     };
