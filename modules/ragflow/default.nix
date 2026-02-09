@@ -8,6 +8,7 @@ in
     ./mysql.nix # MySQL database (NixOS native)
     ../minio # MinIO dependency (NixOS native)
     ../gatus/check.nix
+    ../acme/sync.nix
   ];
 
   gatusCheck.push = [
@@ -73,19 +74,24 @@ in
     };
   };
 
-  # Nginx reverse proxy (Tailscale only)
+  # ACME certificate receiver
+  acmeSyncer.mkReceiver = [
+    {
+      inherit domain;
+      user = "acme-sync-ragflow";
+    }
+  ];
+
+  # Nginx reverse proxy (Tailscale only, HTTPS)
   services.nginx = {
     enable = true;
     recommendedProxySettings = true;
     recommendedTlsSettings = true;
 
     virtualHosts.${domain} = {
-      listen = [
-        {
-          addr = "0.0.0.0";
-          port = 80;
-        }
-      ];
+      forceSSL = true;
+      sslCertificate = "/var/lib/acme/${domain}/fullchain.pem";
+      sslCertificateKey = "/var/lib/acme/${domain}/key.pem";
 
       locations."/" = {
         proxyPass = "http://127.0.0.1:8080";
@@ -100,5 +106,5 @@ in
   };
 
   # Firewall: Tailscale only
-  networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ 80 ];
+  networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ 443 ];
 }

@@ -35,7 +35,7 @@ oauth:
     client_secret: "${OIDC_CLIENT_SECRET}"
     issuer: "https://auth.sjanglab.org/application/o/ragflow/"
     scope: "openid email profile"
-    redirect_uri: "http://rag.sjanglab.org/v1/user/oauth/callback/oidc"
+    redirect_uri: "https://rag.sjanglab.org/v1/user/oauth/callback/oidc"
 # LLM defaults for new users
 # Chat: vLLM on psi, Embedding/Rerank: TEI on psi
 user_default_llm:
