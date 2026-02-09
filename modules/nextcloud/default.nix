@@ -133,14 +133,11 @@ in
         "^~ /hosting/capabilities" = {
           proxyPass = "http://127.0.0.1:${toString collaboraPort}";
         };
-        # Main document handling endpoint (WebSocket)
-        "~ ^/cool/(.*)/ws$" = {
-          proxyPass = "http://127.0.0.1:${toString collaboraPort}";
-          proxyWebsockets = true;
-        };
-        # Admin and other cool paths
+        # All Collabora /cool/ paths including WebSocket (/cool/*/ws)
+        # Must use ^~ to prevent Nextcloud's static file regex from intercepting
         "^~ /cool/" = {
           proxyPass = "http://127.0.0.1:${toString collaboraPort}";
+          proxyWebsockets = true;
         };
         # Whiteboard WebSocket server
         "/whiteboard/" = {
