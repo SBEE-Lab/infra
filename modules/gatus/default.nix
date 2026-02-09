@@ -63,6 +63,8 @@ in
           # psi
           (mkExtEndpoint "Ollama" "ai")
           (mkExtEndpoint "Docling" "ai")
+          (mkExtEndpoint "vLLM" "ai")
+          (mkExtEndpoint "TEI" "ai")
           # tau
           (mkExtEndpoint "Nextcloud" "apps")
           (mkExtEndpoint "n8n" "apps")
@@ -71,6 +73,7 @@ in
           (mkExtEndpoint "Prometheus" "monitoring")
           (mkExtEndpoint "Loki" "monitoring")
           (mkExtEndpoint "PostgreSQL" "db")
+          (mkExtEndpoint "RAGFlow" "ai")
         ];
     };
   };
