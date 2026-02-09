@@ -130,6 +130,7 @@ in
       "--network=ragflow"
       "--add-host=vllm.sjanglab.org:100.64.0.1"
       "--add-host=tei.sjanglab.org:100.64.0.1"
+      "--add-host=cloud.sjanglab.org:100.64.0.3"
     ];
   };
 
