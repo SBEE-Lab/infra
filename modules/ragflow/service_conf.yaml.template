@@ -36,17 +36,22 @@ oauth:
     issuer: "https://auth.sjanglab.org/application/o/ragflow/"
     scope: "openid email profile"
     redirect_uri: "http://rag.sjanglab.org/v1/user/oauth/callback/oidc"
-# LLM: vLLM for chat (OpenAI-compatible API on psi)
-# Embedding/Rerank: TEI on psi (https://tei.sjanglab.org)
-#   - /v1/embeddings for BAAI/bge-m3
-#   - /rerank for BAAI/bge-reranker-v2-m3
+# LLM defaults for new users
+# Chat: vLLM on psi, Embedding/Rerank: TEI on psi
 user_default_llm:
-  factory: 'OpenAI-API-Compatible'
-  api_key: 'none'
-  base_url: 'https://vllm.sjanglab.org/v1'
   default_models:
     chat_model:
       name: 'Qwen/Qwen3-32B-AWQ'
+      factory: 'VLLM'
+      api_key: 'none'
+      base_url: 'https://vllm.sjanglab.org/v1'
     embedding_model:
       name: 'BAAI/bge-m3'
-    rerank_model: 'BAAI/bge-reranker-v2-m3'
+      factory: 'VLLM'
+      api_key: 'none'
+      base_url: 'https://tei.sjanglab.org/v1'
+    rerank_model:
+      name: 'BAAI/bge-reranker-v2-m3'
+      factory: 'Huggingface'
+      api_key: 'none'
+      base_url: 'https://tei.sjanglab.org'
