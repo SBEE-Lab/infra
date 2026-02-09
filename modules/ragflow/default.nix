@@ -6,6 +6,7 @@ in
 {
   imports = [
     ./mysql.nix # MySQL database (NixOS native)
+    ./elasticsearch.nix # Elasticsearch (NixOS native)
     ../minio # MinIO dependency (NixOS native)
     ../gatus/check.nix
     ../acme/sync.nix
@@ -49,11 +50,13 @@ in
       "docker.service"
       "network-online.target"
       "mysql.service"
+      "elasticsearch.service"
       "minio.service"
     ];
     requires = [
       "docker.service"
       "mysql.service"
+      "elasticsearch.service"
     ];
     wants = [
       "network-online.target"

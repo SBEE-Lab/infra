@@ -1,26 +1,4 @@
 services:
-  es01:
-    image: elasticsearch:8.11.3
-    container_name: ragflow-es01
-    environment:
-      - TZ=Asia/Seoul
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - cluster.name=ragflow
-      - ES_JAVA_OPTS=-Xms1g -Xmx1g
-      - cluster.routing.allocation.disk.watermark.low=5gb
-      - cluster.routing.allocation.disk.watermark.high=3gb
-      - cluster.routing.allocation.disk.watermark.flood_stage=2gb
-    volumes:
-      - esdata:/usr/share/elasticsearch/data
-    healthcheck:
-      test: ["CMD", "curl", "-s", "http://localhost:9200/_cluster/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 30
-    restart: unless-stopped
-    networks:
-      - ragflow
   redis:
     image: valkey/valkey:8
     container_name: ragflow-redis
@@ -41,8 +19,6 @@ services:
     image: infiniflow/ragflow:v0.23.1
     container_name: ragflow
     depends_on:
-      es01:
-        condition: service_healthy
       redis:
         condition: service_healthy
     ports:
@@ -57,19 +33,21 @@ services:
     environment:
       - DOC_ENGINE=elasticsearch
       - DEVICE=cpu
-      - ES_HOST=es01
+      # Elasticsearch: NixOS native (br-ragflow gateway)
+      - ES_HOST=172.30.0.1
       - ES_PORT=9200
-      # MySQL: NixOS native service on host (br-ragflow gateway)
+      # MySQL: NixOS native
       - MYSQL_HOST=172.30.0.1
       - MYSQL_PORT=3306
       - MYSQL_DBNAME=rag_flow
       - MYSQL_USER=ragflow
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-      # MinIO: use host network (NixOS native service)
-      - MINIO_HOST=host.docker.internal
+      # MinIO: NixOS native
+      - MINIO_HOST=172.30.0.1
       - MINIO_PORT=9000
       - MINIO_USER=${MINIO_USER}
       - MINIO_PASSWORD=${MINIO_PASSWORD}
+      # Redis: Docker container
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_PASSWORD=${REDIS_PASSWORD}
@@ -77,14 +55,12 @@ services:
       - OIDC_CLIENT_SECRET=${OIDC_CLIENT_SECRET}
       - TZ=Asia/Seoul
     extra_hosts:
-      - "host.docker.internal:host-gateway"
       - "vllm.sjanglab.org:100.64.0.1" # psi via Headscale
       - "tei.sjanglab.org:100.64.0.1" # psi via Headscale
     restart: unless-stopped
     networks:
       - ragflow
 volumes:
-  esdata:
   redisdata:
   ragflowdata:
 networks:
