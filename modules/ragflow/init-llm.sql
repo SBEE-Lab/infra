@@ -10,4 +10,4 @@ VALUES
   (UNIX_TIMESTAMP()*1000, NOW(), UNIX_TIMESTAMP()*1000, NOW(), 'BAAI/bge-m3', 'embedding', 'VLLM', 8192, 'TEXT EMBEDDING', 0, '1'),
 
   -- Rerank model: TEI (bge-reranker-v2-m3)
-  (UNIX_TIMESTAMP()*1000, NOW(), UNIX_TIMESTAMP()*1000, NOW(), 'BAAI/bge-reranker-v2-m3', 'rerank', 'Huggingface', 8192, 'RERANK', 0, '1');
+  (UNIX_TIMESTAMP()*1000, NOW(), UNIX_TIMESTAMP()*1000, NOW(), 'BAAI/bge-reranker-v2-m3', 'rerank', 'HuggingFace', 8192, 'RERANK', 0, '1');

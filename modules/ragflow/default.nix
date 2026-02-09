@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 let
   domain = "rag.sjanglab.org";
   dataDir = "/var/lib/ragflow";
@@ -8,7 +8,7 @@ in
     ./mysql.nix # MySQL database (NixOS native)
     ./opensearch.nix # OpenSearch (NixOS native, ES-compatible)
     ./redis.nix # Redis/Valkey (NixOS native)
-    ../minio # MinIO dependency (NixOS native)
+    ./minio.nix # MinIO storage (NixOS native)
     ../gatus/check.nix
     ../acme/sync.nix
   ];
@@ -38,10 +38,33 @@ in
     "L+ ${dataDir}/init-llm.sql - - - - ${./init-llm.sql}"
   ];
 
-  # Environment file with secrets
-  sops.secrets.ragflow-env = {
-    sopsFile = ./secrets.yaml;
+  # Atomic secrets from sops
+  sops.secrets = {
+    mysql_password = {
+      sopsFile = ./secrets.yaml;
+      owner = "mysql";
+    };
+    redis_password = {
+      sopsFile = ./secrets.yaml;
+      owner = "redis-ragflow";
+    };
+    minio_user.sopsFile = ./secrets.yaml;
+    minio_password.sopsFile = ./secrets.yaml;
+    oidc_client_id.sopsFile = ./secrets.yaml;
+    oidc_client_secret.sopsFile = ./secrets.yaml;
+  };
+
+  # Generate ragflow-env from atomic secrets (no duplication in secrets.yaml)
+  sops.templates."ragflow-env" = {
     path = "${dataDir}/.env";
+    content = ''
+      MYSQL_PASSWORD=${config.sops.placeholder.mysql_password}
+      REDIS_PASSWORD=${config.sops.placeholder.redis_password}
+      MINIO_USER=${config.sops.placeholder.minio_user}
+      MINIO_PASSWORD=${config.sops.placeholder.minio_password}
+      OIDC_CLIENT_ID=${config.sops.placeholder.oidc_client_id}
+      OIDC_CLIENT_SECRET=${config.sops.placeholder.oidc_client_secret}
+    '';
   };
 
   # Docker network for RAGFlow (fixed subnet for host access)
@@ -126,6 +149,51 @@ in
       "ragflow-network.service"
     ];
     wants = [ "minio.service" ];
+  };
+
+  # Initialize custom LLM models after RAGFlow starts
+  # RAGFlow populates llm table on startup, so we add our models afterward
+  systemd.services.ragflow-init-llm = {
+    description = "Initialize RAGFlow custom LLM models";
+    after = [
+      "docker-ragflow.service"
+      "sops-nix.service"
+    ];
+    requires = [ "docker-ragflow.service" ];
+    wants = [ "sops-nix.service" ];
+    wantedBy = [ "multi-user.target" ];
+
+    path = [
+      config.services.mysql.package
+      pkgs.curl
+    ];
+
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      User = "mysql";
+      Group = "mysql";
+      ExecStart = pkgs.writeShellScript "ragflow-init-llm" ''
+        set -euo pipefail
+
+        # Wait for RAGFlow API to be ready
+        for i in $(seq 1 60); do
+          if curl -sf http://127.0.0.1:9380/v1/system/version >/dev/null 2>&1; then
+            break
+          fi
+          sleep 2
+        done
+        sleep 5  # Extra wait for llm table population
+
+        # Use MYSQL_PWD env var to avoid password in process list
+        MYSQL_PWD="$(cat ${config.sops.secrets.mysql_password.path})" \
+          mysql -u ragflow rag_flow < ${dataDir}/init-llm.sql
+
+        MYSQL_PWD="$(cat ${config.sops.secrets.mysql_password.path})" \
+          mysql -u ragflow rag_flow -e \
+          "UPDATE tenant_llm SET llm_factory='HuggingFace' WHERE llm_factory='Huggingface';"
+      '';
+    };
   };
 
   # ACME certificate receiver

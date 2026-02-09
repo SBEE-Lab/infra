@@ -2,25 +2,19 @@
   lib,
   rustPlatform,
   fetchFromGitHub,
-
   # nativeBuildInputs
   pkg-config,
   autoPatchelfHook,
   autoAddDriverRunpath,
-
   # buildInputs
   openssl,
   onnxruntime,
-
   cudaPackages ? { },
   cudaCapability ? null,
-
   config,
   cudaSupport ? config.cudaSupport,
 }:
-
 let
-
   # TEI requires compute capability >= 8.0 for flash attention v2
   minRequiredCudaCapability = "8.0";
   inherit (cudaPackages.flags or { cudaCapabilities = [ ]; }) cudaCapabilities;
@@ -39,7 +33,6 @@ let
       lib.toInt ((cudaPackages.flags or { }).dropDots or (_: "80") cudaCapabilityString)
     else
       0;
-
 in
 rustPlatform.buildRustPackage {
   pname = "text-embeddings-inference";
