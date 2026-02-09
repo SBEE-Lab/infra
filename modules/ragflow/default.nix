@@ -5,6 +5,7 @@ let
 in
 {
   imports = [
+    ./mysql.nix # MySQL database (NixOS native)
     ../minio # MinIO dependency (NixOS native)
     ../gatus/check.nix
   ];
@@ -45,9 +46,13 @@ in
     after = [
       "docker.service"
       "network-online.target"
+      "mysql.service"
       "minio.service"
     ];
-    requires = [ "docker.service" ];
+    requires = [
+      "docker.service"
+      "mysql.service"
+    ];
     wants = [
       "network-online.target"
       "minio.service"

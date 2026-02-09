@@ -21,27 +21,6 @@ services:
     restart: unless-stopped
     networks:
       - ragflow
-  mysql:
-    image: mysql:8.0.39
-    container_name: ragflow-mysql
-    environment:
-      TZ: Asia/Seoul
-      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
-      MYSQL_DATABASE: rag_flow
-    volumes:
-      - mysqldata:/var/lib/mysql
-    command:
-      - --character-set-server=utf8mb4
-      - --collation-server=utf8mb4_unicode_ci
-      - --max_connections=1000
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_PASSWORD}"]
-      interval: 10s
-      timeout: 5s
-      retries: 30
-    restart: unless-stopped
-    networks:
-      - ragflow
   redis:
     image: valkey/valkey:8
     container_name: ragflow-redis
@@ -64,8 +43,6 @@ services:
     depends_on:
       es01:
         condition: service_healthy
-      mysql:
-        condition: service_healthy
       redis:
         condition: service_healthy
     ports:
@@ -82,10 +59,11 @@ services:
       - DEVICE=cpu
       - ES_HOST=es01
       - ES_PORT=9200
-      - MYSQL_HOST=mysql
+      # MySQL: NixOS native service on host (br-ragflow gateway)
+      - MYSQL_HOST=172.30.0.1
       - MYSQL_PORT=3306
       - MYSQL_DBNAME=rag_flow
-      - MYSQL_USER=root
+      - MYSQL_USER=ragflow
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       # MinIO: use host network (NixOS native service)
       - MINIO_HOST=host.docker.internal
@@ -107,9 +85,14 @@ services:
       - ragflow
 volumes:
   esdata:
-  mysqldata:
   redisdata:
   ragflowdata:
 networks:
   ragflow:
     driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: br-ragflow
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
+          gateway: 172.30.0.1
