@@ -32,6 +32,7 @@ in
     "L+ ${dataDir}/nginx/ragflow.conf - - - - ${./nginx/ragflow.conf}"
     "L+ ${dataDir}/nginx/entrypoint-wrapper.sh - - - - ${./nginx/entrypoint-wrapper.sh}"
     "L+ ${dataDir}/service_conf.yaml.template - - - - ${./service_conf.yaml.template}"
+    "L+ ${dataDir}/init-llm.sql - - - - ${./init-llm.sql}"
   ];
 
   # Environment file with secrets
