@@ -38,6 +38,7 @@ in
     {
       domain = "tei.sjanglab.org";
       serviceName = "acme-sync-tei-to-psi";
+      remoteUser = "acme-sync-tei";
       remoteHost = hosts.psi.wg-admin;
     }
     {
@@ -45,6 +46,12 @@ in
       serviceName = "acme-sync-vllm-to-psi";
       remoteUser = "acme-sync-vllm";
       remoteHost = hosts.psi.wg-admin;
+    }
+    {
+      domain = "rag.sjanglab.org";
+      serviceName = "acme-sync-rag-to-rho";
+      remoteUser = "acme-sync-ragflow";
+      remoteHost = hosts.rho.wg-admin;
     }
   ];
 
@@ -66,6 +73,13 @@ in
   };
 
   security.acme.certs."tei.sjanglab.org" = {
+    dnsProvider = "cloudflare";
+    environmentFile = config.sops.secrets.cloudflare-credentials.path;
+    webroot = null;
+    group = "acme";
+  };
+
+  security.acme.certs."rag.sjanglab.org" = {
     dnsProvider = "cloudflare";
     environmentFile = config.sops.secrets.cloudflare-credentials.path;
     webroot = null;
