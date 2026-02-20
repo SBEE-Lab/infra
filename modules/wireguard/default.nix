@@ -69,7 +69,14 @@ in
         mode = "0400";
         owner = "systemd-network";
         group = "systemd-network";
+        restartUnits = [ "systemd-networkd.service" ];
       };
+    };
+
+    # sops must place WireGuard private key before networkd tries to create the netdev
+    systemd.services.systemd-networkd = {
+      after = [ "sops-install-secrets.service" ];
+      wants = [ "sops-install-secrets.service" ];
     };
 
     environment.systemPackages = with pkgs; [
