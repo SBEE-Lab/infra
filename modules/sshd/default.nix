@@ -57,6 +57,9 @@ in
       ClientAliveInterval = ssh.clientAliveInterval;
       ClientAliveCountMax = ssh.clientAliveCountMax;
 
+      # nix-fast-build opens many parallel sessions for build/download
+      MaxSessions = 64;
+
       Ciphers = [
         "chacha20-poly1305@openssh.com"
         "aes256-gcm@openssh.com"
@@ -185,6 +188,16 @@ in
     else
       {
         interfaces.wg-admin.allowedTCPPorts = [ ssh.port ];
+
+        # Emergency LAN access when bastion (eta) is down — whitelisted IPs only
+        extraCommands = ''
+          iptables -A INPUT -p tcp --dport ${toString ssh.port} \
+            -m iprange --src-range 10.80.169.38-10.80.169.40 -j ACCEPT
+        '';
+        extraStopCommands = ''
+          iptables -D INPUT -p tcp --dport ${toString ssh.port} \
+            -m iprange --src-range 10.80.169.38-10.80.169.40 -j ACCEPT 2>/dev/null || true
+        '';
       }
   );
 }
