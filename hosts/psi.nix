@@ -18,7 +18,6 @@
     ../modules/icebox/databases.nix
     ../modules/docling
     ../modules/tei
-    ../modules/clickhouse
   ];
 
   disko.rootDisk = "/dev/disk/by-id/nvme-Samsung_SSD_990_PRO_4TB_S7DPNU0Y404280K";
