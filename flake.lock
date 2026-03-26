@@ -280,11 +280,11 @@
         "treefmt-nix": "treefmt-nix_2"
       },
       "locked": {
-        "lastModified": 1774412927,
-        "narHash": "sha256-TV7R5j1H7+rOppLytbvn1pRtuI55Dx/gPtPJzAhTgAM=",
+        "lastModified": 1774500232,
+        "narHash": "sha256-SKvul73VmQX3zmDw6XXuk9l9XD/I3Z+IG1VZ5N4itKw=",
         "owner": "Mic92",
         "repo": "niks3",
-        "rev": "36675e0798fe6cdd4d92c67087150288d0e90edb",
+        "rev": "712c8dd32a1e2043c353103ed4df9d6b0f2d5560",
         "type": "github"
       },
       "original": {
