@@ -47,7 +47,7 @@ in
           "-c"
           (interpolate ''
             case "%(prop:projectname)s" in
-              mulatta/dots)
+              mulatta/dots|mulatta/seqtable)
                 echo "Pushing to niks3 cache..."
                 niks3 push --auth-token "%(secret:niks3-auth-token)s" "result-%(prop:attr)s"
                 ;;
