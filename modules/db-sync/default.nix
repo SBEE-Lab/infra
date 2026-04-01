@@ -115,6 +115,8 @@ in
     # CLI utilities
     environment.systemPackages = [
       (mkScript "db-list" "db-list.sh")
+      (mkScript "db-sync-all" "db-sync-all.sh")
+      (mkScript "db-sync-status" "db-sync-status.sh")
       (mkScript "db-freeze" "db-freeze.sh")
       (mkScript "db-thaw" "db-thaw.sh")
     ];
