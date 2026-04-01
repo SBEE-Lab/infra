@@ -37,9 +37,6 @@
     nix-index-database.inputs.nixpkgs.follows = "nixpkgs";
     nix-index-database.url = "github:nix-community/nix-index-database";
     nixos-facter-modules.url = "github:numtide/nixos-facter-modules";
-    nixos-generators.inputs.nixlib.follows = "nixpkgs";
-    nixos-generators.inputs.nixpkgs.follows = "nixpkgs";
-    nixos-generators.url = "github:nix-community/nixos-generators";
     nixos-images.inputs.nixos-unstable.follows = "nixpkgs-unstable";
     nixos-images.url = "github:nix-community/nixos-images";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";

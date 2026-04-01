@@ -328,29 +328,6 @@
         "type": "github"
       }
     },
-    "nixos-generators": {
-      "inputs": {
-        "nixlib": [
-          "nixpkgs"
-        ],
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1769813415,
-        "narHash": "sha256-nnVmNNKBi1YiBNPhKclNYDORoHkuKipoz7EtVnXO50A=",
-        "owner": "nix-community",
-        "repo": "nixos-generators",
-        "rev": "8946737ff703382fda7623b9fab071d037e897d5",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nix-community",
-        "repo": "nixos-generators",
-        "type": "github"
-      }
-    },
     "nixos-images": {
       "inputs": {
         "nixos-stable": "nixos-stable",
@@ -559,7 +536,6 @@
         "niks3": "niks3",
         "nix-index-database": "nix-index-database",
         "nixos-facter-modules": "nixos-facter-modules",
-        "nixos-generators": "nixos-generators",
         "nixos-images": "nixos-images",
         "nixpkgs": "nixpkgs_3",
         "nixpkgs-unstable": "nixpkgs-unstable",

@@ -13,8 +13,7 @@ let
     _module.args.inputs = self.inputs;
   };
 in
-self.inputs.nixos-generators.nixosGenerate {
-  inherit pkgs;
-  format = "install-iso";
-  modules = [ commonModule ];
-}
+(pkgs.nixos [
+  "${pkgs.path}/nixos/modules/installer/cd-dvd/installation-cd-minimal.nix"
+  commonModule
+]).config.system.build.isoImage
