@@ -17,7 +17,7 @@
         { system, ... }:
         {
           _module.args.pkgs = import inputs.nixpkgs {
-            inherit system;
+            localSystem.system = system;
             config.allowUnfree = true;
             overlays = import ./overlays { inherit inputs; };
           };
