@@ -29,19 +29,21 @@ blastp -query query.fasta \
   -out results.txt -evalue 1e-5
 ```
 
-## Icebox (데이터베이스 관리 도구)
-
-`icebox` CLI로 데이터베이스를 관리합니다:
+## 데이터베이스 관리
 
 ```bash
-# 동기화된 데이터베이스 목록
-icebox list
+# 동기화된 데이터베이스 목록 및 크기
+db-list
 
 # 특정 시점의 스냅샷 생성 (CoW, XFS reflink)
-icebox freeze <database>
+db-freeze blast-nr 2026Q1
 
-# 스냅샷 목록
-icebox list --frozen
+# 스냅샷 삭제
+db-thaw blast-nr 2026Q1
+
+# 수동 동기화 (자동 스케줄 외 즉시 실행)
+sudo systemctl start icebox-sync-blast-nr.service
+journalctl -u icebox-sync-blast-nr.service -f
 ```
 
-스냅샷은 XFS reflink를 사용하여 추가 디스크 공간을 거의 차지하지 않으면서 특정 시점의 데이터베이스를 보존합니다.
+스냅샷은 XFS reflink를 사용하여 추가 디스크 공간을 거의 차지하지 않으면서 특정 시점의 데이터베이스를 보존합니다. 동기화 실패 시 ntfy로 알림이 전송됩니다.
