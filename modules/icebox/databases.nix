@@ -8,7 +8,7 @@
       enable = lib.mkDefault false;
       syncMethod = "script";
       syncScript = ''
-        ${pkgs.blast}/bin/update_blastdb.pl --decompress --passive nr
+        ${pkgs.blast}/bin/update_blastdb.pl --decompress nr
       '';
       schedule = lib.mkDefault "weekly";
     };
@@ -17,7 +17,7 @@
       enable = lib.mkDefault false;
       syncMethod = "script";
       syncScript = ''
-        ${pkgs.blast}/bin/update_blastdb.pl --decompress --passive nt
+        ${pkgs.blast}/bin/update_blastdb.pl --decompress nt
       '';
       schedule = lib.mkDefault "weekly";
     };
@@ -26,7 +26,7 @@
       enable = lib.mkDefault false;
       syncMethod = "script";
       syncScript = ''
-        ${pkgs.blast}/bin/update_blastdb.pl --decompress --passive refseq_protein
+        ${pkgs.blast}/bin/update_blastdb.pl --decompress refseq_protein
       '';
       schedule = lib.mkDefault "weekly";
     };
@@ -35,7 +35,7 @@
       enable = lib.mkDefault false;
       syncMethod = "script";
       syncScript = ''
-        ${pkgs.blast}/bin/update_blastdb.pl --decompress --passive swissprot
+        ${pkgs.blast}/bin/update_blastdb.pl --decompress swissprot
       '';
       schedule = lib.mkDefault "weekly";
     };
@@ -44,7 +44,7 @@
     # https://ftp.uniprot.org/pub/databases/uniprot/uniref/
     uniref90 = {
       enable = lib.mkDefault false;
-      syncUrl = "rsync://ftp.uniprot.org/pub/databases/uniprot/uniref/uniref90/";
+      syncUrl = "rsync://ftp.ebi.ac.uk/pub/databases/uniprot/uniref/uniref90/";
       syncMethod = "rsync";
       syncArgs = [
         "--delete"
@@ -57,7 +57,7 @@
 
     uniref100 = {
       enable = lib.mkDefault false;
-      syncUrl = "rsync://ftp.uniprot.org/pub/databases/uniprot/uniref/uniref100/";
+      syncUrl = "rsync://ftp.ebi.ac.uk/pub/databases/uniprot/uniref/uniref100/";
       syncMethod = "rsync";
       syncArgs = [
         "--delete"
