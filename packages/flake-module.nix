@@ -8,7 +8,6 @@
     }:
     {
       packages = {
-        icebox = pkgs.python3.pkgs.callPackage ./icebox { };
         text-embeddings-inference = pkgs.callPackage ./text-embeddings-inference { cudaSupport = false; };
         zensical = pkgs.python3.pkgs.callPackage ./zensical { };
       }
