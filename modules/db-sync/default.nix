@@ -1,4 +1,7 @@
 # db-sync - Database sync and snapshot management
+#
+# All databases are synced via rclone. Remotes are configured in rcloneConf
+# below. Each database entry specifies a syncUrl using these remote names.
 {
   config,
   lib,
@@ -14,30 +17,13 @@ let
 
       syncUrl = lib.mkOption {
         type = lib.types.str;
-        description = "URL to sync from (rsync://, gs://, https://, etc.)";
-      };
-
-      syncMethod = lib.mkOption {
-        type = lib.types.enum [
-          "rsync"
-          "rclone"
-          "wget"
-          "script"
-        ];
-        default = "rsync";
-        description = "Sync method to use";
+        description = "rclone remote path (e.g. ncbi:blast/db/, ebi:pub/databases/...)";
       };
 
       syncArgs = lib.mkOption {
         type = lib.types.listOf lib.types.str;
         default = [ ];
-        description = "Additional arguments for sync command";
-      };
-
-      syncScript = lib.mkOption {
-        type = lib.types.nullOr lib.types.lines;
-        default = null;
-        description = "Custom sync script (when syncMethod = script)";
+        description = "Additional rclone arguments (--include, --exclude, --transfers, etc.)";
       };
 
       schedule = lib.mkOption {
@@ -49,49 +35,35 @@ let
       postSync = lib.mkOption {
         type = lib.types.lines;
         default = "";
-        description = "Commands to run after successful sync";
+        description = "Commands to run after successful sync (e.g. tar extraction)";
       };
     };
   };
 
-  # Generate sync command for a database
-  mkSyncCommand =
-    name: db:
-    let
-      destDir = "${cfg.root}/${name}";
-    in
-    if db.syncMethod == "script" then
-      db.syncScript
-    else if db.syncMethod == "rsync" then
-      ''
-        ${pkgs.rsync}/bin/rsync -avz --progress ${lib.concatStringsSep " " db.syncArgs} \
-          "${db.syncUrl}" "${destDir}/"
-      ''
-    else if db.syncMethod == "rclone" then
-      ''
-        ${pkgs.rclone}/bin/rclone sync ${lib.concatStringsSep " " db.syncArgs} \
-          "${db.syncUrl}" "${destDir}" --progress
-      ''
-    else if db.syncMethod == "wget" then
-      ''
-        ${pkgs.wget}/bin/wget -N -P "${destDir}" ${lib.concatStringsSep " " db.syncArgs} \
-          "${db.syncUrl}"
-      ''
-    else
-      throw "Unknown sync method: ${db.syncMethod}";
-
-  # Filter enabled databases
   enabledDatabases = lib.filterAttrs (_: db: db.enable) cfg.databases;
 
-  ntfyUrl = "https://ntfy.sjanglab.org/gatus";
+  # rclone remote configuration
+  rcloneConf = pkgs.writeText "db-sync-rclone.conf" ''
+    [ncbi]
+    type = ftp
+    host = ftp.ncbi.nlm.nih.gov
+    user = anonymous
+    pass = ${cfg.rcloneFtpPass}
+
+    [ebi]
+    type = http
+    url = https://ftp.ebi.ac.uk
+
+    [pdbj]
+    type = http
+    url = https://ftp.pdbj.org
+  '';
 
   # Helper to install a script with @var@ substitutions
   mkScript =
     name: file:
     pkgs.writeShellScriptBin name (
-      builtins.replaceStrings [ "@dbRoot@" "@ntfyUrl@" ] [ (toString cfg.root) ntfyUrl ] (
-        builtins.readFile ./scripts/${file}
-      )
+      builtins.replaceStrings [ "@dbRoot@" ] [ (toString cfg.root) ] (builtins.readFile ./scripts/${file})
     );
 in
 {
@@ -109,6 +81,12 @@ in
       default = { };
       description = "Database configurations";
     };
+
+    rcloneFtpPass = lib.mkOption {
+      type = lib.types.str;
+      default = "30GVq-Od-Wrx9TjapNbWlw";
+      description = "rclone-obscured password for anonymous FTP (obscured empty string)";
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -116,6 +94,7 @@ in
     environment.systemPackages = [
       (mkScript "db-list" "db-list.sh")
       (mkScript "db-sync-all" "db-sync-all.sh")
+      (mkScript "db-sync-stop" "db-sync-stop.sh")
       (mkScript "db-sync-status" "db-sync-status.sh")
       (mkScript "db-freeze" "db-freeze.sh")
       (mkScript "db-thaw" "db-thaw.sh")
@@ -127,35 +106,13 @@ in
     ]
     ++ (lib.mapAttrsToList (name: _: "d ${cfg.root}/${name} 0755 root users -") enabledDatabases);
 
-    # Generate sync services + failure notification template unit
-    systemd.services = {
-      # Template unit for failure notification (%i = failed unit name)
-      "db-sync-notify-failure@" = {
-        description = "Notify db-sync failure for %i";
-        serviceConfig = {
-          Type = "oneshot";
-          ExecStart = "${pkgs.writeShellScript "db-sync-notify-failure" ''
-            unit="$1"
-            ${pkgs.curl}/bin/curl -sf --max-time 10 \
-              -H "Title: DB sync failed: $unit" \
-              -H "Priority: high" \
-              -H "Tags: warning,db-sync" \
-              -d "$(${pkgs.systemd}/bin/journalctl -u "$unit" --since '1 hour ago' --no-pager -n 30)" \
-              "${ntfyUrl}"
-          ''} %i";
-        };
-      };
-    }
-    // lib.mapAttrs' (
+    # Generate sync services
+    systemd.services = lib.mapAttrs' (
       name: db:
       lib.nameValuePair "db-sync-${name}" {
         description = "Sync ${name} database";
         after = [ "network-online.target" ];
         wants = [ "network-online.target" ];
-
-        unitConfig = {
-          OnFailure = "db-sync-notify-failure@db-sync-${name}.service";
-        };
 
         serviceConfig = {
           Type = "oneshot";
@@ -164,17 +121,25 @@ in
           TimeoutStartSec = "24h";
         };
 
-        path = [ pkgs.coreutils ];
+        path = [
+          pkgs.coreutils
+          pkgs.gnutar
+          pkgs.gzip
+        ];
 
         script = ''
           set -euo pipefail
           echo "Starting sync for ${name}..."
-          cd "${cfg.root}/${name}"
 
-          ${mkSyncCommand name db}
+          ${pkgs.rclone}/bin/rclone sync \
+            --config ${rcloneConf} \
+            ${lib.concatMapStringsSep " " lib.escapeShellArg db.syncArgs} \
+            "${db.syncUrl}" "${cfg.root}/${name}/" \
+            --verbose --stats-one-line
 
           ${lib.optionalString (db.postSync != "") ''
             echo "Running post-sync commands..."
+            cd "${cfg.root}/${name}"
             ${db.postSync}
           ''}
 
