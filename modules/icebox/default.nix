@@ -82,16 +82,12 @@ let
 
   # Filter enabled databases
   enabledDatabases = lib.filterAttrs (_: db: db.enable) cfg.databases;
+
+  ntfyUrl = "https://ntfy.sjanglab.org/gatus";
 in
 {
   options.services.icebox = {
     enable = lib.mkEnableOption "icebox database manager";
-
-    package = lib.mkOption {
-      type = lib.types.package;
-      default = pkgs.python3.pkgs.callPackage ../../packages/icebox { };
-      description = "icebox package to use";
-    };
 
     root = lib.mkOption {
       type = lib.types.path;
@@ -107,8 +103,38 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    # Install icebox CLI
-    environment.systemPackages = [ cfg.package ];
+    # CLI utilities (replaces Python icebox package)
+    environment.systemPackages = [
+      (pkgs.writeShellScriptBin "db-list" ''
+        ${pkgs.coreutils}/bin/du -sh "${cfg.root}"/*/ 2>/dev/null | ${pkgs.coreutils}/bin/sort -k2
+      '')
+      (pkgs.writeShellScriptBin "db-freeze" ''
+        set -euo pipefail
+        if [[ $# -ne 2 ]]; then
+          echo "Usage: db-freeze <database> <tag>" >&2; exit 1
+        fi
+        db="$1"; tag="$2"
+        src="${cfg.root}/$db"; dst="${cfg.root}/$db.frozen.$tag"
+        [[ -d "$src" ]] || { echo "Not found: $db" >&2; exit 1; }
+        [[ ! -e "$dst" ]] || { echo "Already exists: $dst" >&2; exit 1; }
+        if ${pkgs.systemd}/bin/systemctl is-active --quiet "icebox-sync-$db.service" 2>/dev/null; then
+          echo "Sync in progress for $db, abort" >&2; exit 1
+        fi
+        cp --reflink=auto -a "$src" "$dst"
+        echo "Frozen: $dst"
+      '')
+      (pkgs.writeShellScriptBin "db-thaw" ''
+        set -euo pipefail
+        if [[ $# -ne 2 ]]; then
+          echo "Usage: db-thaw <database> <tag>" >&2; exit 1
+        fi
+        db="$1"; tag="$2"
+        target="${cfg.root}/$db.frozen.$tag"
+        [[ -d "$target" ]] || { echo "Not found: $target" >&2; exit 1; }
+        rm -rf "$target"
+        echo "Thawed: $db.frozen.$tag"
+      '')
+    ];
 
     # Create database directories
     systemd.tmpfiles.rules = [
@@ -116,13 +142,35 @@ in
     ]
     ++ (lib.mapAttrsToList (name: _: "d ${cfg.root}/${name} 0755 root users -") enabledDatabases);
 
-    # Generate sync services
-    systemd.services = lib.mapAttrs' (
+    # Generate sync services + failure notification template unit
+    systemd.services = {
+      # Template unit for failure notification (%i = failed unit name)
+      "icebox-notify-failure@" = {
+        description = "Notify icebox sync failure for %i";
+        serviceConfig = {
+          Type = "oneshot";
+          ExecStart = "${pkgs.writeShellScript "icebox-notify-failure" ''
+            unit="$1"
+            ${pkgs.curl}/bin/curl -sf --max-time 10 \
+              -H "Title: DB sync failed: $unit" \
+              -H "Priority: high" \
+              -H "Tags: warning,icebox" \
+              -d "$(${pkgs.systemd}/bin/journalctl -u "$unit" --since '1 hour ago' --no-pager -n 30)" \
+              "${ntfyUrl}"
+          ''} %i";
+        };
+      };
+    }
+    // lib.mapAttrs' (
       name: db:
       lib.nameValuePair "icebox-sync-${name}" {
         description = "Sync ${name} database";
         after = [ "network-online.target" ];
         wants = [ "network-online.target" ];
+
+        unitConfig = {
+          OnFailure = "icebox-notify-failure@icebox-sync-${name}.service";
+        };
 
         serviceConfig = {
           Type = "oneshot";
