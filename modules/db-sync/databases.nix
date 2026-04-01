@@ -15,11 +15,12 @@ let
     "--checkers=1"
   ];
 
+  blastSyncSubdir = ".staging";
   blastPostSync = ''
-    for f in *.tar.gz; do
+    for f in .staging/*.tar.gz; do
       [ -f "$f" ] || continue
       echo "Extracting $f ..."
-      tar xzf "$f" && rm "$f" "$f.md5"
+      tar xzf "$f"
     done
   '';
 in
@@ -30,6 +31,7 @@ in
     blast-nr = {
       enable = lib.mkDefault false;
       syncUrl = "ncbi:blast/db/";
+      syncSubdir = blastSyncSubdir;
       syncArgs = ncbiFtpArgs ++ [
         "--filter"
         "+ nr.*.tar.gz"
@@ -45,6 +47,7 @@ in
     blast-nt = {
       enable = lib.mkDefault false;
       syncUrl = "ncbi:blast/db/";
+      syncSubdir = blastSyncSubdir;
       syncArgs = ncbiFtpArgs ++ [
         "--filter"
         "+ nt.*.tar.gz"
@@ -60,6 +63,7 @@ in
     blast-refseq-protein = {
       enable = lib.mkDefault false;
       syncUrl = "ncbi:blast/db/";
+      syncSubdir = blastSyncSubdir;
       syncArgs = ncbiFtpArgs ++ [
         "--filter"
         "+ refseq_protein.*.tar.gz"
@@ -75,6 +79,7 @@ in
     blast-swissprot = {
       enable = lib.mkDefault false;
       syncUrl = "ncbi:blast/db/";
+      syncSubdir = blastSyncSubdir;
       syncArgs = ncbiFtpArgs ++ [
         "--filter"
         "+ swissprot.tar.gz"
