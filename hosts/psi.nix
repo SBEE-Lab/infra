@@ -15,7 +15,7 @@
     ../modules/monitoring/vector
     ../modules/harmonia
     # ../modules/vllm
-    ../modules/icebox/databases.nix
+    ../modules/db-sync/databases.nix
     ../modules/docling
     # ../modules/tei
   ];
@@ -60,8 +60,8 @@
 
   networking.hostName = "psi";
 
-  # Database management with icebox
-  services.icebox = {
+  # Database sync management
+  services.db-sync = {
     enable = true;
     root = "/workspace/shared/databases";
 

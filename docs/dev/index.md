@@ -29,7 +29,7 @@ graph TD
 |------|------|------|
 | `/project/<username>/` | 개인 프로젝트 (장기 작업 데이터) | O |
 | `/workspace/<username>/` | 임시 작업 공간 (고속 SSD) | X |
-| `/workspace/shared/databases/` | 생물정보 DB (icebox) | X |
+| `/workspace/shared/databases/` | 생물정보 DB (db-sync) | X |
 | `/blobs/` | 대용량/라이선스 파일 | O |
 | `/data/` | 장기 데이터 저장 (60TB HDD) | 별도 |
 

@@ -1,4 +1,4 @@
-# icebox - Database sync and snapshot management
+# db-sync - Database sync and snapshot management
 {
   config,
   lib,
@@ -6,7 +6,7 @@
   ...
 }:
 let
-  cfg = config.services.icebox;
+  cfg = config.services.db-sync;
 
   databaseModule = lib.types.submodule {
     options = {
@@ -84,10 +84,19 @@ let
   enabledDatabases = lib.filterAttrs (_: db: db.enable) cfg.databases;
 
   ntfyUrl = "https://ntfy.sjanglab.org/gatus";
+
+  # Helper to install a script with @var@ substitutions
+  mkScript =
+    name: file:
+    pkgs.writeShellScriptBin name (
+      builtins.replaceStrings [ "@dbRoot@" "@ntfyUrl@" ] [ (toString cfg.root) ntfyUrl ] (
+        builtins.readFile ./scripts/${file}
+      )
+    );
 in
 {
-  options.services.icebox = {
-    enable = lib.mkEnableOption "icebox database manager";
+  options.services.db-sync = {
+    enable = lib.mkEnableOption "database sync manager";
 
     root = lib.mkOption {
       type = lib.types.path;
@@ -103,37 +112,11 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    # CLI utilities (replaces Python icebox package)
+    # CLI utilities
     environment.systemPackages = [
-      (pkgs.writeShellScriptBin "db-list" ''
-        ${pkgs.coreutils}/bin/du -sh "${cfg.root}"/*/ 2>/dev/null | ${pkgs.coreutils}/bin/sort -k2
-      '')
-      (pkgs.writeShellScriptBin "db-freeze" ''
-        set -euo pipefail
-        if [[ $# -ne 2 ]]; then
-          echo "Usage: db-freeze <database> <tag>" >&2; exit 1
-        fi
-        db="$1"; tag="$2"
-        src="${cfg.root}/$db"; dst="${cfg.root}/$db.frozen.$tag"
-        [[ -d "$src" ]] || { echo "Not found: $db" >&2; exit 1; }
-        [[ ! -e "$dst" ]] || { echo "Already exists: $dst" >&2; exit 1; }
-        if ${pkgs.systemd}/bin/systemctl is-active --quiet "icebox-sync-$db.service" 2>/dev/null; then
-          echo "Sync in progress for $db, abort" >&2; exit 1
-        fi
-        cp --reflink=auto -a "$src" "$dst"
-        echo "Frozen: $dst"
-      '')
-      (pkgs.writeShellScriptBin "db-thaw" ''
-        set -euo pipefail
-        if [[ $# -ne 2 ]]; then
-          echo "Usage: db-thaw <database> <tag>" >&2; exit 1
-        fi
-        db="$1"; tag="$2"
-        target="${cfg.root}/$db.frozen.$tag"
-        [[ -d "$target" ]] || { echo "Not found: $target" >&2; exit 1; }
-        rm -rf "$target"
-        echo "Thawed: $db.frozen.$tag"
-      '')
+      (mkScript "db-list" "db-list.sh")
+      (mkScript "db-freeze" "db-freeze.sh")
+      (mkScript "db-thaw" "db-thaw.sh")
     ];
 
     # Create database directories
@@ -145,16 +128,16 @@ in
     # Generate sync services + failure notification template unit
     systemd.services = {
       # Template unit for failure notification (%i = failed unit name)
-      "icebox-notify-failure@" = {
-        description = "Notify icebox sync failure for %i";
+      "db-sync-notify-failure@" = {
+        description = "Notify db-sync failure for %i";
         serviceConfig = {
           Type = "oneshot";
-          ExecStart = "${pkgs.writeShellScript "icebox-notify-failure" ''
+          ExecStart = "${pkgs.writeShellScript "db-sync-notify-failure" ''
             unit="$1"
             ${pkgs.curl}/bin/curl -sf --max-time 10 \
               -H "Title: DB sync failed: $unit" \
               -H "Priority: high" \
-              -H "Tags: warning,icebox" \
+              -H "Tags: warning,db-sync" \
               -d "$(${pkgs.systemd}/bin/journalctl -u "$unit" --since '1 hour ago' --no-pager -n 30)" \
               "${ntfyUrl}"
           ''} %i";
@@ -163,13 +146,13 @@ in
     }
     // lib.mapAttrs' (
       name: db:
-      lib.nameValuePair "icebox-sync-${name}" {
+      lib.nameValuePair "db-sync-${name}" {
         description = "Sync ${name} database";
         after = [ "network-online.target" ];
         wants = [ "network-online.target" ];
 
         unitConfig = {
-          OnFailure = "icebox-notify-failure@icebox-sync-${name}.service";
+          OnFailure = "db-sync-notify-failure@db-sync-${name}.service";
         };
 
         serviceConfig = {
@@ -201,7 +184,7 @@ in
     # Generate timers
     systemd.timers = lib.mapAttrs' (
       name: db:
-      lib.nameValuePair "icebox-sync-${name}" {
+      lib.nameValuePair "db-sync-${name}" {
         description = "Timer for ${name} database sync";
         wantedBy = [ "timers.target" ];
 

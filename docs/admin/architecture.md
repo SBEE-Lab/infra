@@ -26,7 +26,7 @@ graph LR
 | 호스트 | 위치 | 주요 서비스 |
 |--------|------|------------|
 | **eta** | Vultr VPS | nginx 리버스 프록시, Authentik SSO, Headscale VPN, Vaultwarden, Gatus, ntfy, Harmonia, ACME 인증서 |
-| **psi** | KREN 베어메탈 | Buildbot Master+Workers, Ollama, Docling (GPU), Apptainer, icebox, 16TB NVMe + 60TB HDD |
+| **psi** | KREN 베어메탈 | Buildbot Master+Workers, Ollama, Docling (GPU), Apptainer, db-sync, 16TB NVMe + 60TB HDD |
 | **rho** | 랩 내부 베어메탈 | PostgreSQL (프라이머리), Grafana, Prometheus, Loki, Vector, Borg 미러 |
 | **tau** | 랩 내부 베어메탈 | Nextcloud, Collabora, n8n, PostgreSQL (레플리카), Borg 백업 저장소 |
 
