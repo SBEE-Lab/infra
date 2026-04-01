@@ -1,6 +1,6 @@
 # 생물정보 데이터베이스
 
-psi 서버의 `/workspace/shared/databases/`에 주요 생물정보학 데이터베이스가 자동 동기화됩니다.
+psi 서버의 `/data/databases/`에 주요 생물정보학 데이터베이스가 자동 동기화됩니다.
 모든 동기화는 rclone을 통해 수행됩니다.
 
 ## 사용 가능 데이터베이스
@@ -22,11 +22,11 @@ psi 서버의 `/workspace/shared/databases/`에 주요 생물정보학 데이터
 
 ```bash
 # 데이터베이스 경로
-ls /workspace/shared/databases/
+ls /data/databases/
 
 # BLAST 검색 예시
 blastp -query query.fasta \
-  -db /workspace/shared/databases/blast-nr/nr \
+  -db /data/databases/blast-nr/nr \
   -out results.txt -evalue 1e-5
 ```
 
