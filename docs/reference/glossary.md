@@ -20,7 +20,7 @@
 | **Harmonia** | Nix 바이너리 캐시 (내부 호스트 간 공유용) |
 | **Headscale** | 자체 호스팅 Tailscale 호환 VPN 제어 서버 |
 | **Home Manager** | Nix 기반 사용자 환경 관리 도구. 셸 설정, 도구 등을 선언적으로 관리 |
-| **icebox** | 생물정보 DB 동기화 및 스냅샷 관리 NixOS 모듈. `db-list`, `db-freeze`, `db-thaw` CLI 제공 |
+| **db-sync** | 생물정보 DB 동기화 및 스냅샷 관리 NixOS 모듈. `db-list`, `db-freeze`, `db-thaw` CLI 제공 |
 | **invoke** | Python 태스크 러너 (`tasks.py`) |
 | **Magic DNS** | Tailscale/Headscale의 자동 DNS 해석 기능 |
 | **MCP** | Model Context Protocol. AI 도구가 외부 서비스와 통신하는 프로토콜 |

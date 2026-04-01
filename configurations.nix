@@ -88,7 +88,7 @@ let
     ./modules/workspace-space.nix
     ./modules/blobs-space.nix
     ./modules/nix-ld.nix
-    ./modules/icebox
+    ./modules/db-sync
   ];
 in
 {

@@ -1,7 +1,7 @@
 # Pre-configured bioinformatics databases
 { pkgs, lib, ... }:
 {
-  services.icebox.databases = {
+  services.db-sync.databases = {
     # NCBI BLAST databases
     # https://ftp.ncbi.nlm.nih.gov/blast/db/
     blast-nr = {
