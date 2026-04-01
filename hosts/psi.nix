@@ -63,7 +63,7 @@
   # Database sync management
   services.db-sync = {
     enable = true;
-    root = "/workspace/shared/databases";
+    root = "/data/databases";
 
     # Enable databases needed for research
     databases = {
