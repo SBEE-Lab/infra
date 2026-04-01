@@ -45,6 +45,7 @@
 
       apps.docs-serve = {
         type = "app";
+        meta.description = "Serve documentation site locally";
         program = toString (
           pkgs.writeShellScript "docs-serve" ''
             ${pkgs.python3}/bin/python3 -m http.server -d ${config.packages.docs} "''${1:-8000}"
