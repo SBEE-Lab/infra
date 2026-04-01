@@ -32,6 +32,12 @@ let
         description = "Systemd calendar schedule (weekly, monthly, *-*-01, etc.)";
       };
 
+      syncSubdir = lib.mkOption {
+        type = lib.types.str;
+        default = "";
+        description = "Subdirectory within the database dir to sync into (e.g. .staging for tar archives)";
+      };
+
       postSync = lib.mkOption {
         type = lib.types.lines;
         default = "";
@@ -104,7 +110,12 @@ in
     systemd.tmpfiles.rules = [
       "d ${cfg.root} 0755 root users -"
     ]
-    ++ (lib.mapAttrsToList (name: _: "d ${cfg.root}/${name} 0755 root users -") enabledDatabases);
+    ++ (lib.mapAttrsToList (
+      name: db:
+      "d ${cfg.root}/${name}${
+        lib.optionalString (db.syncSubdir != "") "/${db.syncSubdir}"
+      } 0755 root users -"
+    ) enabledDatabases);
 
     # Generate sync services
     systemd.services = lib.mapAttrs' (
@@ -131,10 +142,12 @@ in
           set -euo pipefail
           echo "Starting sync for ${name}..."
 
+          syncDest="${cfg.root}/${name}/${db.syncSubdir}"
+          mkdir -p "$syncDest"
           ${pkgs.rclone}/bin/rclone sync \
             --config ${rcloneConf} \
             ${lib.concatMapStringsSep " " lib.escapeShellArg db.syncArgs} \
-            "${db.syncUrl}" "${cfg.root}/${name}/" \
+            "${db.syncUrl}" "$syncDest" \
             --verbose --stats-one-line
 
           ${lib.optionalString (db.postSync != "") ''
