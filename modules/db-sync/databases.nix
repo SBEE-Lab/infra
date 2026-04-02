@@ -13,15 +13,41 @@ let
   ncbiFtpArgs = [
     "--transfers=1"
     "--checkers=1"
+    "--multi-thread-streams=0"
+    "--retries=10"
+    "--retries-sleep=30s"
+    "--low-level-retries=20"
+    "--timeout=5m"
+    "--contimeout=60s"
+    "--ftp-idle-timeout=60s"
   ];
 
   blastSyncSubdir = ".staging";
   blastPostSync = ''
+    # Verify MD5 checksums before extraction; delete corrupt files so
+    # rclone re-downloads them on the next sync run.
+    failed=0
     for f in .staging/*.tar.gz; do
       [ -f "$f" ] || continue
+      md5="$f.md5"
+      if [ -f "$md5" ]; then
+        if ! (cd .staging && md5sum -c "$(basename "$md5")"); then
+          echo "MD5 FAILED: $f — removing both files for re-download"
+          rm -f "$f" "$md5"
+          failed=1
+          continue
+        fi
+      else
+        echo "WARNING: no checksum file for $f — skipping verification"
+      fi
       echo "Extracting $f ..."
       tar xzf "$f"
     done
+    if [ "$failed" -ne 0 ]; then
+      echo "Some files failed MD5 verification and were removed."
+      echo "They will be re-downloaded on the next sync."
+      exit 1
+    fi
   '';
 in
 {
