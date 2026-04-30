@@ -41,5 +41,7 @@ in
     rclone
     sd
     nix-output-monitor
+    tmux
+    upterm
   ];
 }
