@@ -165,7 +165,7 @@ sops updatekeys hosts/psi.yaml
 
 ## TLS 인증서
 
-대부분의 도메인은 eta에서 Let's Encrypt ACME + Cloudflare DNS 챌린지로 인증서를 발급합니다. Buildbot은 모든 인프라가 psi에 있으므로 psi에서 직접 인증서를 발급합니다. 다른 호스트에서 사용하는 인증서는 `acme-sync` 서비스가 rsync로 동기화하고, 대상 호스트의 systemd path unit이 파일 변경을 감지하여 nginx를 자동 리로드합니다.
+대부분의 도메인은 eta에서 Let's Encrypt ACME + Cloudflare DNS 챌린지로 인증서를 발급합니다. Buildbot 공개 ingress는 eta에서 인증서를 발급하고, psi의 Buildbot 스택도 내부 nginx용 인증서를 유지합니다. 다른 호스트에서 사용하는 인증서는 `acme-sync` 서비스가 rsync로 동기화하고, 대상 호스트의 systemd path unit이 파일 변경을 감지하여 nginx를 자동 리로드합니다.
 
 | 도메인 | 발급 호스트 | 사용 호스트 |
 |--------|-----------|-----------|
@@ -176,10 +176,10 @@ sops updatekeys hosts/psi.yaml
 | `n8n.sjanglab.org` | eta | tau (동기화) |
 | `ollama.sjanglab.org` | eta | psi (동기화) |
 | `docling.sjanglab.org` | eta | psi (동기화) |
-| `buildbot.sjanglab.org` | psi | psi |
+| `buildbot.sjanglab.org` | eta, psi | eta (public edge), psi (service stack) |
 | `upterm.sjanglab.org` | eta | eta |
 
-인증서 동기화: eta에서 발급 → `acme-sync` 서비스가 rsync로 대상 호스트에 전송 → systemd path unit이 변경 감지 → nginx 자동 리로드. Buildbot 인증서는 psi에서 직접 발급·사용합니다.
+인증서 동기화: eta에서 발급 → `acme-sync` 서비스가 rsync로 대상 호스트에 전송 → systemd path unit이 변경 감지 → nginx 자동 리로드. Buildbot은 eta 공개 edge와 psi 서비스 스택 양쪽에서 인증서를 발급합니다.
 
 ## 데이터 보안
 

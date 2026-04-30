@@ -47,11 +47,11 @@ resource "cloudflare_dns_record" "eta" {
 resource "cloudflare_dns_record" "buildbot" {
   zone_id = data.sops_file.secrets.data["CLOUDFLARE_ZONE_ID"]
   name    = "buildbot.sjanglab.org"
-  content = "117.16.251.37"
+  content = "141.164.53.203"
   type    = "A"
   ttl     = 300
   proxied = false
-  comment = "Buildbot CI/CD (psi)"
+  comment = "Buildbot CI/CD edge proxy (eta -> psi)"
 }
 
 resource "cloudflare_dns_record" "s3" {

@@ -8,7 +8,8 @@
 
 ```mermaid
 flowchart LR
-  gh["GitHub 웹훅"] --> proxy["nginx + TLS<br/>psi :443"]
+  gh["GitHub 웹훅"] --> edge["public nginx + TLS<br/>eta :443"]
+  edge --> proxy["Buildbot nginx upstream<br/>psi wg-admin :443"]
   proxy --> master["Buildbot Master<br/>psi localhost:8010"]
   master --> w["Workers ×8<br/>psi (8GB/워커)"]
   master --> db["PostgreSQL<br/>psi"]
@@ -17,7 +18,7 @@ flowchart LR
 ```
 
 - **Master**: psi (localhost 포트 8010)
-- **Reverse proxy/TLS**: psi (포트 443)
+- **Public reverse proxy/TLS**: eta (포트 443), wg-admin으로 psi nginx에 프록시
 - **Workers**: psi (8개 평가 워커, 8GB 메모리/워커)
 - **DB**: PostgreSQL (psi)
 

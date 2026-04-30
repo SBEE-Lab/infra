@@ -10,6 +10,7 @@ in
     ../modules/headscale
     ../modules/authentik
     ../modules/vaultwarden
+    ../modules/buildbot/edge-proxy.nix
     ../modules/uptermd
     ../modules/gatus
     ../modules/monitoring/vector

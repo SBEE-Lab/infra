@@ -21,7 +21,7 @@
 
 #### Buildbot
 
-- Cloudflare DNS for `buildbot.sjanglab.org` points directly to psi (`117.16.251.37`).
+- Cloudflare DNS for `buildbot.sjanglab.org` points to eta (`141.164.53.203`), which proxies public traffic to the Buildbot stack on psi over wg-admin.
 
 ### Cloudflare
 
