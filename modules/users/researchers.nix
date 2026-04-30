@@ -28,8 +28,7 @@ let
   # testUserKeys = [
   # "ssh-ed25519 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA+bbbbbbbbbbbbbbbbbbbbbbbbbbbb"
   # ];
-in
-{
+in {
   users.users = {
     dasol = {
       isNormalUser = true;
@@ -37,9 +36,9 @@ in
       inherit extraGroups;
       shell = "/run/current-system/sw/bin/bash";
       uid = 3000;
-      allowedHosts = [ "psi" ];
+      allowedHosts = ["psi"];
       openssh.authorizedKeys.keys = dasolKey;
-      expires = "2026-08-31";
+      expires = "2030-03-31";
     };
     hyeonah = {
       isNormalUser = true;
@@ -47,9 +46,9 @@ in
       inherit extraGroups;
       shell = "/run/current-system/sw/bin/bash";
       uid = 3001;
-      allowedHosts = [ "psi" ];
+      allowedHosts = ["psi"];
       openssh.authorizedKeys.keys = hyeonahKey;
-      expires = "2026-08-31";
+      expires = "2028-03-31";
     };
     saebom = {
       isNormalUser = true;
@@ -57,9 +56,9 @@ in
       inherit extraGroups;
       shell = "/run/current-system/sw/bin/bash";
       uid = 3002;
-      allowedHosts = [ "psi" ];
+      allowedHosts = ["psi"];
       openssh.authorizedKeys.keys = saebomKey;
-      expires = "2026-08-31";
+      expires = "2030-08-31";
     };
     yoojin = {
       isNormalUser = true;
@@ -67,9 +66,9 @@ in
       inherit extraGroups;
       shell = "/run/current-system/sw/bin/bash";
       uid = 3003;
-      allowedHosts = [ "psi" ];
+      allowedHosts = ["psi"];
       openssh.authorizedKeys.keys = yoojinKey;
-      expires = "2026-08-31";
+      expires = "2030-08-31";
     };
 
     # ADD YOUR USER ACCOUNT
@@ -89,5 +88,5 @@ in
   # DANGER ZONE!
   # Make sure all data is backed up before adding user names here. This will
   # delete all data of the associated user
-  users.deletedUsers = [ ];
+  users.deletedUsers = [];
 }
