@@ -23,7 +23,7 @@ in
     package = pkgs.postgresql_17;
 
     settings = {
-      # Base: listen on wg-admin only (terraform, replication, buildbot)
+      # Base: listen on wg-admin only (terraform, replication, app databases)
       listen_addresses = lib.mkForce currentHost.wg-admin;
       port = 5432;
 

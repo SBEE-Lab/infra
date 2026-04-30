@@ -6,7 +6,6 @@
     ../modules/wake-on-lan.nix
     ../modules/tailscale
     ../modules/postgresql
-    ../modules/buildbot/database.nix
     ../modules/borgbackup/rho/client.nix
     ../modules/borgbackup/mirror.nix
     ../modules/monitoring/vector/monitor-systems.nix

@@ -10,8 +10,8 @@
 
 | 인터페이스 | 용도 | 열린 포트 |
 |-----------|------|----------|
-| eth0 (퍼블릭) | 외부 접근 | 80, 443, 10022 (eta만) |
-| wg-admin (WireGuard) | 내부 관리 | 서비스별 (5432, 8010, 5678, 5000 등) |
+| eth0 (퍼블릭) | 외부 접근 | 80, 443 (eta, psi), 10022 (eta만) |
+| wg-admin (WireGuard) | 내부 관리 | 서비스별 (5432, 9989, 5678, 5000 등) |
 | tailscale0 (Headscale) | 사용자 서비스 | 80, 443 |
 
 기본 정책은 **deny all**이며, 각 서비스 모듈이 필요한 포트만 인터페이스별로 개방합니다.
@@ -144,9 +144,9 @@ root의 `authorized_keys`에는 관리자 키만 등록됩니다 (`modules/users
 | 비밀 파일 | 접근 가능 키 | 내용 |
 |----------|------------|------|
 | `hosts/<host>.yaml` | 해당 호스트 + admin | root 비밀번호 해시, WireGuard 키 |
-| `modules/acme/secrets.yaml` | eta, tau | Cloudflare API 인증 |
+| `modules/acme/secrets.yaml` | eta, psi, tau | Cloudflare API 인증 |
 | `modules/borgbackup/*/secrets.yaml` | 해당 호스트 | Borg 암호화 키, SSH 키 |
-| `modules/buildbot/secrets.yaml` | psi, rho | GitHub App/OAuth 시크릿 |
+| `modules/buildbot/secrets.yaml` | psi | GitHub App/OAuth 시크릿 |
 | `modules/authentik/secrets.yaml` | eta | OIDC 클라이언트 시크릿 |
 | `modules/postgresql/secrets.yaml` | rho, tau | DB 사용자 암호 |
 
@@ -164,7 +164,7 @@ sops updatekeys hosts/psi.yaml
 
 ## TLS 인증서
 
-모든 도메인은 eta에서 Let's Encrypt ACME + Cloudflare DNS 챌린지로 인증서를 발급합니다. 다른 호스트에서 사용하는 인증서는 `acme-sync` 서비스가 rsync로 동기화하고, 대상 호스트의 systemd path unit이 파일 변경을 감지하여 nginx를 자동 리로드합니다.
+대부분의 도메인은 eta에서 Let's Encrypt ACME + Cloudflare DNS 챌린지로 인증서를 발급합니다. Buildbot은 모든 인프라가 psi에 있으므로 psi에서 직접 인증서를 발급합니다. 다른 호스트에서 사용하는 인증서는 `acme-sync` 서비스가 rsync로 동기화하고, 대상 호스트의 systemd path unit이 파일 변경을 감지하여 nginx를 자동 리로드합니다.
 
 | 도메인 | 발급 호스트 | 사용 호스트 |
 |--------|-----------|-----------|
@@ -175,9 +175,9 @@ sops updatekeys hosts/psi.yaml
 | `n8n.sjanglab.org` | eta | tau (동기화) |
 | `ollama.sjanglab.org` | eta | psi (동기화) |
 | `docling.sjanglab.org` | eta | psi (동기화) |
-| `buildbot.sjanglab.org` | eta | psi (동기화) |
+| `buildbot.sjanglab.org` | psi | psi |
 
-인증서 동기화: eta에서 발급 → `acme-sync` 서비스가 rsync로 대상 호스트에 전송 → systemd path unit이 변경 감지 → nginx 자동 리로드.
+인증서 동기화: eta에서 발급 → `acme-sync` 서비스가 rsync로 대상 호스트에 전송 → systemd path unit이 변경 감지 → nginx 자동 리로드. Buildbot 인증서는 psi에서 직접 발급·사용합니다.
 
 ## 데이터 보안
 

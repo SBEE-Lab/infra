@@ -36,6 +36,7 @@ let
     // builtins.mapAttrs (_name: value: (map (x: keys.machines.${x}) value)) {
       "modules/acme/secrets.yaml" = [
         "eta"
+        "psi"
         "tau"
       ];
       "modules/attic/secrets.yaml" = [ "eta" ];
@@ -55,10 +56,7 @@ let
       ];
       "modules/borgbackup/psi/secrets.yaml" = [ "psi" ];
       "modules/borgbackup/rho/secrets.yaml" = [ "rho" ];
-      "modules/buildbot/secrets.yaml" = [
-        "psi"
-        "rho"
-      ];
+      "modules/buildbot/secrets.yaml" = [ "psi" ];
       "modules/harmonia/secrets.yaml" = [ "psi" ];
       "modules/minio/secrets.yaml" = [ "rho" ];
       "modules/monitoring/secrets.yaml" = [ "rho" ];

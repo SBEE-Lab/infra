@@ -8,6 +8,7 @@ graph TB
 
   subgraph public["공인 IP (외부 노출)"]
     eta_pub["eta<br/>141.164.53.203"]
+    psi_pub["psi<br/>117.16.251.37"]
   end
 
   subgraph wg["wg-admin (10.100.0.0/24)"]
@@ -24,7 +25,9 @@ graph TB
   end
 
   internet -- "80, 443, 10022" --> eta_pub
+  internet -- "80, 443 (Buildbot)" --> psi_pub
   eta_pub --- eta_wg
+  psi_pub --- psi_wg
   eta_wg --- psi_wg
   eta_wg --- rho_wg
   eta_wg --- tau_wg
@@ -37,7 +40,7 @@ graph TB
 |--------|------|------|------|
 | WireGuard | `wg-admin` | 인프라 관리 (SSH, DB, 모니터링) | `10.100.0.0/24` |
 | Headscale | Tailscale 호환 | 사용자 서비스 접근 | `100.64.0.0/10` |
-| 공인 IP | nginx 리버스 프록시 | 외부 노출 (eta만) | `141.164.53.203` |
+| 공인 IP | nginx 리버스 프록시 | 외부 노출 (eta, Buildbot용 psi) | `141.164.53.203`, `117.16.251.37` |
 
 ## 호스트 목록
 
@@ -123,10 +126,10 @@ sequenceDiagram
 | 호스트 | 외부 개방 포트 | wg-admin 개방 포트 |
 |--------|--------------|-------------------|
 | eta | 80, 443, 10022 (SSH + Rate limiting) | 10022 |
-| psi | — | 10022, 5000 (Harmonia) |
+| psi | 80, 443 (Buildbot) | 10022, 5000 (Harmonia), 5432/9989 (Buildbot) |
 | rho | — | 10022, 5432 (PostgreSQL), 3000 (Grafana) |
 | tau | — | 10022, 5678 (n8n 웹훅) |
 
 ## ACME 인증서
 
-모든 TLS 인증서는 eta에서 Cloudflare DNS 챌린지로 발급됩니다. 다른 호스트(psi, tau)에는 `acme-sync` 사용자를 통해 rsync로 동기화됩니다.
+대부분의 TLS 인증서는 eta에서 Cloudflare DNS 챌린지로 발급됩니다. Buildbot(`buildbot.sjanglab.org`) 인증서는 psi에서 직접 발급되며, 다른 호스트(psi, tau)의 나머지 인증서는 `acme-sync` 사용자를 통해 rsync로 동기화됩니다.

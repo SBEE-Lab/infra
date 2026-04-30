@@ -21,7 +21,7 @@
 
 #### Buildbot
 
-- WIP..
+- Cloudflare DNS for `buildbot.sjanglab.org` points directly to psi (`117.16.251.37`).
 
 ### Cloudflare
 

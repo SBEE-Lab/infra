@@ -13,7 +13,7 @@
 ```mermaid
 graph LR
   eta["<b>eta</b><br/>게이트웨이 · 인증<br/>nginx · Authentik · Headscale"]
-  psi["<b>psi</b><br/>GPU · CI/CD<br/>Buildbot · Ollama · Docling"]
+  psi["<b>psi</b><br/>GPU · CI/CD<br/>Buildbot · Buildbot DB · Ollama · Docling"]
   rho["<b>rho</b><br/>DB · 모니터링<br/>PostgreSQL · Grafana · Loki"]
   tau["<b>tau</b><br/>앱 · 백업<br/>Nextcloud · n8n · Borg"]
 
@@ -26,7 +26,7 @@ graph LR
 | 호스트 | 위치 | 주요 서비스 |
 |--------|------|------------|
 | **eta** | Vultr VPS | nginx 리버스 프록시, Authentik SSO, Headscale VPN, Vaultwarden, Gatus, ntfy, Harmonia, ACME 인증서 |
-| **psi** | KREN 베어메탈 | Buildbot Master+Workers, Ollama, Docling (GPU), Apptainer, db-sync, 16TB NVMe + 60TB HDD |
+| **psi** | KREN 베어메탈 | Buildbot Master+Workers+PostgreSQL+nginx/TLS, Ollama, Docling (GPU), Apptainer, db-sync, 16TB NVMe + 60TB HDD |
 | **rho** | 랩 내부 베어메탈 | PostgreSQL (프라이머리), Grafana, Prometheus, Loki, Vector, Borg 미러 |
 | **tau** | 랩 내부 베어메탈 | Nextcloud, Collabora, n8n, PostgreSQL (레플리카), Borg 백업 저장소 |
 

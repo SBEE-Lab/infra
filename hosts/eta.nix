@@ -11,7 +11,6 @@ in
     ../modules/authentik
     ../modules/vaultwarden
     ../modules/gatus
-    ../modules/buildbot/reverse-proxy.nix
     ../modules/monitoring/vector
     ../modules/monitoring/reverse-proxy.nix
     ../modules/n8n/reverse-proxy.nix

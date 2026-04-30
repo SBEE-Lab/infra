@@ -20,7 +20,7 @@ terraform apply
 
 | 레코드 | 값 | 용도 |
 |--------|-----|------|
-| `buildbot.sjanglab.org` | 141.164.53.203 | CI/CD |
+| `buildbot.sjanglab.org` | 117.16.251.37 | CI/CD (psi) |
 | `logging.sjanglab.org` | 141.164.53.203 | Grafana |
 | `hs.sjanglab.org` | 141.164.53.203 | Headscale |
 | `auth.sjanglab.org` | 141.164.53.203 | Authentik |
@@ -30,7 +30,7 @@ terraform apply
 | `n8n.sjanglab.org` | 141.164.53.203 | 워크플로우 |
 | `cache.sjanglab.org` | 141.164.53.203 | Nix 캐시 |
 
-모든 서비스는 eta(141.164.53.203)의 nginx를 통해 프록시됩니다.
+대부분의 서비스는 eta(141.164.53.203)의 nginx를 통해 프록시됩니다. Buildbot은 모든 인프라가 psi에 있으므로 `buildbot.sjanglab.org`가 psi(117.16.251.37)를 직접 가리킵니다.
 
 ### GitHub
 

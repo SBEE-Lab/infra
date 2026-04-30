@@ -1,66 +1,46 @@
-# Buildbot reverse proxy (deployed on eta)
+# Buildbot reverse proxy (deployed on psi)
 # No nginx auth: Buildbot uses its own Authentik OIDC integration for login
 { config, ... }:
 let
-  inherit (config.networking.sbee) hosts;
   buildbotDomain = "buildbot.sjanglab.org";
 in
 {
-  imports = [
-    ../acme
-    ../gatus/check.nix
-  ];
+  imports = [ ../gatus/check.nix ];
 
-  gatusCheck.pull = [
+  gatusCheck.push = [
     {
       name = "Buildbot";
-      url = "https://buildbot.sjanglab.org";
+      url = "http://127.0.0.1:8010";
       group = "ci";
     }
   ];
 
+  services.nginx.enable = true;
+
   services.nginx.virtualHosts.${buildbotDomain} = {
     forceSSL = true;
     useACMEHost = buildbotDomain;
+  };
 
-    locations = {
-      "/" = {
-        proxyPass = "http://${hosts.psi.wg-admin}:8010";
-        extraConfig = ''
-          proxy_set_header Host $host;
-          proxy_set_header X-Real-IP $remote_addr;
-          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-          proxy_set_header X-Forwarded-Proto $scheme;
-        '';
-      };
-      "/ws" = {
-        proxyPass = "http://${hosts.psi.wg-admin}:8010";
-        proxyWebsockets = true;
-        extraConfig = ''
-          proxy_set_header Host $host;
-          proxy_set_header X-Real-IP $remote_addr;
-          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-          proxy_set_header X-Forwarded-Proto $scheme;
-          proxy_read_timeout 6000s;
-        '';
-      };
-      "/sse" = {
-        proxyPass = "http://${hosts.psi.wg-admin}:8010";
-        extraConfig = ''
-          proxy_set_header Host $host;
-          proxy_set_header X-Real-IP $remote_addr;
-          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-          proxy_set_header X-Forwarded-Proto $scheme;
-          proxy_buffering off;
-          proxy_cache off;
-        '';
-      };
+  security.acme = {
+    defaults.email = "sjang.bioe@gmail.com";
+    acceptTerms = true;
+    certs.${buildbotDomain} = {
+      dnsProvider = "cloudflare";
+      environmentFile = config.sops.secrets.cloudflare-credentials.path;
+      group = "nginx";
     };
   };
 
-  security.acme.certs.${buildbotDomain} = {
-    dnsProvider = "cloudflare";
-    environmentFile = config.sops.secrets.cloudflare-credentials.path;
-    group = "nginx";
+  sops.secrets.cloudflare-credentials = {
+    sopsFile = ../acme/secrets.yaml;
+    owner = "acme";
+    group = "acme";
+    mode = "0400";
   };
+
+  networking.firewall.allowedTCPPorts = [
+    80
+    443
+  ];
 }

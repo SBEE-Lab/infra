@@ -1,7 +1,8 @@
-# Buildbot PostgreSQL database (deployed on rho)
+# Buildbot PostgreSQL database (deployed on psi)
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 let
@@ -9,8 +10,25 @@ let
   psql = "${config.services.postgresql.package}/bin/psql --port=${toString config.services.postgresql.settings.port}";
 in
 {
+  imports = [ ../gatus/check.nix ];
+
+  gatusCheck.push = [
+    {
+      name = "Buildbot PostgreSQL";
+      group = "ci";
+      systemdService = "postgresql.service";
+    }
+  ];
+
   services.postgresql = {
-    # wg-admin already set in postgresql/default.nix
+    enable = true;
+    package = pkgs.postgresql_17;
+
+    settings = {
+      listen_addresses = lib.mkForce hosts.psi.wg-admin;
+      port = 5432;
+    };
+
     ensureDatabases = [ "buildbot" ];
     ensureUsers = [
       {
@@ -36,5 +54,5 @@ in
 
   services.postgresqlBackup.databases = lib.mkAfter [ "buildbot" ];
 
-  # PostgreSQL port already opened on wg-admin in postgresql/default.nix
+  networking.firewall.interfaces.wg-admin.allowedTCPPorts = [ 5432 ];
 }

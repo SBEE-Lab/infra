@@ -9,7 +9,9 @@
     ../modules/disko/xfs-mdadm.nix
     ../modules/nvidia.nix
     ../modules/tailscale
+    ../modules/buildbot/database.nix
     ../modules/buildbot/master.nix
+    ../modules/buildbot/reverse-proxy.nix
     ../modules/buildbot/worker.nix
     ../modules/borgbackup/psi/client.nix
     ../modules/monitoring/vector

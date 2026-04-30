@@ -8,16 +8,18 @@
 
 ```mermaid
 flowchart LR
-  gh["GitHub 웹훅"] --> master["Buildbot Master<br/>psi :8010"]
+  gh["GitHub 웹훅"] --> proxy["nginx + TLS<br/>psi :443"]
+  proxy --> master["Buildbot Master<br/>psi localhost:8010"]
   master --> w["Workers ×8<br/>psi (8GB/워커)"]
-  master --> db["PostgreSQL<br/>rho"]
+  master --> db["PostgreSQL<br/>psi"]
   w -- "nix-eval → nix-build" --> result["빌드 결과"]
   result --> gh
 ```
 
-- **Master**: psi (포트 8010)
+- **Master**: psi (localhost 포트 8010)
+- **Reverse proxy/TLS**: psi (포트 443)
 - **Workers**: psi (8개 평가 워커, 8GB 메모리/워커)
-- **DB**: PostgreSQL (rho)
+- **DB**: PostgreSQL (psi)
 
 ### 빌드 트리거
 
