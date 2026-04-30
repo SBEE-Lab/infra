@@ -73,7 +73,6 @@ in
           (mkExtEndpoint "Prometheus" "monitoring")
           (mkExtEndpoint "Loki" "monitoring")
           (mkExtEndpoint "PostgreSQL" "db")
-          (mkExtEndpoint "RAGFlow" "ai")
         ];
     };
   };

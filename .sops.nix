@@ -62,7 +62,6 @@ let
       "modules/harmonia/secrets.yaml" = [ "psi" ];
       "modules/minio/secrets.yaml" = [ "rho" ];
       "modules/monitoring/secrets.yaml" = [ "rho" ];
-      "modules/ragflow/secrets.yaml" = [ "rho" ];
       "modules/n8n/secrets.yaml" = [ "tau" ];
       "modules/nextcloud/secrets.yaml" = [ "tau" ];
       "modules/nfs/secrets.yaml" = [ "psi" ];

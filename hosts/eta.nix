@@ -47,12 +47,6 @@ in
       remoteUser = "acme-sync-vllm";
       remoteHost = hosts.psi.wg-admin;
     }
-    {
-      domain = "rag.sjanglab.org";
-      serviceName = "acme-sync-rag-to-rho";
-      remoteUser = "acme-sync-ragflow";
-      remoteHost = hosts.rho.wg-admin;
-    }
   ];
 
   disko.rootDisk = "/dev/vda";
@@ -73,13 +67,6 @@ in
   };
 
   security.acme.certs."tei.sjanglab.org" = {
-    dnsProvider = "cloudflare";
-    environmentFile = config.sops.secrets.cloudflare-credentials.path;
-    webroot = null;
-    group = "acme";
-  };
-
-  security.acme.certs."rag.sjanglab.org" = {
     dnsProvider = "cloudflare";
     environmentFile = config.sops.secrets.cloudflare-credentials.path;
     webroot = null;

@@ -10,7 +10,6 @@
     ../modules/borgbackup/rho/client.nix
     ../modules/borgbackup/mirror.nix
     ../modules/monitoring/vector/monitor-systems.nix
-    ../modules/ragflow
   ];
 
   disko.rootDisk = "/dev/disk/by-id/nvme-eui.00000000000000006479a79cdac0038a";

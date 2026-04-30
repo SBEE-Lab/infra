@@ -11,7 +11,6 @@ let
       "tag:server"
     ];
     rho = [
-      "tag:ai"
       "tag:monitoring"
       "tag:server"
     ];
