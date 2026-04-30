@@ -10,7 +10,7 @@
 
 | 인터페이스 | 용도 | 열린 포트 |
 |-----------|------|----------|
-| eth0 (퍼블릭) | 외부 접근 | 80, 443 (eta, psi), 10022 (eta만) |
+| eth0 (퍼블릭) | 외부 접근 | 80, 443 (eta, psi), 10022, 2323 (eta만) |
 | wg-admin (WireGuard) | 내부 관리 | 서비스별 (5432, 9989, 5678, 5000 등) |
 | tailscale0 (Headscale) | 사용자 서비스 | 80, 443 |
 
@@ -18,11 +18,12 @@
 
 ### Bastion 아키텍처
 
-eta가 유일한 인터넷 노출 SSH 호스트입니다. 다른 호스트(psi, rho, tau)는 `wg-admin` 인터페이스에서만 SSH를 수신합니다.
+eta가 유일한 인터넷 노출 SSH 호스트입니다. Upterm relay도 eta의 `2323/tcp`에서만 외부에 노출됩니다. 다른 호스트(psi, rho, tau)는 `wg-admin` 인터페이스에서만 SSH를 수신합니다.
 
 ```mermaid
 flowchart LR
   inet["인터넷"] -- "포트 10022" --> eta["eta<br/>jump.sjanglab.org"]
+  inet -- "포트 2323" --> eta
   eta -- "wg-admin" --> psi["psi<br/>10.100.0.2"]
   eta -- "wg-admin" --> rho["rho<br/>10.100.0.3"]
   eta -- "wg-admin" --> tau["tau<br/>10.100.0.4"]
@@ -176,6 +177,7 @@ sops updatekeys hosts/psi.yaml
 | `ollama.sjanglab.org` | eta | psi (동기화) |
 | `docling.sjanglab.org` | eta | psi (동기화) |
 | `buildbot.sjanglab.org` | psi | psi |
+| `upterm.sjanglab.org` | eta | eta |
 
 인증서 동기화: eta에서 발급 → `acme-sync` 서비스가 rsync로 대상 호스트에 전송 → systemd path unit이 변경 감지 → nginx 자동 리로드. Buildbot 인증서는 psi에서 직접 발급·사용합니다.
 

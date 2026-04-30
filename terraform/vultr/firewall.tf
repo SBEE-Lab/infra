@@ -52,6 +52,16 @@ resource "vultr_firewall_rule" "wireguard_serv" {
   notes             = "WireGuard service interface"
 }
 
+resource "vultr_firewall_rule" "upterm" {
+  firewall_group_id = vultr_firewall_group.eta.id
+  protocol          = "tcp"
+  ip_type           = "v4"
+  subnet            = "0.0.0.0"
+  subnet_size       = 0
+  port              = 2323
+  notes             = "Upterm relay"
+}
+
 
 output "firewall_info" {
   description = "Firewall configuration details"

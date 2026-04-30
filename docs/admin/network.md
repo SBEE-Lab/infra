@@ -24,7 +24,7 @@ graph TB
     users["사용자 VPN 클라이언트"]
   end
 
-  internet -- "80, 443, 10022" --> eta_pub
+  internet -- "80, 443, 10022, 2323" --> eta_pub
   internet -- "80, 443 (Buildbot)" --> psi_pub
   eta_pub --- eta_wg
   psi_pub --- psi_wg
@@ -125,7 +125,7 @@ sequenceDiagram
 
 | 호스트 | 외부 개방 포트 | wg-admin 개방 포트 |
 |--------|--------------|-------------------|
-| eta | 80, 443, 10022 (SSH + Rate limiting) | 10022 |
+| eta | 80, 443, 10022 (SSH + Rate limiting), 2323 (Upterm relay) | 10022 |
 | psi | 80, 443 (Buildbot) | 10022, 5000 (Harmonia), 5432/9989 (Buildbot) |
 | rho | — | 10022, 5432 (PostgreSQL), 3000 (Grafana) |
 | tau | — | 10022, 5678 (n8n 웹훅) |

@@ -57,6 +57,6 @@ flowchart LR
 
 ### Gatus (eta)
 
-- Pull 방식: 외부 접근 가능한 서비스 (Authentik, Headscale 등)
+- Pull 방식: 외부 접근 가능한 서비스 (Authentik, Headscale, Upterm Web/Relay 등)
 - Push 방식: 내부 서비스가 주기적으로 상태 보고
 - 알림: ntfy (`ntfy.sjanglab.org`, 토픽: `gatus`)

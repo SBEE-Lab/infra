@@ -100,6 +100,7 @@ flowchart LR
   user["사용자<br/>Tailscale VPN"] --> hs["Headscale<br/>hs.sjanglab.org"]
   hs --> psi["psi (100.64.0.1)<br/>Ollama · Docling"]
   hs --> tau["tau (100.64.0.3)<br/>Nextcloud · n8n"]
+  hs --> eta_pub["eta public (141.164.53.203)<br/>Upterm"]
 ```
 
 | 도메인 | 내부 IP | 호스트 | 서비스 |
@@ -108,6 +109,7 @@ flowchart LR
 | `n8n.sjanglab.org` | 100.64.0.3 | tau | n8n |
 | `ollama.sjanglab.org` | 100.64.0.1 | psi | Ollama |
 | `docling.sjanglab.org` | 100.64.0.1 | psi | Docling |
+| `upterm.sjanglab.org` | 141.164.53.203 | eta | Upterm relay |
 
 ## 접근 권한 (ACL)
 

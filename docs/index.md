@@ -17,6 +17,7 @@ SBEE Lab의 NixOS 기반 연구 인프라 문서입니다.
 | n8n | [n8n.sjanglab.org](https://n8n.sjanglab.org) | 워크플로우 자동화 | VPN 필수 |
 | Ollama | [ollama.sjanglab.org](https://ollama.sjanglab.org) | LLM API | VPN 필수 |
 | Docling | [docling.sjanglab.org](https://docling.sjanglab.org) | 문서 변환 | VPN 필수 |
+| Upterm | [upterm.sjanglab.org](https://upterm.sjanglab.org) | 임시 터미널 공유 | 공개 relay |
 
 ## 어떤 가이드를 봐야 하나요?
 

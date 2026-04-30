@@ -21,6 +21,7 @@ nav = [
     { "Ollama" = "guide/ollama.md" },
     { "Docling" = "guide/docling.md" },
     { "n8n" = "guide/n8n.md" },
+    { "Upterm" = "guide/upterm.md" },
   ] },
   { "개발자 가이드" = [
     { "개요" = "dev/index.md" },

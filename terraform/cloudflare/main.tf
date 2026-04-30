@@ -133,3 +133,13 @@ resource "cloudflare_dns_record" "n8n" {
   proxied = false
   comment = "n8n workflow automation (webhook only)"
 }
+
+resource "cloudflare_dns_record" "upterm" {
+  zone_id = data.sops_file.secrets.data["CLOUDFLARE_ZONE_ID"]
+  name    = "upterm.sjanglab.org"
+  content = "141.164.53.203"
+  type    = "A"
+  ttl     = 300
+  proxied = false
+  comment = "Upterm relay (eta)"
+}

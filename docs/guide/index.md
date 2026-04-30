@@ -31,8 +31,9 @@ flowchart LR
 | [n8n](n8n.md) | `n8n.sjanglab.org` | VPN 필수 | Forward Auth |
 | [Ollama](ollama.md) | `ollama.sjanglab.org` | VPN 필수 | Headscale ACL |
 | [Docling](docling.md) | `docling.sjanglab.org` | VPN 필수 | Headscale ACL |
+| [Upterm](upterm.md) | `upterm.sjanglab.org` | 공개 relay | GitHub user allow-list |
 
-Vaultwarden은 VPN 없이도 접근 가능합니다. 나머지 서비스는 [VPN 연결](vpn-setup.md) 후 사용할 수 있습니다.
+Vaultwarden과 Upterm relay는 VPN 없이도 접근 가능합니다. 나머지 서비스는 [VPN 연결](vpn-setup.md) 후 사용할 수 있습니다.
 
 ## 접근 권한
 
@@ -43,5 +44,6 @@ Vaultwarden은 VPN 없이도 접근 가능합니다. 나머지 서비스는 [VPN
 | n8n | O | X | X |
 | Ollama | O | O | X |
 | Docling | O | O | X |
+| Upterm | O | O | O |
 
 > **SSH 접속이 필요한 경우**: 서버에 SSH로 직접 접속하여 연구 작업을 수행하려면 [개발자 가이드](../dev/index.md)를 참조하세요.

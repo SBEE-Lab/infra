@@ -11,7 +11,7 @@ NixOS-based infrastructure for bioinformatics research with 3-server setup optim
 | **PSI** | GPU/CPU Research Computation | CUDA workloads, Bioinformatics DBs, Nix Builder | Ryzen Threadripper PRO 5965WX (24 Core), RTX A6000 48GB, 128GB RAM, 4TB NVMe |
 | **RHO** | Storage/Build                | Cold Storage with Console (MinIO), CI/CD        | Ryzen 9600X (6 Core), 32GB RAM, 2TB NVMe + 4TB HDD                           |
 | **TAU** | Storage/Backup               | Cold Storage (MinIO), Backups                   | Ryzen 9600X (6 Core), 32GB RAM, 2TB NVMe + 4TB HDD                           |
-| **ETA** | VPS/Hosting                  | Host (MinIO, ntfy)                              | EPYC-Rome (2 Core), 4GB RAM, 100Gb NVMe, 5TB Bandwidth                        |
+| **ETA** | VPS/Hosting                  | Gateway, Auth, ntfy, Upterm relay               | EPYC-Rome (2 Core), 4GB RAM, 100Gb NVMe, 5TB Bandwidth                        |
 
 ### User Groups
 

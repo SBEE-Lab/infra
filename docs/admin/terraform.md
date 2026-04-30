@@ -29,8 +29,9 @@ terraform apply
 | `ntfy.sjanglab.org` | 141.164.53.203 | 알림 |
 | `n8n.sjanglab.org` | 141.164.53.203 | 워크플로우 |
 | `cache.sjanglab.org` | 141.164.53.203 | Nix 캐시 |
+| `upterm.sjanglab.org` | 141.164.53.203 | Upterm relay |
 
-대부분의 서비스는 eta(141.164.53.203)의 nginx를 통해 프록시됩니다. Buildbot은 모든 인프라가 psi에 있으므로 `buildbot.sjanglab.org`가 psi(117.16.251.37)를 직접 가리킵니다.
+대부분의 웹 서비스는 eta(141.164.53.203)의 nginx를 통해 프록시됩니다. Buildbot은 모든 인프라가 psi에 있으므로 `buildbot.sjanglab.org`가 psi(117.16.251.37)를 직접 가리킵니다. Upterm relay는 eta의 `2323/tcp`에 직접 노출됩니다.
 
 ### GitHub
 

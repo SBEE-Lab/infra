@@ -44,6 +44,7 @@ graph TD
 - [Apptainer](apptainer.md) — HPC 컨테이너 환경
 - [생물정보 DB](bioinformatics-db.md) — BLAST, UniProt, PDB 등
 - [Nix 개발 환경](nix-environment.md) — 패키지, Home Manager, Python, Docker
+- [Upterm](../guide/upterm.md) — 임시 터미널 공유 relay
 - [학생 가이드](students/best-practices.md) — 모범 사례, 계정 만료
 
 > **서버 하드웨어/전원/네트워크 문제**: 관리자에게 보고하세요. 물리 서버 관리는 [관리자 가이드 — 데이터센터](../admin/datacenter.md)를 참조하세요.
