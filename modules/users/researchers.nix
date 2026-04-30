@@ -39,7 +39,7 @@ in
       uid = 3000;
       allowedHosts = [ "psi" ];
       openssh.authorizedKeys.keys = dasolKey;
-      expires = "2026-08-31";
+      expires = "2030-03-31";
     };
     hyeonah = {
       isNormalUser = true;
@@ -49,7 +49,7 @@ in
       uid = 3001;
       allowedHosts = [ "psi" ];
       openssh.authorizedKeys.keys = hyeonahKey;
-      expires = "2026-08-31";
+      expires = "2028-03-31";
     };
     saebom = {
       isNormalUser = true;
@@ -59,7 +59,7 @@ in
       uid = 3002;
       allowedHosts = [ "psi" ];
       openssh.authorizedKeys.keys = saebomKey;
-      expires = "2026-08-31";
+      expires = "2030-08-31";
     };
     yoojin = {
       isNormalUser = true;
@@ -69,7 +69,7 @@ in
       uid = 3003;
       allowedHosts = [ "psi" ];
       openssh.authorizedKeys.keys = yoojinKey;
-      expires = "2026-08-31";
+      expires = "2030-08-31";
     };
 
     # ADD YOUR USER ACCOUNT
