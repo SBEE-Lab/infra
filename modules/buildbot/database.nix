@@ -41,7 +41,7 @@ in
     '';
   };
 
-  systemd.services.postgresql.postStart = lib.mkAfter ''
+  systemd.services.postgresql-setup.postStart = lib.mkAfter ''
     BUILDBOT_PW=$(cat ${config.sops.secrets.buildbot-db-password.path})
     ${psql} -tAc "ALTER USER buildbot WITH PASSWORD '$BUILDBOT_PW'" -d postgres
   '';

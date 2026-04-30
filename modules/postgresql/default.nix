@@ -105,7 +105,7 @@ in
     group = "postgres";
   };
 
-  systemd.services.postgresql.postStart =
+  systemd.services.postgresql-setup.postStart =
     let
       psql = "${config.services.postgresql.package}/bin/psql --port=${toString config.services.postgresql.settings.port}";
       terraformModules = [
@@ -114,14 +114,14 @@ in
         "vultr"
       ];
     in
-    # mkOrder 2000 ensures this runs after ensureUsers (which uses mkAfter = 1500)
+    # Run after ensureUsers in postgresql-setup so fresh clusters have roles before passwords and schema setup.
     lib.mkOrder 2000 ''
       REPLICATOR_PW=$(cat ${config.sops.secrets.pg-replicator-password.path})
       TERRAFORM_PW=$(cat ${config.sops.secrets.pg-terraform-password.path})
       NEXTCLOUD_PW=$(cat ${config.sops.secrets.pg-nextcloud-password.path})
       N8N_PW=$(cat ${config.sops.secrets.pg-n8n-password.path})
 
-      # Set passwords only if roles exist (ensureUsers may run in parallel)
+      # Some hosts import subsets of the database modules, so only update roles present locally.
       ${psql} -tAc "SELECT 1 FROM pg_roles WHERE rolname='replicator'" -d postgres | grep -q 1 && \
         ${psql} -tAc "ALTER USER replicator WITH PASSWORD '$REPLICATOR_PW'" -d postgres
       ${psql} -tAc "SELECT 1 FROM pg_roles WHERE rolname='terraform'" -d postgres | grep -q 1 && \
