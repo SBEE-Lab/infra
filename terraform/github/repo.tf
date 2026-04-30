@@ -117,10 +117,6 @@ locals {
       color       = "0075ca"
       description = "Documentation"
     }
-    "onboarding" = {
-      color       = "00bfa5"
-      description = "New member onboarding process"
-    }
     "expired-user" = {
       color       = "F5EB27"
       description = "Expired user"

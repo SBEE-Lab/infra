@@ -35,5 +35,5 @@ terraform apply
 ### GitHub
 
 - 리포지토리 설정: Pages, 브랜치 보호 규칙
-- 라벨: `bug`, `enhancement`, `documentation`, `onboarding`, `expired-user`, `auto-merge`
+- 라벨: `bug`, `enhancement`, `documentation`, `expired-user`, `auto-merge`
 - 자동 병합: 체크 통과 시 활성화
