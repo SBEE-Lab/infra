@@ -13,6 +13,9 @@
 }:
 let
   seungwonKeys = [
+    # Secretive Secure Enclave key on rhesus (daily SSH from laptop).
+    "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBAbiIX1IpgsaylNgtDb04IM4jQKlU+RVwDr8YGfXLwuHWn3xydzTYeg3o/T9UX/j2326D7tnL7kMq7XvmhuSd8Y= ssh@secretive.rhesus.local"
+    # Legacy ed25519. Drop after Secretive access is verified across the fleet.
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINkKJdIzvxlWcry+brNiCGLBNkxrMxFDyo1anE4xRNkL"
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN48qMQAJGeDA+qs1o6T2+p9WyyYnyE1366IB6zzvmSD"
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGf6fKb1r0vzdHyLRyoJ5TgFG8PkL3UQw8nISGJWUdMF"
