@@ -25,6 +25,11 @@
       tree
     ];
 
+    programs.direnv = {
+      enable = true;
+      nix-direnv.enable = true;
+    };
+
     programs.zsh = {
       enable = true;
       # `upterm-tmux <github-username>` — share a tmux session via the
