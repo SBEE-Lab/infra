@@ -3,6 +3,7 @@
 import json
 import os
 import random
+import re
 import shlex
 import string
 import subprocess
@@ -293,6 +294,92 @@ def generate_wireguard_key(c: Any, hostname: str) -> None:
 
         c.run(f"sops --set '[\"wg-admin-key\"] {json.dumps(wg_key)}' {ROOT}/hosts/{hostname}.yaml")
         c.run(f"echo {wg_pubkey} > {ROOT}/modules/wireguard/keys/{hostname}_wg-admin")
+
+
+@task
+def generate_admin_wireguard_key(
+    c: Any,
+    owner: str,
+    device: str,
+    address: str,
+    output_dir: str = ".",
+) -> None:
+    """
+    Generate an admin WireGuard key and client config.
+
+    Example:
+      inv generate-admin-wireguard-key --owner seungwon --device rhesus --address 10.100.0.200
+    """
+    name = f"{owner}-{device}"
+    if re.fullmatch(r"[A-Za-z0-9_-]+", name) is None:
+        raise ValueError("owner and device may only contain letters, numbers, '_' and '-'")
+
+    out_dir = Path(output_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    config_path = out_dir / f"{name}-wg-admin.conf"
+    if config_path.exists():
+        raise FileExistsError(f"Refusing to overwrite {config_path}")
+
+    with TemporaryDirectory() as tmp:
+        tmp_path = Path(tmp)
+        c.run(
+            "nix shell --inputs-from . nixpkgs#wireguard-tools -c sh -c "
+            + shlex.quote(
+                f"umask 077 && wg genkey > {tmp_path / 'private'} "
+                f"&& wg pubkey < {tmp_path / 'private'} > {tmp_path / 'public'}"
+            ),
+            echo=True,
+        )
+        private_key = (tmp_path / "private").read_text().strip()
+        public_key = (tmp_path / "public").read_text().strip()
+
+    hosts = json.loads(
+        c.run(
+            "nix eval --json .#nixosConfigurations.eta.config.networking.sbee.hosts",
+            hide=True,
+        ).stdout
+    )
+
+    peer_blocks = []
+    for host_name, host in sorted(hosts.items()):
+        if "public-ip" not in host.get("tags", []) or host.get("wg-admin") is None:
+            continue
+        host_key = ROOT / "modules" / "wireguard" / "keys" / f"{host_name}_wg-admin"
+        if not host_key.exists():
+            continue
+        peer_blocks.append(
+            "\n".join(
+                [
+                    "[Peer]",
+                    f"PublicKey = {host_key.read_text().strip()}",
+                    f"Endpoint = {host['ipv4']}:51820",
+                    f"AllowedIPs = {host['wg-admin']}/32",
+                    "PersistentKeepalive = 25",
+                ]
+            )
+        )
+
+    interface_block = "\n".join(
+        [
+            "[Interface]",
+            f"PrivateKey = {private_key}",
+            f"Address = {address}/32",
+        ]
+    )
+    config = "\n\n".join([interface_block, *peer_blocks])
+    old_umask = os.umask(0o077)
+    try:
+        config_path.write_text(config + "\n")
+    finally:
+        os.umask(old_umask)
+
+    print(f"Wrote private client config: {config_path}")
+    print("\nAdd this public peer to modules/wireguard/admin-access.nix:")
+    print(f"  {name} = {{")
+    print(f"    owner = {json.dumps(owner)};")
+    print(f"    address = {json.dumps(address)};")
+    print(f"    publicKey = {json.dumps(public_key)};")
+    print("  };")
 
 
 @task
