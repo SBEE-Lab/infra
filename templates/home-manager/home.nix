@@ -30,6 +30,11 @@
       nix-direnv.enable = true;
     };
 
+    nix.settings.extra-experimental-features = [
+      "nix-command"
+      "flakes"
+    ];
+
     programs.zsh = {
       enable = true;
       # `upterm-tmux <github-username>` — share a tmux session via the
