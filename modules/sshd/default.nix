@@ -51,6 +51,7 @@ in
       LoginGraceTime = ssh.loginGraceTime;
 
       PermitUserEnvironment = false;
+      AcceptEnv = "NIKS3_SERVER_URL";
       Compression = false;
 
       TCPKeepAlive = true;
