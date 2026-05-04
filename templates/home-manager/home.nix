@@ -14,6 +14,7 @@
       tmux
       upterm
       git
+      gh
       rsync
       wget
       curl
