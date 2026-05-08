@@ -24,6 +24,12 @@ let
   yoojinKey = [
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICxu/66OKP+sLMOxxQpxvSN0L0WlXKFTz30WwDlt758z"
   ];
+  yujungKey = [
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICd3GdOfwNuzafEV9d/41ZT7uijFjFvWKWyUyazzUlbJ"
+  ];
+  changhwanKey = [
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHfLkUpccq8BL3E252Wi0qkdE2oQGSFxedK3jWNQUdMc"
+  ];
   # ADD YOUR SSH PUBLIC KEY FOR SERVER CONNECTION
   # testUserKeys = [
   # "ssh-ed25519 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA+bbbbbbbbbbbbbbbbbbbbbbbbbbbb"
@@ -71,7 +77,26 @@ in
       openssh.authorizedKeys.keys = yoojinKey;
       expires = "2030-08-31";
     };
-
+    yujung = {
+      isNormalUser = true;
+      home = "/home/yujung";
+      inherit extraGroups;
+      shell = "/run/current-system/sw/bin/bash";
+      uid = 3004;
+      allowedHosts = [ "psi" ];
+      openssh.authorizedKeys.keys = yujungKey;
+      expires = "2030-08-31";
+    };
+    changhwan = {
+      isNormalUser = true;
+      home = "/home/changhwan";
+      inherit extraGroups;
+      shell = "/run/current-system/sw/bin/bash";
+      uid = 3005;
+      allowedHosts = [ "psi" ];
+      openssh.authorizedKeys.keys = changhwanKey;
+      expires = "2027-03-31";
+    };
     # ADD YOUR USER ACCOUNT
     # specify your real name in comments
     # testUsers = {
