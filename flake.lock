@@ -67,11 +67,11 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1778018861,
-        "narHash": "sha256-BiYCd1nr4t7kqu+gXfcgkhiUvJL/RwiglFimnSCN+8c=",
+        "lastModified": 1778391342,
+        "narHash": "sha256-7FVIfUHdQEB6HM+gUPLJVaL7ABrqlnMxS/pO+vNvjd8=",
         "owner": "nix-community",
         "repo": "buildbot-nix",
-        "rev": "01e719b334a9e987c9305a6727862e6723385e1a",
+        "rev": "0bedd1aafd1653858d5f1e0f08eba3d7ec397dff",
         "type": "github"
       },
       "original": {
@@ -367,10 +367,10 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1777761044,
-        "narHash": "sha256-/GVBkZrt/ajcOpIo/tcUMY5IdKw2shVb3HsodbJyjgo=",
+        "lastModified": 1778228972,
+        "narHash": "sha256-L34YTBob9sdjnc+rd7nMC2X8ddw0LT4RfufnlFyArRU=",
         "ref": "nixos-unstable-small",
-        "rev": "55671bd7af3540fb0b05aaeed63e76017f4b7cb5",
+        "rev": "1c5503ba41146fb6b49ed9706823b30de7f3a78f",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/NixOS/nixpkgs"
