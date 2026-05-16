@@ -126,37 +126,6 @@ def docs_linkcheck(c: Any, online: bool = False) -> None:
         c.run("nix run .#docs-linkcheck")
 
 
-def decrypt_host_key(flake_attr: str, tmpdir: str) -> None:
-    def opener(path: str, flags: int) -> int:
-        return os.open(path, flags, 0o400)
-
-    t = Path(tmpdir)
-    t.mkdir(parents=True, exist_ok=True)
-    t.chmod(0o755)
-
-    def decrypt(path: str, secret: str) -> None:
-        file = t / path
-        file.parent.mkdir(parents=True, exist_ok=True)
-        with open(file, "w", opener=opener) as fh:
-            subprocess.run(
-                [
-                    "sops",
-                    "--extract",
-                    secret,
-                    "--decrypt",
-                    f"{ROOT}/secrets.yaml",
-                ],
-                check=True,
-                stdout=fh,
-            )
-
-    decrypt(
-        "var/lib/ssh_secrets/ssh_host_ed25519_key",
-        f'["ssh_host_ed25519_key"]["{flake_attr}"]',
-    )
-    decrypt("var/lib/ssh_secrets/initrd_host_ed25519_key", '["initrd_host_ed25519_key"]')
-
-
 @task
 def install(c: Any, machine: str, hostname: str, extra_args: str = "") -> None:
     """
@@ -183,6 +152,9 @@ def install(c: Any, machine: str, hostname: str, extra_args: str = "") -> None:
 
 @task
 def cleanup_gcroots(_: Any, hosts: str) -> None:
+    """
+    Remove automatic GC roots so stale closures can be collected by the next GC.
+    """
     g = DeployGroup(get_hosts(hosts))
     g.run("sudo find /nix/var/nix/gcroots/auto -type l -delete")
 
@@ -249,7 +221,7 @@ def generate_ssh_cert(c: Any, host: str) -> None:
 @task
 def print_age_key(_: Any, host: str) -> None:
     """
-    Scans for the host key via ssh an converts it to age, i.e. inv scan-age-keys --host <hostname>
+    Convert a host SSH public key from sops to an age recipient.
     """
     import subprocess
 
@@ -537,10 +509,9 @@ def list_services(c: Any, host: str, pattern: str = "") -> None:
 
 
 @task
-def add_server(c: Any, hostname: str, skip_attic: bool = False) -> None:
+def add_server(c: Any, hostname: str) -> None:
     """
     Generate new server keys and configurations for a given hostname and hardware config.
-    Use --skip-attic if attic server is not yet available.
     """
 
     print(f"Adding {hostname}")
@@ -579,23 +550,6 @@ def add_server(c: Any, hostname: str, skip_attic: bool = False) -> None:
 
     print("Generating Wireguard key")
     generate_wireguard_key(c, hostname)
-
-    if not skip_attic:
-        print("Generating Attic token (pull only)")
-        try:
-            token = generate_attic_token_for_host(c, hostname, push=False, pull=True)
-            c.run(
-                f"sops --set '[\"attic-token\"] {json.dumps(token)}' {sops_file}",
-            )
-            print("✓ Attic token added (pull)")
-            print(
-                f"  Note: Run 'inv generate-attic-host-token --hostname {hostname} --push' if push access needed"
-            )
-        except Exception as e:
-            print(f"⚠ Attic token generation failed: {e}")
-            print(f"  Run 'inv generate-attic-host-token --hostname {hostname}' later")
-    else:
-        print("Skipping Attic token generation (--skip-attic)")
 
     print("Generating age key")
     key_ed = subprocess.Popen(
@@ -643,45 +597,6 @@ def add_server(c: Any, hostname: str, skip_attic: bool = False) -> None:
         + f"{ROOT}/.sops.yaml "
         + f"{ROOT}/modules/sshd/certs/{hostname}-cert.pub"
     )
-
-
-@task
-def build_all(_: Any, builder: str = "", concurrent: int = 12, arch: str = "x86_64-linux") -> None:
-    """
-    Build all flake closure on builder
-    e.g., inv build-all --builder psi --concurrent 24
-    """
-    cmd = [
-        "nix",
-        "run",
-        "github:Mic92/nix-fast-build",
-        "--",
-        "--flake",
-        f"{ROOT}#checks.{arch}",
-    ]
-
-    if builder:
-        cmd.extend(["--remote", f"root@{builder}"])
-        print(f"Building on remote host: {builder}")
-    else:
-        print("Building locally")
-
-    if concurrent:
-        cmd.extend(["--max-jobs", str(concurrent)])
-
-    print(f"Building with {concurrent} concurrent jobs...")
-    print(f"Architecture: {arch}")
-
-    try:
-        subprocess.run(
-            cmd,
-            text=True,
-            check=True,
-        )
-        print("✓ Build completed successfully")
-    except subprocess.CalledProcessError as e:
-        print(f"✗ Build failed with exit code {e.returncode}")
-        raise
 
 
 def check_expired_accounts():
@@ -784,135 +699,6 @@ def expired_accounts_json(_: Any) -> None:
     print(json.dumps(result, indent=2))
 
 
-# =============================================================================
-# Attic Cache Management
-# =============================================================================
-
-ATTIC_HOST = "eta"
-ATTIC_INFRA_CACHE = "infra"  # Private cache for infra hosts
-
-
-@task
-def attic_make_token(
-    c: Any,
-    sub: str,
-    validity: str = "1y",
-    caches: str = "main",
-    push: bool = True,
-    pull: bool = True,
-    create_cache: bool = False,
-    configure_cache: bool = False,
-    delete: bool = False,
-) -> None:
-    """
-    Create an attic token on the cache server.
-    e.g., inv attic-make-token --sub ci --validity 1y --caches main
-          inv attic-make-token --sub admin --validity 10y --caches "*" --create-cache --configure-cache --delete
-    """
-    cmd_parts = [
-        "atticd-atticadm",
-        "make-token",
-        f"--sub {shlex.quote(sub)}",
-        f"--validity {shlex.quote(validity)}",
-    ]
-
-    cache_list = caches.split(",")
-    for cache in cache_list:
-        cache = cache.strip()
-        if pull:
-            cmd_parts.append(f"--pull {shlex.quote(cache)}")
-        if push:
-            cmd_parts.append(f"--push {shlex.quote(cache)}")
-        if delete:
-            cmd_parts.append(f"--delete {shlex.quote(cache)}")
-        if create_cache:
-            cmd_parts.append(f"--create-cache {shlex.quote(cache)}")
-        if configure_cache:
-            cmd_parts.append(f"--configure-cache {shlex.quote(cache)}")
-            cmd_parts.append(f"--configure-cache-retention {shlex.quote(cache)}")
-
-    cmd = " ".join(cmd_parts)
-    print(f"Creating token for '{sub}' with access to: {caches}")
-    c.run(f"ssh root@{ATTIC_HOST} {shlex.quote(cmd)}", echo=True)
-
-
-@task
-def attic_gc(c: Any) -> None:
-    """
-    Trigger garbage collection on the attic server.
-    """
-    print(f"Triggering GC on {ATTIC_HOST}...")
-    c.run(f"ssh root@{ATTIC_HOST} 'atticd --mode garbage-collector-once'", echo=True)
-    print("✓ Garbage collection completed")
-
-
-def generate_attic_token_for_host(
-    c: Any,
-    hostname: str,
-    push: bool = False,
-    pull: bool = True,
-    validity: str = "10y",
-) -> str:
-    """
-    Generate an attic token for a host to access the infra cache.
-    Returns the token string.
-    """
-    cmd_parts = [
-        "atticd-atticadm make-token",
-        f"--sub {shlex.quote(hostname)}",
-        f"--validity {shlex.quote(validity)}",
-    ]
-    if pull:
-        cmd_parts.append(f"--pull {shlex.quote(ATTIC_INFRA_CACHE)}")
-    if push:
-        cmd_parts.append(f"--push {shlex.quote(ATTIC_INFRA_CACHE)}")
-
-    cmd = " ".join(cmd_parts)
-    result = c.run(f"ssh root@{ATTIC_HOST} {shlex.quote(cmd)}", hide=True)
-    token = result.stdout.strip()
-    return token
-
-
-@task
-def generate_attic_host_token(
-    c: Any,
-    hostname: str,
-    push: bool = False,
-    pull: bool = True,
-    validity: str = "10y",
-    sops_file: str = "",
-    secret_name: str = "attic-token",
-) -> None:
-    """
-    Generate attic token for a host and add it to sops secrets.
-    e.g., inv generate-attic-host-token --hostname rho              # pull only
-          inv generate-attic-host-token --hostname psi --push       # push + pull
-          inv generate-attic-host-token --hostname buildbot --push --sops-file modules/buildbot/secrets.yaml --secret-name attic-auth-token
-    """
-    if not sops_file:
-        sops_file = f"{ROOT}/hosts/{hostname}.yaml"
-
-    perms = []
-    if pull:
-        perms.append("pull")
-    if push:
-        perms.append("push")
-    print(f"Generating attic token for '{hostname}' with permissions: {', '.join(perms)}")
-
-    token = generate_attic_token_for_host(c, hostname, push=push, pull=pull, validity=validity)
-
-    if not Path(sops_file).exists():
-        print(f"Error: {sops_file} does not exist")
-        return
-
-    print(f"Adding token to {sops_file} as '{secret_name}'...")
-    c.run(
-        f"sops --set '[\"{secret_name}\"] {json.dumps(token)}' {sops_file}",
-        echo=True,
-    )
-    print(f"✓ Attic token added for '{hostname}'")
-
-
 @task
 def expired_accounts_create_issues(c: Any) -> None:
     """
@@ -972,7 +758,7 @@ cc @SBEE-Lab/infra-admins"""
         c.run(
             f"gh issue create "
             f'--title "Expired student account: {username}" '
-            f"--body {shlex.quote(issue_body)} ",
-            "--label 'expired-user' ",
+            f"--body {shlex.quote(issue_body)} "
+            "--label 'expired-user'",
             echo=True,
         )

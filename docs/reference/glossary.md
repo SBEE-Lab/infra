@@ -27,7 +27,6 @@
 | **n8n** | 노코드 워크플로우 자동화 플랫폼 |
 | **Nextcloud** | 자체 호스팅 파일 동기화, 캘린더, 문서 협업 플랫폼 |
 | **NixOS** | 선언적 Linux 배포판 |
-| **nix-fast-build** | Nix flake 병렬 빌드 도구. `inv build-all`에서 사용 |
 | **nix-ld** | NixOS에서 동적 링크 라이브러리를 제공하는 호환성 레이어 |
 | **ntfy** | HTTP 기반 푸시 알림 서비스 |
 | **OIDC** | OpenID Connect. OAuth 2.0 기반 인증 프로토콜 |

@@ -143,8 +143,7 @@ PR merge 시 squash merge를 권장합니다:
 ### 로컬 빌드/미리보기
 
 ```bash
-inv docs          # 빌드
-inv docs-serve    # 로컬 서버 (http://localhost:8000)
+inv docs    # 빌드 후 로컬 서버 실행 (http://localhost:8000)
 ```
 
 ### 규칙
