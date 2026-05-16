@@ -2,14 +2,27 @@
 { lib, ... }:
 let
   asGB = size: toString (size * 1024 * 1024 * 1024);
-  inherit (lib) mkDefault;
+  inherit (lib) mkDefault mkForce;
 in
 {
+  services.fast-nix-gc = {
+    enable = mkDefault true;
+    automatic = mkDefault true;
+    dates = mkDefault "03:15";
+    deleteOlderThan = mkDefault "14d";
+  };
+
+  services.fast-nix-optimise = {
+    enable = mkDefault true;
+    automatic = mkDefault true;
+    dates = mkDefault "04:15";
+  };
+
   nix = {
-    gc.automatic = mkDefault true;
-    gc.dates = mkDefault "monthly";
-    gc.options = mkDefault "--delete-older-than 14d";
-    gc.randomizedDelaySec = "1h";
+    # fast-nix-gc and fast-nix-optimise take the same gc.lock; keep stock
+    # timers off so srvos/nixpkgs do not run slower duplicate jobs.
+    gc.automatic = mkForce false;
+    optimise.automatic = mkForce false;
 
     settings = {
       substituters = [

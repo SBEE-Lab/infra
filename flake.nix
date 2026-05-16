@@ -34,6 +34,9 @@
     buildbot-nix.url = "github:nix-community/buildbot-nix";
     disko.inputs.nixpkgs.follows = "nixpkgs";
     disko.url = "github:nix-community/disko";
+    fast-nix-gc.inputs.nixpkgs.follows = "nixpkgs";
+    fast-nix-gc.inputs.treefmt-nix.follows = "treefmt-nix";
+    fast-nix-gc.url = "github:Mic92/fast-nix-gc";
     flake-parts.inputs.nixpkgs-lib.follows = "nixpkgs";
     flake-parts.url = "github:hercules-ci/flake-parts";
     niks3.inputs.nixpkgs.follows = "nixpkgs";
