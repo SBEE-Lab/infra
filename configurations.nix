@@ -8,6 +8,7 @@ let
     nixpkgs
     authentik-nix
     disko
+    fast-nix-gc
     sops-nix
     srvos
     ;
@@ -57,6 +58,7 @@ let
     ./modules/zram.nix
 
     disko.nixosModules.disko
+    fast-nix-gc.nixosModules.default
     srvos.nixosModules.server
     srvos.nixosModules.mixins-terminfo
     srvos.nixosModules.mixins-nix-experimental
