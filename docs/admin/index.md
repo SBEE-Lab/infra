@@ -6,7 +6,7 @@ SBEE Lab 인프라를 운영하기 위한 관리자 가이드입니다.
 
 | 도구 | 용도 | 접근 방법 |
 |------|------|----------|
-| `inv` (invoke) | 배포, 빌드, 사용자 관리 자동화 | 로컬 `tasks.py` |
+| `inv` (invoke) | 배포, 운영, 사용자 관리 자동화 | 로컬 `tasks.py` |
 | Authentik | SSO/사용자/그룹 관리 | `https://auth.sjanglab.org` |
 | sops | 시크릿 암호화/복호화 | `sops hosts/<host>.yaml` |
 | Terraform | DNS, GitHub 리소스 관리 | `terraform/` 디렉토리 |
@@ -25,7 +25,6 @@ Authentik 그룹(`sjanglab-admins`, `sjanglab-researchers`, `sjanglab-students`)
 | 작업 | 명령어 |
 |------|--------|
 | 배포 | `inv deploy --hosts psi,rho,tau` |
-| 전체 빌드 | `inv build-all --builder psi --concurrent 24` |
 | 만료 계정 확인 | `inv expired-accounts` |
 | 서버 기동 | `inv wake --host rho` |
 | 서버 종료 | `inv shutdown --host rho` |
