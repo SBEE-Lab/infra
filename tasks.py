@@ -160,6 +160,19 @@ def cleanup_gcroots(_: Any, hosts: str) -> None:
 
 
 @task
+def fast_nix_gc(_: Any, hosts: str) -> None:
+    """
+    Trigger fast-nix-gc systemd service on remote hosts without waiting for GC completion.
+    """
+    g = DeployGroup(get_hosts(hosts))
+    g.run(
+        "sudo systemctl start --no-block fast-nix-gc.service "
+        "&& echo 'Triggered fast-nix-gc.service' "
+        "|| { echo 'Failed to trigger fast-nix-gc.service' >&2; exit 1; }"
+    )
+
+
+@task
 def generate_password(c: Any, user: str = "root") -> None:
     """
     Generate password hashes for users i.e. for root in ./hosts/$HOSTNAME.yaml

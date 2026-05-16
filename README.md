@@ -57,6 +57,7 @@ Available tasks:
   expired-accounts                 Check for expired student accounts (human-readable output)
   expired-accounts-create-issues   Create GitHub issues for expired student accounts
   expired-accounts-json            Check for expired student accounts (JSON output for automation)
+  fast-nix-gc                      Trigger fast-nix-gc systemd service on remote hosts without waiting for GC completion
   generate-admin-wireguard-key     Generate an admin WireGuard key and client config
   generate-password                Generate password hashes for users i.e. for root in ./hosts/$HOSTNAME.yaml
   generate-ssh-cert                Generate ssh cert for host, i.e. inv generate-ssh-cert bill
