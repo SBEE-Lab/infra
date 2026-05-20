@@ -5,10 +5,6 @@
   pkgs,
   ...
 }:
-let
-  inherit (config.networking.sbee) hosts;
-  psql = "${config.services.postgresql.package}/bin/psql --port=${toString config.services.postgresql.settings.port}";
-in
 {
   imports = [ ../gatus/check.nix ];
 
@@ -25,7 +21,7 @@ in
     package = pkgs.postgresql_17;
 
     settings = {
-      listen_addresses = lib.mkForce hosts.psi.wg-admin;
+      listen_addresses = lib.mkForce "localhost";
       port = 5432;
     };
 
@@ -36,14 +32,14 @@ in
         ensureDBOwnership = true;
       }
     ];
-    authentication = lib.mkAfter ''
-      host buildbot buildbot ${hosts.psi.wg-admin}/32 scram-sha-256
-    '';
   };
 
   systemd.services.postgresql-setup.postStart = lib.mkAfter ''
     BUILDBOT_PW=$(cat ${config.sops.secrets.buildbot-db-password.path})
-    ${psql} -tAc "ALTER USER buildbot WITH PASSWORD '$BUILDBOT_PW'" -d postgres
+    ${config.services.postgresql.package}/bin/psql \
+      --port=${toString config.services.postgresql.settings.port} \
+      -tAc "ALTER USER buildbot WITH PASSWORD '$BUILDBOT_PW'" \
+      -d postgres
   '';
 
   sops.secrets.buildbot-db-password = {
@@ -53,6 +49,4 @@ in
   };
 
   services.postgresqlBackup.databases = lib.mkAfter [ "buildbot" ];
-
-  networking.firewall.interfaces.wg-admin.allowedTCPPorts = [ 5432 ];
 }
