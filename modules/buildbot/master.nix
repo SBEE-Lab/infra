@@ -65,11 +65,15 @@ in
     admins = [ "mulatta" ];
   };
 
-  services.buildbot-master.dbUrl = lib.mkForce "postgresql://buildbot@${hosts.psi.wg-admin}/buildbot";
+  services.buildbot-master.dbUrl = lib.mkForce "postgresql://buildbot@/buildbot?host=/run/postgresql";
   services.buildbot-master.buildbotUrl = lib.mkForce "https://${buildbotDomain}/";
 
-  systemd.services.buildbot-master.environment = {
-    PGPASSFILE = config.sops.secrets.buildbot-pgpass.path;
+  systemd.services.buildbot-master = {
+    after = [ "postgresql.service" ];
+    requires = [ "postgresql.service" ];
+    environment = {
+      PGPASSFILE = config.sops.secrets.buildbot-pgpass.path;
+    };
   };
 
   systemd.services.buildbot-master.serviceConfig = {
