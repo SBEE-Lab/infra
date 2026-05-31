@@ -156,6 +156,16 @@ in
     };
   };
 
+  # Spare clients that reach the auth phase then drop (e.g. an unconfirmed
+  # Secretive/Touch-ID prompt) from the aggressive jail. Anonymous floods lack
+  # the "authenticating user" qualifier, so they are still caught.
+  environment.etc."fail2ban/filter.d/sshd.local" = lib.mkIf isBastion {
+    text = ''
+      [Definition]
+      ignoreregex = ^(?:Connection closed|Disconnected) by authenticating user \S+ <HOST> port \d+(?: \[preauth\])?\s*$
+    '';
+  };
+
   # ========== firewall ==========
   # Bastion: SSH exposed to internet with rate limiting
   # Non-bastion: SSH only via WireGuard (wg-admin)
