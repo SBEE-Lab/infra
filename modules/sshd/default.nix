@@ -26,8 +26,9 @@ let
   fail2ban = {
     maxRetry = 3;
     findTime = 600;
-    banTime = 86400;
-    aggressiveBanTime = 604800;
+    # Exponential backoff: ban doubles per re-offense from base to cap.
+    baseBanTime = 300;
+    maxBanTime = 604800;
   };
 
   rateLimiting = {
@@ -109,6 +110,16 @@ in
     enable = true;
     maxretry = fail2ban.maxRetry;
 
+    # overalljails counts offenses per-IP across jails, not per-filter.
+    bantime-increment = {
+      enable = true;
+      maxtime = toString fail2ban.maxBanTime;
+      rndtime = "60"; # jitter to avoid synchronized ban expiry
+      overalljails = true;
+    };
+
+    # Only ignoreIP truly whitelists: it is checked before banning, whereas the
+    # iptables ACCEPT sits below the f2b jump chain and cannot override a ban.
     ignoreIP = [
       "127.0.0.1/8"
       "::1/128"
@@ -124,19 +135,21 @@ in
           filter = "sshd";
           maxretry = fail2ban.maxRetry;
           findtime = fail2ban.findTime;
-          bantime = fail2ban.banTime;
+          bantime = fail2ban.baseBanTime;
           backend = "systemd";
         };
       };
 
+      # maxretry 3 (not 1): one preauth disconnect from a legit client must not
+      # mean an instant ban. Backoff handles repeat abusers.
       sshd-aggressive = {
         settings = {
           enabled = true;
           inherit (ssh) port;
           filter = "sshd[mode=aggressive]";
-          maxretry = 1;
-          findtime = fail2ban.banTime;
-          bantime = fail2ban.aggressiveBanTime;
+          maxretry = fail2ban.maxRetry;
+          findtime = fail2ban.findTime;
+          bantime = fail2ban.baseBanTime;
           backend = "systemd";
         };
       };
