@@ -8,7 +8,6 @@
           "flake-parts"
         ],
         "flake-utils": "flake-utils",
-        "napalm": "napalm",
         "nixpkgs": [
           "nixpkgs"
         ],
@@ -18,11 +17,11 @@
         "uv2nix": "uv2nix"
       },
       "locked": {
-        "lastModified": 1782281803,
-        "narHash": "sha256-UuM+gTU29DrQYUuUeZ7oJp6NwKapnO7f+jRbkncvAnA=",
+        "lastModified": 1782385544,
+        "narHash": "sha256-b9k01gZV57mbfd2unu3hU9uROeG/9MdHZX7CGJpYHUs=",
         "owner": "nix-community",
         "repo": "authentik-nix",
-        "rev": "f520de9db72fe09ccfca4d29e64f6231d51dbe8a",
+        "rev": "c2144eb8a943341da3f7982e663b060b3b39e657",
         "type": "github"
       },
       "original": {
@@ -168,32 +167,6 @@
       "original": {
         "owner": "numtide",
         "repo": "flake-utils",
-        "type": "github"
-      }
-    },
-    "napalm": {
-      "inputs": {
-        "flake-utils": [
-          "authentik-nix",
-          "flake-utils"
-        ],
-        "nixpkgs": [
-          "authentik-nix",
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1725806412,
-        "narHash": "sha256-lGZjkjds0p924QEhm/r0BhAxbHBJE1xMOldB/HmQH04=",
-        "owner": "willibutz",
-        "repo": "napalm",
-        "rev": "b492440d9e64ae20736d3bec5c7715ffcbde83f5",
-        "type": "github"
-      },
-      "original": {
-        "owner": "willibutz",
-        "ref": "avoid-foldl-stack-overflow",
-        "repo": "napalm",
         "type": "github"
       }
     },
