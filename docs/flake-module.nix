@@ -34,9 +34,12 @@
           include_mail = true;
           include_verbatim = true;
           exclude = [ "docker:.*" ];
+          root_dir = "${site}";
         };
         remap = {
           "https://sjanglab.org" = site;
+          "file://(.+)/infra$" = "file://$1";
+          "file://(.+)/infra/(.*)" = "file://$1/$2";
           # Resolve directory-style URLs to index.html for fragment checking
           "file://(.+)/([a-z][-a-z0-9]*)#(.*)" = "file://$1/$2/index.html#$3";
         };
