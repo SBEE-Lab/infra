@@ -105,12 +105,12 @@ main (보호) ← feature/xxx ← 개발
 1. 변경 작업 및 `nix fmt` 실행
 1. 단일 호스트 빌드로 검증: `nix build .#nixosConfigurations.<host>.config.system.build.toplevel`
 1. PR 생성 (GitHub)
-1. Buildbot이 자동으로 CI 검사 수행
+1. Nixbot이 자동으로 CI 검사 수행
 1. 리뷰 후 **squash merge**
 
 ### CI 검사 항목
 
-Buildbot이 PR에 대해 자동으로 다음을 검사합니다:
+Nixbot이 PR에 대해 자동으로 다음을 검사합니다:
 
 | 검사 | 설명 |
 |------|------|

@@ -1,6 +1,5 @@
-# Buildbot PostgreSQL database (deployed on psi)
+# Nixbot PostgreSQL database health/backup helpers (deployed on psi)
 {
-  config,
   lib,
   pkgs,
   ...
@@ -10,12 +9,13 @@
 
   gatusCheck.push = [
     {
-      name = "Buildbot PostgreSQL";
+      name = "Nixbot PostgreSQL";
       group = "ci";
       systemdService = "postgresql.service";
     }
   ];
 
+  # services.nixbot provisions the nixbot database and peer-authenticated user.
   services.postgresql = {
     enable = true;
     package = pkgs.postgresql_17;
@@ -24,29 +24,7 @@
       listen_addresses = lib.mkForce "localhost";
       port = 5432;
     };
-
-    ensureDatabases = [ "buildbot" ];
-    ensureUsers = [
-      {
-        name = "buildbot";
-        ensureDBOwnership = true;
-      }
-    ];
   };
 
-  systemd.services.postgresql-setup.postStart = lib.mkAfter ''
-    BUILDBOT_PW=$(cat ${config.sops.secrets.buildbot-db-password.path})
-    ${config.services.postgresql.package}/bin/psql \
-      --port=${toString config.services.postgresql.settings.port} \
-      -tAc "ALTER USER buildbot WITH PASSWORD '$BUILDBOT_PW'" \
-      -d postgres
-  '';
-
-  sops.secrets.buildbot-db-password = {
-    sopsFile = ./secrets.yaml;
-    owner = "postgres";
-    group = "postgres";
-  };
-
-  services.postgresqlBackup.databases = lib.mkAfter [ "buildbot" ];
+  services.postgresqlBackup.databases = lib.mkAfter [ "nixbot" ];
 }

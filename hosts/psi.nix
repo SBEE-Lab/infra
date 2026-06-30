@@ -12,7 +12,6 @@
     ../modules/buildbot/database.nix
     ../modules/buildbot/master.nix
     ../modules/buildbot/reverse-proxy.nix
-    ../modules/buildbot/worker.nix
     ../modules/borgbackup/psi/client.nix
     ../modules/monitoring/vector
     ../modules/harmonia

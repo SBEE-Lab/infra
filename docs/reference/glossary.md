@@ -8,7 +8,7 @@
 | **auditd** | Linux 감사 데몬. PAM 세션, SSH 설정 변경 등 추적 |
 | **Authentik** | 오픈소스 SSO/OIDC 인증 제공자 |
 | **Borg** | 증분 백업 도구 (중복 제거, 암호화) |
-| **Buildbot** | Python 기반 CI/CD 프레임워크. GitHub 연동 빌드 자동화 |
+| **Nixbot** | Nix 전용 CI 서비스. GitHub App 연동 flake checks 자동 빌드 |
 | **Collabora Online** | Nextcloud 통합 오피스 편집기 (LibreOffice 기반) |
 | **direnv** | 디렉토리 진입 시 환경 변수를 자동 로드하는 도구. `nix develop` 자동 활성화에 사용 |
 | **disko** | NixOS 선언적 디스크 관리 도구 |

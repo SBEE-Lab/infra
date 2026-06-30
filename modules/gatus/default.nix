@@ -61,8 +61,8 @@ in
         in
         [
           # psi
-          (mkExtEndpoint "Buildbot" "ci")
-          (mkExtEndpoint "Buildbot PostgreSQL" "ci")
+          (mkExtEndpoint "Nixbot" "ci")
+          (mkExtEndpoint "Nixbot PostgreSQL" "ci")
           (mkExtEndpoint "Ollama" "ai")
           (mkExtEndpoint "Docling" "ai")
           (mkExtEndpoint "vLLM" "ai")

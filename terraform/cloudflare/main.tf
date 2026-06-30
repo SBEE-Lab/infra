@@ -51,7 +51,7 @@ resource "cloudflare_dns_record" "buildbot" {
   type    = "A"
   ttl     = 300
   proxied = false
-  comment = "Buildbot CI/CD edge proxy (eta -> psi)"
+  comment = "Nixbot CI/CD edge proxy (eta -> psi)"
 }
 
 resource "cloudflare_dns_record" "s3" {

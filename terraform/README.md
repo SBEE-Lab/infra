@@ -19,9 +19,9 @@
 
 - Classic Token with org: repo permissions
 
-#### Buildbot
+#### Nixbot
 
-- Cloudflare DNS for `buildbot.sjanglab.org` points to eta (`141.164.53.203`), which proxies public traffic to the Buildbot stack on psi over wg-admin.
+- Cloudflare DNS for `buildbot.sjanglab.org` points to eta (`141.164.53.203`), which proxies public traffic to the Nixbot stack on psi over wg-admin.
 
 ### Cloudflare
 
