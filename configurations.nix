@@ -83,10 +83,6 @@ let
         sops.defaultSopsFile = lib.mkIf (builtins.pathExists sopsFile) sopsFile;
         time.timeZone = lib.mkForce "Asia/Seoul";
 
-        # WARN: patch Copy Fail (CVE-2026-31431)
-        boot.kernelPackages = lib.mkIf (lib.versionOlder pkgs.linux.version "6.18.22") (
-          lib.mkDefault pkgs.linuxPackages_6_18
-        );
       }
     )
   ];
