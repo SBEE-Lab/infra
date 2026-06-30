@@ -9,7 +9,7 @@ in
 {
   environment.systemPackages = [ pkgs.harmonia ];
 
-  services.harmonia = {
+  services.harmonia.cache = {
     enable = true;
 
     signKeyPaths = [ config.sops.secrets.harmonia-sign-key.path ];
@@ -22,7 +22,9 @@ in
 
   sops.secrets.harmonia-sign-key = {
     sopsFile = ./secrets.yaml;
-    owner = "harmonia";
+    owner = "root";
+    group = "root";
+    mode = "0400";
   };
 
   # Allow nix-daemon to read store for harmonia
