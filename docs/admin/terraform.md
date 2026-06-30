@@ -20,7 +20,7 @@ terraform apply
 
 | 레코드 | 값 | 용도 |
 |--------|-----|------|
-| `buildbot.sjanglab.org` | 141.164.53.203 | CI/CD edge proxy (eta → psi) |
+| `buildbot.sjanglab.org` | 141.164.53.203 | Nixbot CI/CD edge proxy (eta → psi) |
 | `logging.sjanglab.org` | 141.164.53.203 | Grafana |
 | `hs.sjanglab.org` | 141.164.53.203 | Headscale |
 | `auth.sjanglab.org` | 141.164.53.203 | Authentik |
@@ -31,7 +31,7 @@ terraform apply
 | `cache.sjanglab.org` | 141.164.53.203 | Nix 캐시 |
 | `upterm.sjanglab.org` | 141.164.53.203 | Upterm relay |
 
-대부분의 웹 서비스는 eta(141.164.53.203)의 nginx를 통해 프록시됩니다. Buildbot 서비스 스택은 psi에 있지만 `buildbot.sjanglab.org` 공개 ingress는 eta가 받아 wg-admin으로 psi에 프록시합니다. Upterm relay는 eta의 `2323/tcp`에 직접 노출됩니다.
+대부분의 웹 서비스는 eta(141.164.53.203)의 nginx를 통해 프록시됩니다. Nixbot 서비스 스택은 psi에 있지만 `buildbot.sjanglab.org` 공개 ingress는 eta가 받아 wg-admin으로 psi에 프록시합니다. Upterm relay는 eta의 `2323/tcp`에 직접 노출됩니다.
 
 ### GitHub
 

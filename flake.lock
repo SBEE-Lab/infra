@@ -47,29 +47,6 @@
         "type": "github"
       }
     },
-    "buildbot-nix": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ],
-        "treefmt-nix": [
-          "treefmt-nix"
-        ]
-      },
-      "locked": {
-        "lastModified": 1782627599,
-        "narHash": "sha256-IvWAhl5KZ5uAvViyUw+vuvMF1i3sRS0CLNnTRDNaaPM=",
-        "owner": "nix-community",
-        "repo": "buildbot-nix",
-        "rev": "fcddf6d3150ea4458c4dd8e1aee8951121d8d1b4",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nix-community",
-        "repo": "buildbot-nix",
-        "type": "github"
-      }
-    },
     "disko": {
       "inputs": {
         "nixpkgs": [
@@ -235,6 +212,29 @@
         "type": "github"
       }
     },
+    "nixbot": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "treefmt-nix": [
+          "treefmt-nix"
+        ]
+      },
+      "locked": {
+        "lastModified": 1782809086,
+        "narHash": "sha256-aSeIbszt/9Dt2qPZ336JKcJFB6QFMRCUwJhUo9Puw3M=",
+        "owner": "Mic92",
+        "repo": "nixbot",
+        "rev": "ee80d5e1e687764068557156d825c155cc61373b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Mic92",
+        "repo": "nixbot",
+        "type": "github"
+      }
+    },
     "nixos-images": {
       "inputs": {
         "nixos-stable": [
@@ -343,12 +343,12 @@
     "root": {
       "inputs": {
         "authentik-nix": "authentik-nix",
-        "buildbot-nix": "buildbot-nix",
         "disko": "disko",
         "fast-nix-gc": "fast-nix-gc",
         "flake-parts": "flake-parts",
         "niks3": "niks3",
         "nix-index-database": "nix-index-database",
+        "nixbot": "nixbot",
         "nixos-images": "nixos-images",
         "nixpkgs": "nixpkgs",
         "nixpkgs-unstable": "nixpkgs-unstable",

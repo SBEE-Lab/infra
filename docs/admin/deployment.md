@@ -22,13 +22,13 @@ inv deploy --hosts psi,rho,tau,eta
 - **재부팅**: 커널이 변경된 경우에만 24시간 후 자동 재부팅 (`shutdown -r +1440`)
 - **지터**: ±20분 (호스트별 재부팅 시점 분산)
 
-## 사전 빌드 (Buildbot/Harmonia 캐시)
+## 사전 빌드 (Nixbot/Harmonia 캐시)
 
-PR과 메인 브랜치 변경은 Buildbot이 빌드합니다. 빌드 결과는 psi의 `/nix/store`에 남고, Harmonia가 이 store를 내부 캐시로 제공합니다. 다른 호스트는 배포 시 `http://10.100.0.2:5000` substituter에서 이미 빌드된 결과를 가져옵니다.
+PR과 메인 브랜치 변경은 Nixbot이 빌드합니다. 빌드 결과는 psi의 `/nix/store`에 남고, Harmonia가 이 store를 내부 캐시로 제공합니다. 다른 호스트는 배포 시 `http://10.100.0.2:5000` substituter에서 이미 빌드된 결과를 가져옵니다.
 
 ```mermaid
 flowchart LR
-  pr["PR/메인 브랜치"] -- "Buildbot" --> psi["psi<br/>nix build"]
+  pr["PR/메인 브랜치"] -- "Nixbot" --> psi["psi<br/>nix build"]
   psi -- "/nix/store" --> harmonia["Harmonia<br/>10.100.0.2:5000"]
   harmonia -- "substituter" --> rho["rho"]
   harmonia -- "substituter" --> tau["tau"]
@@ -36,7 +36,7 @@ flowchart LR
   admin["관리자"] -- "inv deploy" --> rho & tau & eta
 ```
 
-일반적인 배포 흐름은 **PR에서 Buildbot 통과 확인 → merge → 배포**입니다.
+일반적인 배포 흐름은 **PR에서 Nixbot 통과 확인 → merge → 배포**입니다.
 
 ## 배포 전 확인
 

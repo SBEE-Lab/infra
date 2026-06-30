@@ -1,5 +1,5 @@
-# Buildbot reverse proxy (deployed on psi)
-# No nginx auth: Buildbot uses its own Authentik OIDC integration for login
+# Nixbot reverse proxy/TLS endpoint on psi.
+# eta provides public ingress; this vhost is the wg-admin upstream.
 { config, ... }:
 let
   buildbotDomain = "buildbot.sjanglab.org";
@@ -9,9 +9,9 @@ in
 
   gatusCheck.push = [
     {
-      name = "Buildbot";
-      url = "http://127.0.0.1:8010";
+      name = "Nixbot";
       group = "ci";
+      systemdService = "nixbot.service";
     }
   ];
 

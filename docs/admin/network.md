@@ -125,10 +125,10 @@ sequenceDiagram
 | 호스트 | 외부 개방 포트 | wg-admin 개방 포트 |
 |--------|--------------|-------------------|
 | eta | 80, 443, 10022 (SSH + Rate limiting), 2323 (Upterm relay) | 10022 |
-| psi | — | 80/443 (Buildbot upstream), 10022, 5000 (Harmonia), 5432/9989 (Buildbot) |
+| psi | — | 80/443 (Nixbot upstream), 10022, 5000 (Harmonia), 5432 (Nixbot/PostgreSQL) |
 | rho | — | 10022, 5432 (PostgreSQL), 3000 (Grafana) |
 | tau | — | 10022, 5678 (n8n 웹훅) |
 
 ## ACME 인증서
 
-대부분의 TLS 인증서는 eta에서 Cloudflare DNS 챌린지로 발급됩니다. Buildbot(`buildbot.sjanglab.org`) 공개 인증서는 eta에서 발급되고, psi의 Buildbot nginx도 wg-admin upstream용 인증서를 유지합니다. 다른 호스트(psi, tau)의 나머지 인증서는 `acme-sync` 사용자를 통해 rsync로 동기화됩니다.
+대부분의 TLS 인증서는 eta에서 Cloudflare DNS 챌린지로 발급됩니다. Nixbot(`buildbot.sjanglab.org`) 공개 인증서는 eta에서 발급되고, psi의 Nixbot nginx도 wg-admin upstream용 인증서를 유지합니다. 다른 호스트(psi, tau)의 나머지 인증서는 `acme-sync` 사용자를 통해 rsync로 동기화됩니다.

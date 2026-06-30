@@ -1,44 +1,53 @@
-# Buildbot Master (deployed on psi)
+# Nixbot CI service (deployed on psi)
 {
   config,
   inputs,
-  lib,
+  pkgs,
   ...
 }:
 let
-  inherit (config.networking.sbee) hosts;
-  inherit (inputs.buildbot-nix.lib) interpolate;
+  inherit (inputs.nixbot.lib) interpolate;
   buildbotDomain = "buildbot.sjanglab.org";
 in
 {
-  imports = [ inputs.buildbot-nix.nixosModules.buildbot-master ];
+  imports = [ inputs.nixbot.nixosModules.nixbot ];
 
-  services.buildbot-nix.master = {
+  services.nixbot = {
     enable = true;
     domain = buildbotDomain;
-    workersFile = config.sops.secrets.buildbot-workers.path;
+    # Public traffic terminates on eta first, then reaches psi's nginx over
+    # wg-admin. Generate external URLs with the public HTTPS scheme.
+    useHTTPS = true;
+
     buildSystems = [ "x86_64-linux" ];
     evalWorkerCount = 8;
     evalMaxMemorySize = 8192;
+    buildConcurrency = 8;
+
+    # Keep buildbot-era check names so existing branch protection rules match.
+    statusContextPrefix = "buildbot";
 
     github = {
       enable = true;
       appId = 2388926;
       appSecretKeyFile = config.sops.secrets.github-app-private-key.path;
       webhookSecretFile = config.sops.secrets.github-webhook-secret.path;
-      oauthId = "Ov23lixVe87HVC7XJzqn";
+      oauthId = "Iv23liVojH0Fo2OIQ24f";
       oauthSecretFile = config.sops.secrets.github-oauth-secret.path;
-      # topic defaults to "build-with-buildbot"
+      topic = "build-with-buildbot";
       userAllowlist = [
         "SBEE-Lab"
         "mulatta"
       ];
     };
 
-    # Push to niks3 cache for selected projects
+    admins = [ "github:mulatta" ];
+
+    outputsPath = "/var/www/buildbot/nix-outputs/";
+
     postBuildSteps = [
       {
-        name = "Push to niks3 cache";
+        name = "Push selected repositories to niks3 cache";
         environment = {
           NIKS3_SERVER_URL = "https://niks3.mulatta.io";
         };
@@ -46,13 +55,16 @@ in
           "bash"
           "-c"
           (interpolate ''
-            case "%(prop:projectname)s" in
+            set -euo pipefail
+
+            case "%(prop:project)s" in
               mulatta/dots|mulatta/seqtable)
-                echo "Pushing to niks3 cache..."
-                niks3 push --auth-token "%(secret:niks3-auth-token)s" "result-%(prop:attr)s"
+                echo "Pushing %(prop:project)s:%(prop:attr)s to niks3 cache..."
+                export NIKS3_AUTH_TOKEN_FILE="$CREDENTIALS_DIRECTORY/niks3-auth-token"
+                niks3 push "%(prop:out_link)s"
                 ;;
               *)
-                echo "Skipping niks3 push for %(prop:projectname)s"
+                echo "Skipping niks3 push for %(prop:project)s"
                 ;;
             esac
           '')
@@ -60,69 +72,32 @@ in
         warnOnly = true;
       }
     ];
-
-    authBackend = "github";
-    admins = [ "mulatta" ];
   };
 
-  services.buildbot-master.dbUrl = lib.mkForce "postgresql://buildbot@/buildbot?host=/run/postgresql";
-  services.buildbot-master.buildbotUrl = lib.mkForce "https://${buildbotDomain}/";
-
-  systemd.services.buildbot-master = {
-    after = [ "postgresql.service" ];
-    requires = [ "postgresql.service" ];
-    environment = {
-      PGPASSFILE = config.sops.secrets.buildbot-pgpass.path;
-    };
-  };
-
-  systemd.services.buildbot-master.serviceConfig = {
-    LoadCredential = [
+  systemd.services.nixbot = {
+    path = [ inputs.niks3.packages.${pkgs.stdenv.hostPlatform.system}.default ];
+    serviceConfig.LoadCredential = [
       "niks3-auth-token:${config.sops.secrets.niks3-auth-token.path}"
     ];
-    Restart = "on-failure";
-    RestartSec = "30s";
   };
 
-  services.buildbot-master.extraConfig = ''
-    c["www"]["port"] = "tcp:8010:interface=127.0.0.1"
-    c["protocols"] = {"pb": {"port": "tcp:9989:interface=${hosts.psi.wg-admin}"}}
-  '';
-
-  networking.firewall.interfaces.wg-admin.allowedTCPPorts = [ 9989 ];
-
   sops.secrets = {
-    buildbot-workers = {
-      sopsFile = ./secrets.yaml;
-      owner = "buildbot";
-    };
     github-app-private-key = {
       sopsFile = ./secrets.yaml;
-      owner = "buildbot";
+      owner = "nixbot";
       mode = "0400";
     };
     github-webhook-secret = {
       sopsFile = ./secrets.yaml;
-      owner = "buildbot";
+      owner = "nixbot";
     };
     github-oauth-secret = {
       sopsFile = ./secrets.yaml;
-      owner = "buildbot";
-    };
-    buildbot-pgpass = {
-      sopsFile = ./secrets.yaml;
-      owner = "buildbot";
-      mode = "0400";
+      owner = "nixbot";
     };
     niks3-auth-token = {
       sopsFile = ./secrets.yaml;
-      owner = "buildbot";
+      owner = "nixbot";
     };
   };
-
-  users.users.buildbot = {
-    isSystemUser = true;
-    group = "buildbot";
-  };
-  users.groups.buildbot = { };
 }

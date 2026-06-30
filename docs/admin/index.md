@@ -47,7 +47,7 @@ Authentik 그룹(`sjanglab-admins`, `sjanglab-researchers`, `sjanglab-students`)
 |--------|------|-----------|
 | **SSH** | 새 관리자 키 추가, `root` 키 교체, `trusted-users` 추가 | `modules/users/admins.nix` |
 | **sops** | 새 관리자 age 공개키 등록 → `sops updatekeys` | `pubkeys.json` |
-| **Buildbot** | `admins` 목록 변경, GitHub OAuth/App 권한 이전 | `modules/buildbot/master.nix` |
+| **Nixbot** | `admins` 목록 변경, GitHub OAuth/App 권한 이전 | `modules/buildbot/master.nix` |
 | **Authentik** | `sjanglab-admins` 그룹에 추가, 기존 관리자 수퍼유저 권한 이전 | `auth.sjanglab.org` |
 | **GitHub** | `SBEE-Lab` 조직 Owner 권한 부여 | GitHub 설정 |
 
@@ -57,7 +57,7 @@ Authentik 그룹(`sjanglab-admins`, `sjanglab-researchers`, `sjanglab-students`)
 1. `admins.nix`에 사용자 추가 (아래 [사용자 관리](user-management.md) 참조)
 1. `pubkeys.json`에 age 키 추가 후 `sops updatekeys` 실행
 1. `inv deploy --hosts psi,rho,tau,eta` (전체 배포)
-1. Buildbot `master.nix`의 `admins` 목록에 GitHub 사용자명 추가 → 재배포
+1. Nixbot `master.nix`의 `admins` 목록에 `github:<login>` 추가 → 재배포
 1. Authentik, GitHub에서 권한 부여
 
 > 이전 관리자 계정은 즉시 삭제하지 않고, 인수인계 완료 후 비활성화합니다.
@@ -68,7 +68,7 @@ Authentik 그룹(`sjanglab-admins`, `sjanglab-researchers`, `sjanglab-students`)
 - [배포](deployment.md) — NixOS 설정 배포 및 자동 업그레이드
 - [모니터링](monitoring.md) — Grafana, Prometheus, Loki, Gatus
 - [백업](backup.md) — Borg 백업 및 미러링
-- [CI/CD](ci-cd.md) — Buildbot, Nix 바이너리 캐시
+- [CI/CD](ci-cd.md) — Nixbot, Nix 바이너리 캐시
 - [아키텍처](architecture.md) — 전체 구조, 호스트 역할, 기술 스택
 - [모듈 개발](module-development.md) — NixOS 모듈 작성 가이드
 - [Terraform](terraform.md) — DNS, GitHub 리소스 관리

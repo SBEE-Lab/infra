@@ -1,64 +1,82 @@
 # CI/CD
 
-## Buildbot
+## Nixbot
 
-`https://buildbot.sjanglab.org` — GitHub 연동 CI/CD입니다.
+`https://buildbot.sjanglab.org` — GitHub 연동 Nix CI/CD입니다. 도메인과 check context는 기존 GitHub branch protection을 유지하기 위해 `buildbot` 이름을 계속 사용합니다.
 
 ### 구성
 
 ```mermaid
 flowchart LR
-  gh["GitHub 웹훅"] --> edge["public nginx + TLS<br/>eta :443"]
-  edge --> proxy["Buildbot nginx upstream<br/>psi wg-admin :443"]
-  proxy --> master["Buildbot Master<br/>psi localhost:8010"]
-  master --> w["Workers ×8<br/>psi (8GB/워커)"]
-  master --> db["PostgreSQL<br/>psi"]
-  w -- "nix-eval → nix-build" --> result["빌드 결과"]
+  gh["GitHub App 웹훅"] --> edge["public nginx + TLS<br/>eta :443"]
+  edge --> proxy["Nixbot nginx upstream<br/>psi wg-admin :443"]
+  proxy --> svc["nixbot<br/>psi"]
+  svc --> db["PostgreSQL<br/>psi"]
+  svc -- "nix-eval-jobs → nix build" --> nix["local nix daemon<br/>psi"]
+  nix --> result["빌드 결과"]
   result --> gh
 ```
 
-- **Master**: psi (localhost 포트 8010)
+- **Service host**: psi (`nixbot.service`)
 - **Public reverse proxy/TLS**: eta (포트 443), wg-admin으로 psi nginx에 프록시
-- **Workers**: psi (8개 평가 워커, 8GB 메모리/워커)
-- **DB**: PostgreSQL (psi)
+- **DB**: PostgreSQL (psi, local peer auth)
+- **Build execution**: psi의 local nix daemon
+- **Check context prefix**: `buildbot` (`buildbot/nix-eval`, `buildbot/nix-build ...`)
 
 ### 빌드 트리거
 
-- GitHub 웹훅으로 자동 트리거
-- `build-with-buildbot` 토픽이 설정된 리포지토리 자동 감지
-- PR 생성/업데이트 시 `nix-eval` → `nix-build` 파이프라인 실행
+- GitHub App-level 웹훅으로 자동 트리거
+- GitHub App이 접근 가능한 리포지토리를 Nixbot이 discovery
+- 첫 import 때 `build-with-buildbot` 토픽 리포지토리 enable
+- 이후에는 웹 UI에서 admin이 project enable/disable
+- PR 생성/업데이트와 default branch push 때 `.#checks` 평가/빌드
 
 ### 권한
 
 | 항목 | 값 | 설정 위치 |
 |------|-----|-----------|
-| 빌드 트리거 | `SBEE-Lab` 조직, `mulatta` 사용자 | `master.nix`: `github.authType.app` |
-| 웹 관리자 | `mulatta` | `master.nix`: `admins` |
-| 인증 | GitHub OAuth | `master.nix`: `authBackend = "github"` |
+| 빌드 대상 | `SBEE-Lab` 조직, `mulatta` 사용자 | `modules/buildbot/master.nix`: `github.userAllowlist` |
+| 웹 관리자 | `github:mulatta` | `modules/buildbot/master.nix`: `admins` |
+| 인증 | GitHub OAuth | `services.nixbot.github.oauth*` |
 
 관련 시크릿 (`modules/buildbot/secrets.yaml`, sops 암호화):
 
 | 시크릿 | 용도 |
 |--------|------|
-| `github-app-private-key` | GitHub App 인증 (웹훅 수신) |
+| `github-app-private-key` | GitHub App 인증 |
 | `github-oauth-secret` | 웹 UI 로그인 |
 | `github-webhook-secret` | 웹훅 HMAC 검증 |
-| `buildbot-workers` | 워커 인증 |
-| `buildbot-pgpass` | PostgreSQL 접근 |
-| `niks3-auth-token` | 외부 캐시 푸시 |
+| `niks3-auth-token` | 선택 리포지토리 외부 캐시 푸시 |
+
+### GitHub App 설정
+
+GitHub App 설정은 Nixbot 형식으로 유지해야 합니다.
+
+| 항목 | 값 |
+|------|-----|
+| Webhook URL | `https://buildbot.sjanglab.org/webhooks/github` |
+| OAuth callback | `https://buildbot.sjanglab.org/auth/github/callback` |
+| Repository permissions | Contents: Read-only, Checks: Read & write, Metadata: Read-only, Pull requests: Read-only |
+| Events | Push, Pull request, Check run, Check suite |
+
+권한을 변경하면 각 installation에서 새 권한 승인이 필요합니다.
 
 ### 관리자 변경
 
-Buildbot 관리자를 변경하려면:
+Nixbot 관리자를 변경하려면:
 
-1. `modules/buildbot/master.nix`에서 `admins` 목록 수정
+1. `modules/buildbot/master.nix`에서 `admins` 목록 수정 (`github:<login>` 형식)
 1. GitHub App 설정에서 조직/사용자 권한 업데이트
 1. OAuth 시크릿 갱신 필요 시 `sops modules/buildbot/secrets.yaml`로 편집
 1. `inv deploy --hosts psi`
 
 ### 빌드 재트리거
 
-실패한 빌드는 Buildbot 웹 UI에서 수동으로 재트리거할 수 있습니다. `https://buildbot.sjanglab.org`에 GitHub 계정으로 로그인한 뒤, 해당 빌드 페이지에서 **Rebuild** 버튼을 클릭합니다.
+실패한 빌드는 Nixbot 웹 UI에서 수동으로 재트리거할 수 있습니다. `https://buildbot.sjanglab.org`에 GitHub 계정으로 로그인한 뒤, 해당 빌드 페이지에서 재시작 버튼을 클릭합니다.
+
+### 외부 캐시 푸시
+
+Nixbot은 `mulatta/dots`, `mulatta/seqtable` 빌드 성공 결과만 `https://niks3.mulatta.io`로 push합니다. 전체 빌드는 psi의 Harmonia cache에서 계속 제공됩니다.
 
 ## Flake 입력 자동 업데이트
 
@@ -81,7 +99,7 @@ flowchart LR
 
 흐름: flake.lock 변경 → PR 생성 → 자동 squash 병합 → main에 반영 → 각 호스트가 매월 마지막 토요일에 `system.autoUpgrade`로 적용.
 
-> Buildbot은 flake 업데이트와 무관합니다. Buildbot은 PR CI 빌드만 담당하고, flake 입력 업데이트는 GitHub Actions가 전담합니다.
+> Nixbot은 flake 업데이트와 무관합니다. Nixbot은 PR CI 빌드만 담당하고, flake 입력 업데이트는 GitHub Actions가 전담합니다.
 
 ## Nix 바이너리 캐시
 

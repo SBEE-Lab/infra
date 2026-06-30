@@ -78,7 +78,7 @@ psi 서버는 **분기별 1회 (연 4회)** GPU 냉각수 점검을 받습니다
 ```mermaid
 flowchart TD
   A["1. 사전 공지"] --> B["2. 실행 중인 작업 확인<br/>(nvidia-smi, docker ps)"]
-  B --> C["3. Buildbot 워커 중지"]
+  B --> C["3. Nixbot 중지"]
   C --> D["4. 서버 종료<br/>(inv shutdown)"]
   D --> E["5. 점검 완료 후 복구<br/>(IPMI 원격 기동)"]
   E --> F["6. 서비스 상태 확인<br/>(systemctl --failed, nvidia-smi)"]
@@ -93,10 +93,10 @@ ssh -p 10022 root@psi nvidia-smi   # GPU 사용 상태
 ssh -p 10022 root@psi docker ps    # 실행 중인 컨테이너
 ```
 
-**3단계 — Buildbot 워커 중지** (빌드 중단 방지):
+**3단계 — Nixbot 중지** (빌드 중단 방지):
 
 ```bash
-ssh -p 10022 root@psi systemctl stop buildbot-worker-*
+ssh -p 10022 root@psi systemctl stop nixbot
 ```
 
 **4단계 — 서버 종료**:

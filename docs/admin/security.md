@@ -11,7 +11,7 @@
 | 인터페이스 | 용도 | 열린 포트 |
 |-----------|------|----------|
 | eth0 (퍼블릭) | 외부 접근 | 80, 443 (eta, psi), 10022, 2323 (eta만) |
-| wg-admin (WireGuard) | 내부 관리 | 서비스별 (5432, 9989, 5678, 5000 등) |
+| wg-admin (WireGuard) | 내부 관리 | 서비스별 (443, 5432, 5678, 5000 등) |
 | tailscale0 (Headscale) | 사용자 서비스 | 80, 443 |
 
 기본 정책은 **deny all**이며, 각 서비스 모듈이 필요한 포트만 인터페이스별로 개방합니다.
@@ -89,8 +89,7 @@ root의 `authorized_keys`에는 관리자 키만 등록됩니다 (`modules/users
 
 | 계정 | 서비스 | 유형 | 특기 사항 |
 |------|--------|------|----------|
-| `buildbot` | Buildbot Master | isSystemUser | — |
-| `buildbot-worker` | Buildbot Worker | isSystemUser | `nix.settings.trusted-users` |
+| `nixbot` | Nixbot CI | isSystemUser | `nix.settings.extra-allowed-users` |
 | `harmonia` | Nix 바이너리 캐시 | isSystemUser | `nix.settings.allowed-users` |
 | `borg` | Borgbackup | — | SSH 키 전용, 특정 경로만 접근 |
 | `acme-sync-*` | TLS 인증서 동기화 | — | rsync 전용, 제한된 경로 |
@@ -101,8 +100,8 @@ root의 `authorized_keys`에는 관리자 키만 등록됩니다 (`modules/users
 
 | 설정 | 대상 | 의미 |
 |------|------|------|
-| `trusted-users` | 관리자, buildbot-worker | 캐시 서명, 임의 derivation 빌드 가능 |
-| `allowed-users` | harmonia | Nix store 읽기만 가능 |
+| `trusted-users` | 관리자 | 캐시 서명, 임의 derivation 빌드 가능 |
+| `allowed-users` | nixbot, harmonia | Nix store 사용 허용 |
 
 ## SSH 보안
 
@@ -147,7 +146,7 @@ root의 `authorized_keys`에는 관리자 키만 등록됩니다 (`modules/users
 | `hosts/<host>.yaml` | 해당 호스트 + admin | root 비밀번호 해시, WireGuard 키 |
 | `modules/acme/secrets.yaml` | eta, psi, tau | Cloudflare API 인증 |
 | `modules/borgbackup/*/secrets.yaml` | 해당 호스트 | Borg 암호화 키, SSH 키 |
-| `modules/buildbot/secrets.yaml` | psi | GitHub App/OAuth 시크릿 |
+| `modules/buildbot/secrets.yaml` | psi | Nixbot GitHub App/OAuth 시크릿 |
 | `modules/authentik/secrets.yaml` | eta | OIDC 클라이언트 시크릿 |
 | `modules/postgresql/secrets.yaml` | rho, tau | DB 사용자 암호 |
 
@@ -165,7 +164,7 @@ sops updatekeys hosts/psi.yaml
 
 ## TLS 인증서
 
-대부분의 도메인은 eta에서 Let's Encrypt ACME + Cloudflare DNS 챌린지로 인증서를 발급합니다. Buildbot 공개 ingress는 eta에서 인증서를 발급하고, psi의 Buildbot 스택도 내부 nginx용 인증서를 유지합니다. 다른 호스트에서 사용하는 인증서는 `acme-sync` 서비스가 rsync로 동기화하고, 대상 호스트의 systemd path unit이 파일 변경을 감지하여 nginx를 자동 리로드합니다.
+대부분의 도메인은 eta에서 Let's Encrypt ACME + Cloudflare DNS 챌린지로 인증서를 발급합니다. Nixbot 공개 ingress는 eta에서 인증서를 발급하고, psi의 Nixbot 스택도 내부 nginx용 인증서를 유지합니다. 다른 호스트에서 사용하는 인증서는 `acme-sync` 서비스가 rsync로 동기화하고, 대상 호스트의 systemd path unit이 파일 변경을 감지하여 nginx를 자동 리로드합니다.
 
 | 도메인 | 발급 호스트 | 사용 호스트 |
 |--------|-----------|-----------|
@@ -179,7 +178,7 @@ sops updatekeys hosts/psi.yaml
 | `buildbot.sjanglab.org` | eta, psi | eta (public edge), psi (service stack) |
 | `upterm.sjanglab.org` | eta | eta |
 
-인증서 동기화: eta에서 발급 → `acme-sync` 서비스가 rsync로 대상 호스트에 전송 → systemd path unit이 변경 감지 → nginx 자동 리로드. Buildbot은 eta 공개 edge와 psi 서비스 스택 양쪽에서 인증서를 발급합니다.
+인증서 동기화: eta에서 발급 → `acme-sync` 서비스가 rsync로 대상 호스트에 전송 → systemd path unit이 변경 감지 → nginx 자동 리로드. Nixbot은 eta 공개 edge와 psi 서비스 스택 양쪽에서 인증서를 발급합니다.
 
 ## 데이터 보안
 
