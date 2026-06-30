@@ -17,7 +17,6 @@
         webroot = null;
         group = "nginx";
       };
-      # tei.sjanglab.org defined in eta.nix (ACME sync sender)
     };
   };
 

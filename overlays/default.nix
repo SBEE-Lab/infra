@@ -19,11 +19,6 @@
         perf
         ;
       inherit unstable;
-
-      # Text Embeddings Inference (TEI) - uses CUDA from host config
-      text-embeddings-inference = final.callPackage ../packages/text-embeddings-inference {
-        cudaSupport = final.config.cudaSupport or false;
-      };
     }
   )
 ]
