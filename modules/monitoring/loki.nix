@@ -13,7 +13,7 @@ in
     {
       name = "Loki";
       group = "monitoring";
-      url = "http://127.0.0.1:3100/ready";
+      url = "http://${wgAdminAddr}:3100/ready";
     }
   ];
 

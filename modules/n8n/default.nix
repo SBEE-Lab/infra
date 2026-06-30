@@ -105,18 +105,14 @@ in
       DB_POSTGRESDB_DATABASE = "n8n";
       DB_POSTGRESDB_USER = "n8n";
 
-      # Password via _FILE suffix (read from systemd credentials)
-      DB_POSTGRESDB_PASSWORD_FILE = "%d/db-password";
+      # NixOS 26.05 maps *_FILE values to systemd credentials for DynamicUser.
+      DB_POSTGRESDB_PASSWORD_FILE = config.sops.secrets.n8n-db-password.path;
     };
   };
 
   sops.secrets.n8n-db-password = {
     sopsFile = ./secrets.yaml;
   };
-
-  systemd.services.n8n.serviceConfig.LoadCredential = [
-    "db-password:${config.sops.secrets.n8n-db-password.path}"
-  ];
 
   # Firewall: wg-admin (for eta reverse proxy)
   networking.firewall.interfaces.wg-admin.allowedTCPPorts = [ 5678 ];
