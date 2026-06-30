@@ -66,7 +66,6 @@ in
           (mkExtEndpoint "Ollama" "ai")
           (mkExtEndpoint "Docling" "ai")
           (mkExtEndpoint "vLLM" "ai")
-          (mkExtEndpoint "TEI" "ai")
           # tau
           (mkExtEndpoint "Nextcloud" "apps")
           (mkExtEndpoint "n8n" "apps")

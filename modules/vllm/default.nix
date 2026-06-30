@@ -1,7 +1,6 @@
 # vLLM model serving with AWQ quantization
 #
 # Serves LLM via OpenAI-compatible API.
-# Embedding/Rerank handled by TEI (more efficient).
 # Requires CUDA support (import nvidia.nix in host config).
 {
   lib,
@@ -18,7 +17,6 @@ let
 
   # Model configurations (A6000 48GB)
   # Qwen3-32B-AWQ (~17GB) + KV cache
-  # Embedding/Rerank: TEI handles via nginx routing
   # Note: enforce-eager disables CUDA graphs to avoid OOM during warmup
   models = {
     chat = {
@@ -30,7 +28,7 @@ let
         "--max-model-len"
         "32768"
         "--gpu-memory-utilization"
-        "0.80" # Leave ~10GB for TEI embed/rerank
+        "0.80"
         "--enforce-eager" # Skip CUDA graph capture to avoid OOM
       ];
     };
@@ -126,7 +124,7 @@ in
     }
   ];
 
-  # Nginx reverse proxy (chat only, embedding/rerank use tei.sjanglab.org)
+  # Nginx reverse proxy
   services.nginx = {
     enable = true;
     recommendedProxySettings = true;
