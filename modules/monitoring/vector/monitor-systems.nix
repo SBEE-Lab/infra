@@ -19,7 +19,7 @@ in
     {
       name = "Prometheus";
       group = "monitoring";
-      url = "http://127.0.0.1:9090/-/healthy";
+      url = "http://${wgAdminAddr}:9090/-/healthy";
     }
   ];
 

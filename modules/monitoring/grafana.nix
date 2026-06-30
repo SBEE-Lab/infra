@@ -16,7 +16,7 @@ in
     {
       name = "Grafana";
       group = "monitoring";
-      url = "http://127.0.0.1:3000/api/health";
+      url = "http://${wgAdminAddr}:3000/api/health";
     }
   ];
 

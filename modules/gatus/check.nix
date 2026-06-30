@@ -43,8 +43,11 @@ let
           fi
           ${pkgs.curl}/bin/curl -sf --max-time 10 \
             -X POST \
+            -G \
+            --data-urlencode "success=$success" \
+            --data-urlencode "error=$error" \
             -H "Authorization: Bearer $GATUS_EXTERNAL_TOKEN" \
-            "${gatusApi}/api/v1/endpoints/${mkKey ep}/external?success=$success&error=$error"
+            "${gatusApi}/api/v1/endpoints/${mkKey ep}/external"
         ''
       else
         ''
@@ -59,8 +62,11 @@ let
           fi
           ${pkgs.curl}/bin/curl -sf --max-time 10 \
             -X POST \
+            -G \
+            --data-urlencode "success=$success" \
+            --data-urlencode "error=$error" \
             -H "Authorization: Bearer $GATUS_EXTERNAL_TOKEN" \
-            "${gatusApi}/api/v1/endpoints/${mkKey ep}/external?success=$success&error=$error"
+            "${gatusApi}/api/v1/endpoints/${mkKey ep}/external"
         ''
     );
 
