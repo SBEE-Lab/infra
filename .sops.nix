@@ -64,6 +64,8 @@ let
       "modules/nextcloud/secrets.yaml" = [ "tau" ];
       "modules/nfs/secrets.yaml" = [ "psi" ];
       "modules/users/xrdp-passwords.yaml" = [ "psi" ];
+      "terraform/authentik/secrets.yaml" = [ ];
+      "terraform/authentik/users.yaml" = [ ];
       "terraform/cloudflare/secrets.yaml" = [ ];
       "terraform/github/secrets.yaml" = [ ];
       "terraform/vultr/secrets.yaml" = [ ];
