@@ -14,7 +14,6 @@ in
     ../modules/uptermd
     ../modules/gatus
     ../modules/monitoring/vector
-    ../modules/monitoring/reverse-proxy.nix
     ../modules/n8n/reverse-proxy.nix
     ../modules/acme/sync.nix
   ];
@@ -26,35 +25,61 @@ in
       remoteHost = hosts.tau.wg-admin;
     }
     {
-      domain = "ollama.sjanglab.org";
-      serviceName = "acme-sync-ollama-to-psi";
-      remoteUser = "acme-sync-ollama";
-      remoteHost = hosts.psi.wg-admin;
-    }
-    {
       domain = "docling.sjanglab.org";
       serviceName = "acme-sync-docling-to-psi";
       remoteHost = hosts.psi.wg-admin;
     }
     {
-      domain = "vllm.sjanglab.org";
-      serviceName = "acme-sync-vllm-to-psi";
-      remoteUser = "acme-sync-vllm";
+      domain = "gatus.sjanglab.org";
+      serviceName = "acme-sync-gatus-to-rho";
+      remoteUser = "acme-sync-gatus";
+      remoteHost = hosts.rho.wg-admin;
+    }
+    {
+      domain = "logging.sjanglab.org";
+      serviceName = "acme-sync-logging-to-rho";
+      remoteUser = "acme-sync-logging";
+      remoteHost = hosts.rho.wg-admin;
+    }
+    {
+      domain = "multievolve.sjanglab.org";
+      serviceName = "acme-sync-multievolve-to-psi";
+      remoteUser = "acme-sync-multievolve";
       remoteHost = hosts.psi.wg-admin;
+    }
+    {
+      domain = "vault.sjanglab.org";
+      serviceName = "acme-sync-vaultwarden-to-tau";
+      remoteUser = "acme-sync-vaultwarden";
+      remoteHost = hosts.tau.wg-admin;
     }
   ];
 
   disko.rootDisk = "/dev/vda";
 
   # ACME certificates for internal services
-  security.acme.certs."ollama.sjanglab.org" = {
+  security.acme.certs."gatus.sjanglab.org" = {
     dnsProvider = "cloudflare";
     environmentFile = config.sops.secrets.cloudflare-credentials.path;
     webroot = null;
     group = "acme";
   };
 
-  security.acme.certs."vllm.sjanglab.org" = {
+  security.acme.certs."logging.sjanglab.org" = {
+    dnsProvider = "cloudflare";
+    environmentFile = config.sops.secrets.cloudflare-credentials.path;
+    webroot = null;
+    group = "acme";
+  };
+
+  security.acme.certs."multievolve.sjanglab.org" = {
+    dnsProvider = "cloudflare";
+    environmentFile = config.sops.secrets.cloudflare-credentials.path;
+    webroot = null;
+    group = "acme";
+  };
+
+  security.acme.certs."vault.sjanglab.org" = {
     dnsProvider = "cloudflare";
     environmentFile = config.sops.secrets.cloudflare-credentials.path;
     webroot = null;

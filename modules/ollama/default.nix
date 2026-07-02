@@ -94,7 +94,8 @@ in
       sslCertificate = "${certDir}/fullchain.pem";
       sslCertificateKey = "${certDir}/key.pem";
 
-      # Access control: Headscale ACL (network-level, no forward auth)
+      # API clients do not handle browser redirects from Authentik forward auth.
+      # Keep application authorization in API credentials when this module is enabled.
       locations."/" = {
         proxyPass = "http://127.0.0.1:${toString port}";
         recommendedProxySettings = false; # Override Host header manually

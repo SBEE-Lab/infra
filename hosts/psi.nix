@@ -15,6 +15,7 @@
     ../modules/borgbackup/psi/client.nix
     ../modules/monitoring/vector
     ../modules/harmonia
+    ../modules/multievolve
     # ../modules/vllm
     ../modules/db-sync/databases.nix
     ../modules/docling

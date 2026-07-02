@@ -57,6 +57,26 @@ in
             value = "100.64.0.1"; # psi headscale IP
           }
           {
+            name = "gatus.sjanglab.org";
+            type = "A";
+            value = "100.64.0.2"; # rho headscale IP
+          }
+          {
+            name = "logging.sjanglab.org";
+            type = "A";
+            value = "100.64.0.2"; # rho headscale IP
+          }
+          {
+            name = "multievolve.sjanglab.org";
+            type = "A";
+            value = "100.64.0.1"; # psi headscale IP
+          }
+          {
+            name = "vault.sjanglab.org";
+            type = "A";
+            value = "100.64.0.3"; # tau headscale IP
+          }
+          {
             name = "upterm.sjanglab.org";
             type = "A";
             value = "141.164.53.203"; # eta public IP
