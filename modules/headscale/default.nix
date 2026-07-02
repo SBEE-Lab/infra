@@ -57,6 +57,11 @@ in
             value = "100.64.0.1"; # psi headscale IP
           }
           {
+            name = "gatus.sjanglab.org";
+            type = "A";
+            value = "100.64.0.2"; # rho headscale IP
+          }
+          {
             name = "logging.sjanglab.org";
             type = "A";
             value = "100.64.0.2"; # rho headscale IP
