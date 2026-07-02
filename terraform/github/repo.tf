@@ -25,13 +25,11 @@ resource "github_repository" "infra" {
   allow_update_branch         = true
   web_commit_signoff_required = true
 
-  pages {
-    build_type = "workflow"
-    source {
-      branch = "main"
-      path   = "/"
-    }
-  }
+}
+
+resource "github_repository_pages" "infra" {
+  repository = github_repository.infra.name
+  build_type = "workflow"
 }
 
 resource "github_repository_ruleset" "infra" {
