@@ -5,6 +5,11 @@ locals {
 }
 
 terraform {
+  extra_arguments "wait_for_state_lock" {
+    commands  = ["plan", "apply", "destroy", "import"]
+    arguments = ["-lock-timeout=30s"]
+  }
+
   before_hook "reset_old_terraform_state" {
     commands     = ["init"]
     execute      = ["rm", "-f", ".terraform.lock.hcl"]
