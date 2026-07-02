@@ -16,14 +16,28 @@
         spdx = "GPL-3.0-only";
         homepage = "https://registry.terraform.io/providers/goauthentik/authentik";
       };
+
+      headscaleProvider = pkgs.terraform-providers.mkProvider {
+        owner = "awlsring";
+        repo = "terraform-provider-headscale";
+        rev = "v0.5.1";
+        hash = "sha256-TgDwX5On4nvPU2hAePPimZD2f3y2ev3nKVmkRaXiTxk=";
+        vendorHash = "sha256-zkV47RZtjjaIy+9sLpCgfcnYqWTSgKqdgHZhJ26oaQQ=";
+        spdx = "MPL-2.0";
+        homepage = "https://registry.terraform.io/providers/awlsring/headscale";
+      };
     in
     {
       devShells.terraform = pkgs.mkShellNoCC {
         packages = [
+          pkgs.curl
+          pkgs.jq
+          pkgs.shellcheck
           pkgs.sops
           pkgs.terragrunt
           pkgs.postgresql_17
           pkgs.vultr-cli
+          pkgs.yq-go
           config.packages.terraform
         ];
 
@@ -42,6 +56,7 @@
           p.hashicorp_null
           p.cloudflare_cloudflare
           authentikProvider
+          headscaleProvider
         ]);
       };
     };

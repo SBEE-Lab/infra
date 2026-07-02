@@ -68,6 +68,7 @@ let
       "terraform/authentik/users.yaml" = [ ];
       "terraform/cloudflare/secrets.yaml" = [ ];
       "terraform/github/secrets.yaml" = [ ];
+      "terraform/headscale/secrets.yaml" = [ ];
       "terraform/vultr/secrets.yaml" = [ ];
     }
     // {

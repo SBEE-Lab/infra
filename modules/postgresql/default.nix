@@ -112,6 +112,7 @@ in
         "authentik"
         "cloudflare"
         "github"
+        "headscale"
         "vultr"
       ];
     in

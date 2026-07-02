@@ -60,6 +60,6 @@ Authentik outpost는 `wg-admin` 인터페이스(포트 9000)에서만 접근 가
 | `sjanglab-researchers` | AI + 앱 접근 | `tag:ai`, `tag:apps` |
 | `sjanglab-students` | 앱만 접근 | `tag:apps` |
 
-Authentik 사용자와 그룹 선언은 `terraform/authentik`에서 관리합니다. 사람 계정 목록은 개인정보 보호를 위해 SOPS로 암호화한 `terraform/authentik/users.yaml`에 둡니다. 학생 계정은 `expires_on`을 반드시 지정하고, 만료 후에는 `active: false`로 변경합니다. 비활성 사용자는 Authentik group membership도 제거되어 Headscale ACL 동기화에서 빠집니다.
+Authentik 사용자와 그룹 선언은 `terraform/authentik`에서 관리합니다. 사람 계정 목록은 개인정보 보호를 위해 SOPS로 암호화한 `terraform/authentik/users.yaml`에 둡니다. 학생 계정은 `expires_on`을 반드시 지정하고, 만료 후에는 `active: false`로 변경합니다.
 
-그룹 membership은 Headscale ACL과 15분마다 자동 동기화됩니다. 상세 매커니즘은 [네트워크 — ACL 동기화](network.md#acl-sync)를 참조하세요.
+Headscale ACL policy는 `terraform/headscale`이 같은 `users.yaml`에서 생성합니다. 비활성 사용자는 Authentik group membership과 Headscale ACL group에서 함께 빠집니다. 상세 매커니즘은 [네트워크 — ACL 정책 관리](network.md#acl-policy)를 참조하세요.
