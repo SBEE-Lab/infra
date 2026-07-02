@@ -52,17 +52,7 @@ in
             value = "100.64.0.3"; # tau headscale IP
           }
           {
-            name = "ollama.sjanglab.org";
-            type = "A";
-            value = "100.64.0.1"; # psi headscale IP
-          }
-          {
             name = "docling.sjanglab.org";
-            type = "A";
-            value = "100.64.0.1"; # psi headscale IP
-          }
-          {
-            name = "vllm.sjanglab.org";
             type = "A";
             value = "100.64.0.1"; # psi headscale IP
           }
