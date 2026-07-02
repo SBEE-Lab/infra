@@ -48,6 +48,12 @@ in
       remoteHost = hosts.rho.wg-admin;
     }
     {
+      domain = "vault.sjanglab.org";
+      serviceName = "acme-sync-vaultwarden-to-tau";
+      remoteUser = "acme-sync-vaultwarden";
+      remoteHost = hosts.tau.wg-admin;
+    }
+    {
       domain = "vllm.sjanglab.org";
       serviceName = "acme-sync-vllm-to-psi";
       remoteUser = "acme-sync-vllm";
@@ -80,6 +86,13 @@ in
   };
 
   security.acme.certs."logging.sjanglab.org" = {
+    dnsProvider = "cloudflare";
+    environmentFile = config.sops.secrets.cloudflare-credentials.path;
+    webroot = null;
+    group = "acme";
+  };
+
+  security.acme.certs."vault.sjanglab.org" = {
     dnsProvider = "cloudflare";
     environmentFile = config.sops.secrets.cloudflare-credentials.path;
     webroot = null;
