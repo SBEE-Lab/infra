@@ -54,16 +54,6 @@ resource "cloudflare_dns_record" "buildbot" {
   comment = "Nixbot CI/CD edge proxy (eta -> psi)"
 }
 
-resource "cloudflare_dns_record" "s3" {
-  zone_id = data.sops_file.secrets.data["CLOUDFLARE_ZONE_ID"]
-  name    = "s3.sjanglab.org"
-  content = "141.164.53.203"
-  type    = "A"
-  ttl     = 300
-  proxied = false
-  comment = "MinIO S3 API"
-}
-
 resource "cloudflare_dns_record" "ntfy" {
   zone_id = data.sops_file.secrets.data["CLOUDFLARE_ZONE_ID"]
   name    = "ntfy.sjanglab.org"
@@ -72,16 +62,6 @@ resource "cloudflare_dns_record" "ntfy" {
   ttl     = 300
   proxied = false
   comment = "ntfy notification service"
-}
-
-resource "cloudflare_dns_record" "logging" {
-  zone_id = data.sops_file.secrets.data["CLOUDFLARE_ZONE_ID"]
-  name    = "logging.sjanglab.org"
-  content = "141.164.53.203"
-  type    = "A"
-  ttl     = 300
-  proxied = false
-  comment = "Grafana logging dashboard"
 }
 
 resource "cloudflare_dns_record" "headscale" {
@@ -102,26 +82,6 @@ resource "cloudflare_dns_record" "authentik" {
   ttl     = 300
   proxied = false
   comment = "Authentik SSO server"
-}
-
-resource "cloudflare_dns_record" "vaultwarden" {
-  zone_id = data.sops_file.secrets.data["CLOUDFLARE_ZONE_ID"]
-  name    = "vault.sjanglab.org"
-  content = "141.164.53.203"
-  type    = "A"
-  ttl     = 300
-  proxied = false
-  comment = "Vaultwarden password manager"
-}
-
-resource "cloudflare_dns_record" "gatus" {
-  zone_id = data.sops_file.secrets.data["CLOUDFLARE_ZONE_ID"]
-  name    = "gatus.sjanglab.org"
-  content = "141.164.53.203"
-  type    = "A"
-  ttl     = 300
-  proxied = false
-  comment = "Gatus status monitoring"
 }
 
 resource "cloudflare_dns_record" "n8n" {
