@@ -11,6 +11,7 @@
     ../modules/monitoring/vector/monitor-services.nix
     ../modules/nextcloud
     ../modules/n8n
+    ../modules/vaultwarden/reverse-proxy.nix
   ];
 
   disko.rootDisk = "/dev/disk/by-id/nvme-eui.00000000000000006479a79cdac0038f";
