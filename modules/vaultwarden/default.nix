@@ -1,15 +1,13 @@
 { config, ... }:
 {
-  imports = [
-    ../acme
-    ../gatus/check.nix
-  ];
+  imports = [ ../gatus/check.nix ];
 
   gatusCheck.pull = [
     {
       name = "Vaultwarden";
-      url = "https://vault.sjanglab.org/alive";
+      url = "http://127.0.0.1:8000/alive";
       group = "apps";
+      conditions = [ "[STATUS] == 200" ];
     }
   ];
 
@@ -35,6 +33,7 @@
       # Organization
       ORG_CREATION_USERS = "sjang.bioe@gmail.com,admin@sjanglab.org";
 
+      ROCKET_ADDRESS = "0.0.0.0";
       ROCKET_PORT = 8000;
     };
   };
@@ -46,37 +45,9 @@
     mode = "0400";
   };
 
-  # ACME certificate (DNS challenge)
-  security.acme.certs."vault.sjanglab.org" = {
-    dnsProvider = "cloudflare";
-    environmentFile = config.sops.secrets.cloudflare-credentials.path;
-    webroot = null;
-    group = "nginx";
-  };
-
-  # Nginx reverse proxy
-  services.nginx.virtualHosts."vault.sjanglab.org" = {
-    forceSSL = true;
-    useACMEHost = "vault.sjanglab.org";
-
-    locations."/" = {
-      proxyPass = "http://127.0.0.1:8000";
-      proxyWebsockets = true;
-      extraConfig = ''
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-      '';
-    };
-  };
-
   systemd.tmpfiles.rules = [
     "d /var/backup/vaultwarden 0700 vaultwarden vaultwarden -"
   ];
 
-  networking.firewall.allowedTCPPorts = [
-    80
-    443
-  ];
+  networking.firewall.interfaces.wg-admin.allowedTCPPorts = [ 8000 ];
 }
