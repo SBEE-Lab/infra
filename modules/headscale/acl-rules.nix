@@ -26,6 +26,7 @@
         "tag:ai:443"
         "tag:apps:80"
         "tag:apps:443"
+        "tag:monitoring:443"
         "tag:monitoring:3000"
       ];
     }
