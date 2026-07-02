@@ -36,6 +36,12 @@ in
       remoteHost = hosts.psi.wg-admin;
     }
     {
+      domain = "status.sjanglab.org";
+      serviceName = "acme-sync-status-to-rho";
+      remoteUser = "acme-sync-status";
+      remoteHost = hosts.rho.wg-admin;
+    }
+    {
       domain = "logging.sjanglab.org";
       serviceName = "acme-sync-logging-to-rho";
       remoteUser = "acme-sync-logging";
@@ -60,6 +66,14 @@ in
   };
 
   security.acme.certs."vllm.sjanglab.org" = {
+    dnsProvider = "cloudflare";
+    environmentFile = config.sops.secrets.cloudflare-credentials.path;
+    webroot = null;
+    group = "acme";
+  };
+
+  
+  security.acme.certs."status.sjanglab.org" = {
     dnsProvider = "cloudflare";
     environmentFile = config.sops.secrets.cloudflare-credentials.path;
     webroot = null;

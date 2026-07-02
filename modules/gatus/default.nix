@@ -1,29 +1,22 @@
 { config, lib, ... }:
 let
   inherit (config.networking.sbee) hosts;
-  domain = "gatus.sjanglab.org";
   port = 8081; # 8080 is used by headscale
   systemCollector = hosts.rho.wg-admin;
   cfg = config.gatusCheck;
 in
 {
-  imports = [
-    ../acme
-    ./check.nix
-  ];
+  imports = [ ./check.nix ];
 
   services.gatus = {
     enable = true;
     environmentFile = config.sops.secrets.gatus-env.path;
     settings = {
-      web.port = port;
-      metrics = true;
-
-      security.basic = {
-        username = "admin";
-        # bcrypt hash → base64 encoded, interpolated from environmentFile
-        password-bcrypt-base64 = "\${GATUS_SECURITY_BASIC_PASSWORD}";
+      web = {
+        address = "0.0.0.0";
+        inherit port;
       };
+      metrics = true;
 
       alerting.ntfy = {
         topic = "gatus";
@@ -63,9 +56,7 @@ in
           # psi
           (mkExtEndpoint "Nixbot" "ci")
           (mkExtEndpoint "Nixbot PostgreSQL" "ci")
-          (mkExtEndpoint "Ollama" "ai")
           (mkExtEndpoint "Docling" "ai")
-          (mkExtEndpoint "vLLM" "ai")
           # tau
           (mkExtEndpoint "Nextcloud" "apps")
           (mkExtEndpoint "n8n" "apps")
@@ -80,30 +71,6 @@ in
 
   sops.secrets.gatus-env = {
     sopsFile = ./secrets.yaml;
-  };
-
-  # ACME certificate (DNS challenge via Cloudflare)
-  security.acme.certs.${domain} = {
-    dnsProvider = "cloudflare";
-    environmentFile = config.sops.secrets.cloudflare-credentials.path;
-    webroot = null;
-    group = "nginx";
-  };
-
-  # Nginx reverse proxy
-  services.nginx.virtualHosts.${domain} = {
-    forceSSL = true;
-    useACMEHost = domain;
-    locations."/" = {
-      proxyPass = "http://127.0.0.1:${toString port}";
-      proxyWebsockets = true;
-      extraConfig = ''
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-      '';
-    };
   };
 
   # Vector: scrape Gatus /metrics → push to rho Prometheus
@@ -123,8 +90,5 @@ in
     };
   };
 
-  networking.firewall.allowedTCPPorts = [
-    80
-    443
-  ];
+  networking.firewall.interfaces.wg-admin.allowedTCPPorts = [ port ];
 }
