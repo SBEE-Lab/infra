@@ -18,7 +18,7 @@
 }:
 let
   cfg = config.gatusCheck;
-  gatusApi = "https://gatus.sjanglab.org";
+  gatusApi = "http://${config.networking.sbee.hosts.eta.wg-admin}:8081";
 
   # Gatus external endpoint key: "${group}_${name}" with spaces/special chars → hyphens
   mkKey =
@@ -134,9 +134,6 @@ in
       assertion = (ep.url != null) != (ep.systemdService != null);
       message = "gatusCheck.push '${ep.name}': exactly one of 'url' or 'systemdService' must be set";
     }) cfg.push;
-
-    # Resolve gatus.sjanglab.org → eta WG IP for hosts behind NAT/WG
-    networking.hosts.${config.networking.sbee.hosts.eta.wg-admin} = [ "gatus.sjanglab.org" ];
 
     sops.secrets.gatus-push-token = {
       sopsFile = ./secrets.yaml;
