@@ -42,6 +42,12 @@ in
       remoteHost = hosts.rho.wg-admin;
     }
     {
+      domain = "multievolve.sjanglab.org";
+      serviceName = "acme-sync-multievolve-to-psi";
+      remoteUser = "acme-sync-multievolve";
+      remoteHost = hosts.psi.wg-admin;
+    }
+    {
       domain = "vault.sjanglab.org";
       serviceName = "acme-sync-vaultwarden-to-tau";
       remoteUser = "acme-sync-vaultwarden";
@@ -60,6 +66,13 @@ in
   };
 
   security.acme.certs."logging.sjanglab.org" = {
+    dnsProvider = "cloudflare";
+    environmentFile = config.sops.secrets.cloudflare-credentials.path;
+    webroot = null;
+    group = "acme";
+  };
+
+  security.acme.certs."multievolve.sjanglab.org" = {
     dnsProvider = "cloudflare";
     environmentFile = config.sops.secrets.cloudflare-credentials.path;
     webroot = null;

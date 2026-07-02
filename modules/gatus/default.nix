@@ -57,6 +57,7 @@ in
           (mkExtEndpoint "Nixbot" "ci")
           (mkExtEndpoint "Nixbot PostgreSQL" "ci")
           (mkExtEndpoint "Docling" "ai")
+          (mkExtEndpoint "MULTI-evolve" "ai")
           # tau
           (mkExtEndpoint "Nextcloud" "apps")
           (mkExtEndpoint "n8n" "apps")
