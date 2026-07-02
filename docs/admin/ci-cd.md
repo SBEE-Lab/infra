@@ -80,26 +80,27 @@ Nixbot은 `mulatta/dots`, `mulatta/seqtable` 빌드 성공 결과만 `https://ni
 
 ## Flake 입력 자동 업데이트
 
-GitHub Actions가 매일 `nix flake update`를 실행하여 의존성을 최신 상태로 유지합니다.
+Dependabot이 매일 `flake.lock`을 검사하여 flake input 최신 커밋 PR을 생성합니다.
 
 ```mermaid
 flowchart LR
-  cron["GitHub Actions<br/>(매일 03:00 KST)"] -- "nix flake update" --> pr["PR 자동 생성<br/>(flake.lock 변경)"]
+  cron["Dependabot<br/>(매일 03:00 KST)"] -- "flake.lock 검사" --> pr["PR 자동 생성<br/>(flake.lock 변경)"]
   pr -- "auto-merge<br/>(squash)" --> main["main 브랜치"]
   main -- "매월 마지막 토요일" --> upgrade["NixOS<br/>system.autoUpgrade"]
 ```
 
 | 항목 | 설정 |
 |------|------|
-| 워크플로우 | `.github/workflows/update-flake-inputs.yml` |
-| 스케줄 | `0 18 * * *` (매일 18:00 UTC / 03:00 KST) |
-| 도구 | `Mic92/update-flake-inputs` |
-| 인증 | GitHub App (APP_ID + APP_PRIVATE_KEY) |
+| 설정 파일 | `.github/dependabot.yml` |
+| 스케줄 | 매일 03:00 KST |
+| 도구 | Dependabot `nix` ecosystem |
+| 대상 | 루트 `flake.lock` |
+| 그룹 | `flake-inputs` (모든 flake input을 한 PR로 묶음) |
 | 병합 | auto-merge 워크플로우가 PR을 자동 squash 병합 |
 
 흐름: flake.lock 변경 → PR 생성 → 자동 squash 병합 → main에 반영 → 각 호스트가 매월 마지막 토요일에 `system.autoUpgrade`로 적용.
 
-> Nixbot은 flake 업데이트와 무관합니다. Nixbot은 PR CI 빌드만 담당하고, flake 입력 업데이트는 GitHub Actions가 전담합니다.
+> Nixbot은 flake 업데이트와 무관합니다. Nixbot은 PR CI 빌드만 담당하고, flake 입력 업데이트 PR 생성은 Dependabot이 담당합니다.
 
 ## Nix 바이너리 캐시
 
