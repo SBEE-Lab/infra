@@ -1,6 +1,6 @@
 # Terraform
 
-외부 리소스(Cloudflare DNS, GitHub)를 코드로 관리합니다.
+외부 리소스(Cloudflare DNS, GitHub)와 Authentik 애플리케이션 정책을 코드로 관리합니다.
 
 ## 백엔드
 
@@ -18,20 +18,30 @@ terraform apply
 
 ### Cloudflare DNS (`sjanglab.org`)
 
-| 레코드 | 값 | 용도 |
-|--------|-----|------|
-| `buildbot.sjanglab.org` | 141.164.53.203 | Nixbot CI/CD edge proxy (eta → psi) |
-| `logging.sjanglab.org` | 141.164.53.203 | Grafana |
-| `hs.sjanglab.org` | 141.164.53.203 | Headscale |
-| `auth.sjanglab.org` | 141.164.53.203 | Authentik |
-| `vault.sjanglab.org` | 141.164.53.203 | Vaultwarden |
-| `gatus.sjanglab.org` | 141.164.53.203 | 상태 페이지 |
-| `ntfy.sjanglab.org` | 141.164.53.203 | 알림 |
-| `n8n.sjanglab.org` | 141.164.53.203 | 워크플로우 |
-| `cache.sjanglab.org` | 141.164.53.203 | Nix 캐시 |
-| `upterm.sjanglab.org` | 141.164.53.203 | Upterm relay |
+공개 ingress가 필요한 레코드만 Cloudflare DNS에 둡니다. Tailnet 전용 서비스 이름은 Headscale split DNS로 관리합니다.
 
-대부분의 웹 서비스는 eta(141.164.53.203)의 nginx를 통해 프록시됩니다. Nixbot 서비스 스택은 psi에 있지만 `buildbot.sjanglab.org` 공개 ingress는 eta가 받아 wg-admin으로 psi에 프록시합니다. Upterm relay는 eta의 `2323/tcp`에 직접 노출됩니다.
+### Authentik
+
+`terraform/authentik`은 사용자, 그룹, nginx forward auth에 필요한 Authentik proxy provider, application, embedded outpost attachment, access policy binding을 관리합니다. Terraform token은 `terraform/authentik/secrets.yaml`의 `AUTHENTIK_TOKEN`으로 전달합니다. 사람 계정 목록은 SOPS로 암호화한 `terraform/authentik/users.yaml`에 둡니다.
+
+기존 UI 객체를 Terraform으로 전환할 때는 먼저 import helper를 실행한 뒤 plan을 확인합니다.
+
+```bash
+cd terraform/authentik
+terragrunt init
+./import-existing.sh
+terragrunt plan
+```
+
+학생 계정은 `users.yaml`에서 `expires_on`을 설정합니다. 만료된 학생 계정은 `active: false`로 바꿔 Authentik 로그인과 Headscale ACL group membership을 함께 제거합니다.
+
+관리 대상:
+
+| 애플리케이션 | 그룹 |
+|--------------|------|
+| `n8n.sjanglab.org` | `sjanglab-admins`, `sjanglab-researchers` |
+| `status.sjanglab.org` | 인증 없음 (Authentik dashboard tile만 관리) |
+| `logging.sjanglab.org` | `sjanglab-admins` |
 
 ### GitHub
 
