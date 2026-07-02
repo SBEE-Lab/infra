@@ -135,6 +135,8 @@ in
       sslCertificate = "/var/lib/acme/${domain}/fullchain.pem";
       sslCertificateKey = "/var/lib/acme/${domain}/key.pem";
 
+      # API clients do not handle browser redirects from Authentik forward auth.
+      # Keep application authorization in API credentials when this module is enabled.
       locations."/" = {
         proxyPass = "http://127.0.0.1:8100";
         extraConfig = ''
