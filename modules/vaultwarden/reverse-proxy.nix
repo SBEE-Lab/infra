@@ -1,5 +1,6 @@
-_:
+{ config, ... }:
 let
+  inherit (config.networking.sbee) hosts;
   domain = "vault.sjanglab.org";
   certDir = "/var/lib/acme/${domain}";
 in
@@ -22,7 +23,7 @@ in
       sslCertificateKey = "${certDir}/key.pem";
 
       locations."/" = {
-        proxyPass = "http://127.0.0.1:8000";
+        proxyPass = "http://${hosts.eta.wg-admin}:8000";
         proxyWebsockets = true;
         extraConfig = ''
           proxy_set_header Host $host;
