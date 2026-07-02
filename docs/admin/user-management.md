@@ -7,7 +7,7 @@
 | **NixOS** (`modules/users/`) | SSH 계정, 로컬 사용자 | 서버 접속, 파일시스템, Docker |
 | **Authentik** (`auth.sjanglab.org`) | SSO 계정, 그룹 | 웹 서비스 인증, Headscale ACL |
 
-두 시스템은 독립적으로 관리되며, Headscale ACL만 Authentik 그룹에서 15분마다 자동 동기화됩니다.
+SSO 계정과 Headscale ACL은 `terraform/authentik/users.yaml`을 source of truth로 삼아 Terraform에서 함께 관리합니다.
 
 ______________________________________________________________________
 
@@ -137,30 +137,30 @@ Authentik은 웹 서비스(Nextcloud, Vaultwarden, n8n)의 SSO 인증과 Headsca
 
 ### 사용자 추가
 
-1. `https://auth.sjanglab.org/if/admin/` 접속
-1. **Directory → Users** 에서 사용자를 생성하거나 초대합니다
-1. **Directory → Groups** 에서 해당 그룹에 사용자를 추가합니다
+1. `terraform/authentik/users.yaml`에 사용자를 추가합니다
+1. 학생 계정이면 `expires_on`을 설정합니다
+1. `terraform/authentik`과 `terraform/headscale` plan을 확인한 뒤 apply합니다
 
-### ACL 동기화
+### ACL 정책 반영
 
-Authentik 그룹 변경은 Headscale ACL에 자동 반영됩니다:
+Authentik 사용자/그룹과 Headscale ACL은 같은 SOPS inventory에서 생성됩니다:
 
-1. systemd 타이머가 15분마다 `headscale-acl-sync` 서비스를 실행
-1. Authentik API에서 `sjanglab-*` 그룹의 멤버십을 조회
-1. 정적 ACL 규칙(`acl-rules.nix`)과 동적 그룹 정보를 병합하여 `policy.json` 생성
-1. Headscale이 inotify로 파일 변경을 감지하여 자동 리로드
+1. `terraform/authentik/users.yaml`이 사용자와 그룹 membership의 source of truth입니다
+1. `terraform/authentik`은 Authentik 사용자/그룹을 반영합니다
+1. `terraform/headscale`은 같은 membership으로 Headscale database ACL policy를 생성합니다
 
-즉시 동기화가 필요하면:
+즉시 반영하려면:
 
 ```bash
-ssh -p 10022 root@eta systemctl start headscale-acl-sync.service
+cd terraform/headscale
+terragrunt apply
 ```
 
 ### 사용자 비활성화
 
-1. Authentik 관리 UI에서 사용자를 **비활성화** (삭제가 아닌 비활성화)
-1. 그룹에서 제거합니다
-1. 다음 ACL 동기화 시 Headscale 접근이 차단됩니다
+1. `terraform/authentik/users.yaml`에서 `active: false`로 변경합니다
+1. `terraform/authentik`을 apply해 Authentik 로그인을 비활성화합니다
+1. `terraform/headscale`을 apply해 Headscale ACL 그룹에서 제거합니다
 
 ______________________________________________________________________
 

@@ -1,6 +1,6 @@
 # Terraform
 
-외부 리소스(Cloudflare DNS, GitHub)와 Authentik 애플리케이션 정책을 코드로 관리합니다.
+외부 리소스(Cloudflare DNS, GitHub), Authentik 애플리케이션 정책, Headscale ACL policy를 코드로 관리합니다.
 
 ## 백엔드
 
@@ -42,6 +42,20 @@ terragrunt plan
 | `n8n.sjanglab.org` | `sjanglab-admins`, `sjanglab-researchers` |
 | `status.sjanglab.org` | 인증 없음 (Authentik dashboard tile만 관리) |
 | `logging.sjanglab.org` | `sjanglab-admins` |
+
+### Headscale
+
+`terraform/headscale`은 Headscale database ACL policy를 관리합니다. Headscale API key는 `terraform/headscale/secrets.yaml`의 `HEADSCALE_API_KEY`로 전달합니다. 사용자 membership은 `terraform/authentik/users.yaml`을 함께 읽어 Authentik과 같은 source of truth를 사용합니다.
+
+Headscale module은 `services.headscale.settings.policy.mode = "database"` 배포 후 apply합니다. 기존 Headscale users는 먼저 import합니다. `headscale_policy`는 provider가 import를 지원하지 않아 첫 apply가 singleton database policy를 설정하면서 Terraform state를 만듭니다.
+
+```bash
+cd terraform/headscale
+terragrunt init
+./import-existing.sh
+terragrunt plan
+terragrunt apply
+```
 
 ### GitHub
 
