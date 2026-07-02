@@ -27,8 +27,11 @@ in
       extraConfig = ''
         internal;
         proxy_pass_request_body off;
-        proxy_set_header Content-Length "";
-        proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
+        proxy_set_header Content-Length 0;
+        proxy_set_header Host $host;
+        proxy_set_header X-Original-URL $scheme://$host$request_uri;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
         proxy_set_header Authorization $http_authorization;
       '';
     };
@@ -37,7 +40,10 @@ in
     "/outpost.goauthentik.io" = {
       proxyPass = "${authentikOutpost}/outpost.goauthentik.io";
       extraConfig = ''
-        proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
+        proxy_set_header Host $host;
+        proxy_set_header X-Original-URL $scheme://$host$request_uri;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
         proxy_set_header Authorization $http_authorization;
       '';
     };
