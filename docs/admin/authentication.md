@@ -14,6 +14,15 @@
 | n8n | Forward Auth | nginx에서 인증 후 이메일 헤더 전달 (Headscale ACL + Forward Auth 이중 보호) |
 | Nixbot | GitHub OAuth | CI/CD 대시보드 접근 |
 
+### RAGFlow UI-only residue cleanup
+
+`ragflow`, `rag-flow`, `rag`, `ragflow.sjanglab.org`, `rag.sjanglab.org` 검색 결과 repo-managed RAGFlow/Authentik 설정은 없습니다. Authentik 런타임 UI에만 남아 있으면 다음 항목만 삭제합니다:
+
+1. **Applications → Applications**: `RAGFlow` application 삭제
+1. **Applications → Providers**: `RAGFlow` provider 삭제
+1. **Applications → Outposts**: RAGFlow가 할당된 outpost 편집 후 application 목록에서 제거; RAGFlow 전용 outpost면 outpost 삭제
+1. RAGFlow 전용 policy, property mapping, group binding이 있으면 해당 RAGFlow 전용 항목만 삭제
+
 ### Forward Auth 흐름
 
 n8n 등 Forward Auth를 사용하는 서비스의 인증 흐름:
