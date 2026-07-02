@@ -42,6 +42,7 @@ terragrunt plan
 | `n8n.sjanglab.org` | `sjanglab-admins`, `sjanglab-researchers` |
 | `status.sjanglab.org` | 인증 없음 (Authentik dashboard tile만 관리) |
 | `logging.sjanglab.org` | `sjanglab-admins` |
+| `multievolve.sjanglab.org` | `sjanglab-admins`, `sjanglab-researchers` |
 
 ### Headscale
 

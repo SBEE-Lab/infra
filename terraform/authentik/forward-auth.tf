@@ -33,6 +33,13 @@ locals {
       external_host = "https://logging.sjanglab.org"
       access_policy = "admins"
     }
+    multievolve = {
+      name          = "MULTI-evolve"
+      provider_name = "MULTI-evolve"
+      slug          = "multievolve"
+      external_host = "https://multievolve.sjanglab.org"
+      access_policy = "researchers"
+    }
   }
 }
 
