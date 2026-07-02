@@ -67,6 +67,11 @@ in
             value = "100.64.0.2"; # rho headscale IP
           }
           {
+            name = "multievolve.sjanglab.org";
+            type = "A";
+            value = "100.64.0.1"; # psi headscale IP
+          }
+          {
             name = "vault.sjanglab.org";
             type = "A";
             value = "100.64.0.3"; # tau headscale IP

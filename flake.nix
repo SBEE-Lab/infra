@@ -62,6 +62,8 @@
     };
 
     # Applications.
+    multievolve-nix.url = "github:mulatta/multievolve-nix/nixos-module-service";
+
     niks3 = {
       url = "github:Mic92/niks3";
       inputs.nixpkgs.follows = "nixpkgs";
