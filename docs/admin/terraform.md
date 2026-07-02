@@ -42,6 +42,7 @@ terragrunt plan
 | `n8n.sjanglab.org` | `sjanglab-admins`, `sjanglab-researchers` |
 | `gatus.sjanglab.org` | `sjanglab-admins` |
 | `logging.sjanglab.org` | `sjanglab-admins` |
+| `multievolve.sjanglab.org` | `sjanglab-admins`, `sjanglab-researchers` |
 
 ### Headscale
 

@@ -14,6 +14,7 @@
 | n8n | Forward Auth | nginx에서 인증 후 이메일 헤더 전달 (Headscale ACL + Forward Auth 이중 보호) |
 | Grafana | Forward Auth | Tailnet에서만 접근 가능한 관리자 대시보드 |
 | Gatus | Forward Auth | Tailnet에서만 접근 가능한 관리자 대시보드 |
+| MULTI-evolve | Forward Auth | 연구자/관리자용 Streamlit UI |
 | Nixbot | GitHub OAuth | CI/CD 대시보드 접근 |
 
 ### RAGFlow UI-only residue cleanup

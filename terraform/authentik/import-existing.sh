@@ -141,4 +141,5 @@ done <<'EOF'
 n8n|https://n8n.sjanglab.org|researchers
 gatus|https://gatus.sjanglab.org|admins
 logging|https://logging.sjanglab.org|admins
+multievolve|https://multievolve.sjanglab.org|researchers
 EOF
