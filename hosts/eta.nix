@@ -25,12 +25,6 @@ in
       remoteHost = hosts.tau.wg-admin;
     }
     {
-      domain = "ollama.sjanglab.org";
-      serviceName = "acme-sync-ollama-to-psi";
-      remoteUser = "acme-sync-ollama";
-      remoteHost = hosts.psi.wg-admin;
-    }
-    {
       domain = "docling.sjanglab.org";
       serviceName = "acme-sync-docling-to-psi";
       remoteHost = hosts.psi.wg-admin;
@@ -53,31 +47,11 @@ in
       remoteUser = "acme-sync-vaultwarden";
       remoteHost = hosts.tau.wg-admin;
     }
-    {
-      domain = "vllm.sjanglab.org";
-      serviceName = "acme-sync-vllm-to-psi";
-      remoteUser = "acme-sync-vllm";
-      remoteHost = hosts.psi.wg-admin;
-    }
   ];
 
   disko.rootDisk = "/dev/vda";
 
   # ACME certificates for internal services
-  security.acme.certs."ollama.sjanglab.org" = {
-    dnsProvider = "cloudflare";
-    environmentFile = config.sops.secrets.cloudflare-credentials.path;
-    webroot = null;
-    group = "acme";
-  };
-
-  security.acme.certs."vllm.sjanglab.org" = {
-    dnsProvider = "cloudflare";
-    environmentFile = config.sops.secrets.cloudflare-credentials.path;
-    webroot = null;
-    group = "acme";
-  };
-
   security.acme.certs."gatus.sjanglab.org" = {
     dnsProvider = "cloudflare";
     environmentFile = config.sops.secrets.cloudflare-credentials.path;
