@@ -109,6 +109,7 @@ in
     let
       psql = "${config.services.postgresql.package}/bin/psql --port=${toString config.services.postgresql.settings.port}";
       terraformModules = [
+        "authentik"
         "cloudflare"
         "github"
         "vultr"
