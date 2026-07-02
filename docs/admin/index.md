@@ -9,7 +9,7 @@ SBEE Lab 인프라를 운영하기 위한 관리자 가이드입니다.
 | `inv` (invoke) | 배포, 운영, 사용자 관리 자동화 | 로컬 `tasks.py` |
 | Authentik | SSO/사용자/그룹 관리 | `https://auth.sjanglab.org` |
 | sops | 시크릿 암호화/복호화 | `sops hosts/<host>.yaml` |
-| Terraform | DNS, GitHub 리소스 관리 | `terraform/` 디렉토리 |
+| Terraform | DNS, GitHub, Authentik, Headscale 정책 관리 | `terraform/` 디렉토리 |
 
 ## 인증 흐름
 
@@ -18,7 +18,7 @@ SBEE Lab 인프라를 운영하기 위한 관리자 가이드입니다.
                         → nginx → Authentik Forward Auth → 서비스
 ```
 
-Authentik 그룹(`sjanglab-admins`, `sjanglab-researchers`, `sjanglab-students`)이 Headscale ACL과 15분마다 자동 동기화되어 네트워크 수준의 접근 제어가 이루어집니다.
+Terraform이 Authentik 그룹과 Headscale ACL policy를 같은 사용자 inventory에서 생성하여 네트워크 수준의 접근 제어가 이루어집니다.
 
 ## 주요 명령어
 
