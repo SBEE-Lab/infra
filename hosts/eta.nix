@@ -14,7 +14,6 @@ in
     ../modules/uptermd
     ../modules/gatus
     ../modules/monitoring/vector
-    ../modules/monitoring/reverse-proxy.nix
     ../modules/n8n/reverse-proxy.nix
     ../modules/acme/sync.nix
   ];
@@ -37,6 +36,12 @@ in
       remoteHost = hosts.psi.wg-admin;
     }
     {
+      domain = "logging.sjanglab.org";
+      serviceName = "acme-sync-logging-to-rho";
+      remoteUser = "acme-sync-logging";
+      remoteHost = hosts.rho.wg-admin;
+    }
+    {
       domain = "vllm.sjanglab.org";
       serviceName = "acme-sync-vllm-to-psi";
       remoteUser = "acme-sync-vllm";
@@ -55,6 +60,13 @@ in
   };
 
   security.acme.certs."vllm.sjanglab.org" = {
+    dnsProvider = "cloudflare";
+    environmentFile = config.sops.secrets.cloudflare-credentials.path;
+    webroot = null;
+    group = "acme";
+  };
+
+  security.acme.certs."logging.sjanglab.org" = {
     dnsProvider = "cloudflare";
     environmentFile = config.sops.secrets.cloudflare-credentials.path;
     webroot = null;
