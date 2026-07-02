@@ -237,4 +237,4 @@ flowchart LR
 
 ### 서비스 복구
 
-systemd가 서비스 실패 시 자동 재시작합니다. 모니터링은 Gatus(`gatus.sjanglab.org`)에서 헬스체크를 수행합니다.
+systemd가 서비스 실패 시 자동 재시작합니다. 모니터링은 Gatus(`status.sjanglab.org`)에서 헬스체크를 수행합니다.

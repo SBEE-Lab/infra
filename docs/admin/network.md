@@ -124,7 +124,7 @@ sequenceDiagram
 
 | 호스트 | 외부 개방 포트 | wg-admin 개방 포트 |
 |--------|--------------|-------------------|
-| eta | 80, 443, 10022 (SSH + Rate limiting), 2323 (Upterm relay) | 10022 |
+| eta | 80, 443, 10022 (SSH + Rate limiting), 2323 (Upterm relay) | 10022, 8081 (Gatus) |
 | psi | — | 80/443 (Nixbot upstream), 10022, 5000 (Harmonia), 5432 (Nixbot/PostgreSQL) |
 | rho | — | 10022, 5432 (PostgreSQL), 3000 (Grafana) |
 | tau | — | 10022, 5678 (n8n 웹훅) |

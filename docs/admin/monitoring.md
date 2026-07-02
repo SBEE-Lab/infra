@@ -3,7 +3,7 @@
 ## 대시보드
 
 - **Grafana**: `https://logging.sjanglab.org` (익명 Viewer 접근 가능, wg-admin 경유)
-- **Gatus**: `https://gatus.sjanglab.org` (외부 상태 페이지)
+- **Gatus**: `https://status.sjanglab.org` (tailnet 내부 공개 상태 페이지)
 
 ## 스택 구성
 
