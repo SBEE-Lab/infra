@@ -57,6 +57,10 @@ flowchart LR
 
 ### Gatus (eta)
 
-- Pull 방식: 외부 접근 가능한 서비스 (Authentik, Headscale, Upterm Web/Relay 등)
-- Push 방식: 내부 서비스가 주기적으로 상태 보고
+- Pull 방식: eta에서 직접 접근 가능한 서비스 (Authentik, Headscale, Upterm 등)
+- Push 방식: 내부 서비스가 로컬/사용자 경로를 확인한 뒤 상태 보고
+- 저장소: SQLite (`/var/lib/gatus/gatus.sqlite`)로 재시작 후 uptime 유지
+- External endpoint heartbeat: 15분 동안 push가 없으면 실패 처리
+- 그룹: `apps`, `ci`, `monitoring`, `platform`
+- 기본 정렬: group 기준
 - 알림: ntfy (`ntfy.sjanglab.org`, 토픽: `gatus`)

@@ -9,7 +9,7 @@
     {
       name = "Authentik";
       url = "https://auth.sjanglab.org";
-      group = "auth";
+      group = "platform";
     }
   ];
 

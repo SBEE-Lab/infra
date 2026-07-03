@@ -1,16 +1,5 @@
 { config, ... }:
 {
-  imports = [ ../gatus/check.nix ];
-
-  gatusCheck.pull = [
-    {
-      name = "Vaultwarden";
-      url = "http://127.0.0.1:8000/alive";
-      group = "apps";
-      conditions = [ "[STATUS] == 200" ];
-    }
-  ];
-
   services.vaultwarden = {
     enable = true;
     environmentFile = config.sops.templates.vaultwarden-env.path;

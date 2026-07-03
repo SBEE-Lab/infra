@@ -10,7 +10,7 @@
     {
       name = "Headscale";
       url = "https://hs.sjanglab.org/health";
-      group = "auth";
+      group = "platform";
     }
   ];
 

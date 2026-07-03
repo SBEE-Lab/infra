@@ -18,6 +18,16 @@ in
       };
       metrics = true;
 
+      storage = {
+        type = "sqlite";
+        path = "/var/lib/gatus/gatus.sqlite";
+        caching = true;
+        maximum-number-of-results = 720;
+        maximum-number-of-events = 200;
+      };
+
+      ui.default-sort-by = "group";
+
       alerting.ntfy = {
         topic = "gatus";
         url = "https://ntfy.sjanglab.org";
@@ -49,23 +59,24 @@ in
           mkExtEndpoint = name: group: {
             inherit name group;
             token = "\${GATUS_EXTERNAL_TOKEN}";
+            heartbeat.interval = "15m";
             alerts = [ { type = "ntfy"; } ];
           };
         in
         [
           # psi
           (mkExtEndpoint "Nixbot" "ci")
-          (mkExtEndpoint "Nixbot PostgreSQL" "ci")
-          (mkExtEndpoint "Docling" "ai")
-          (mkExtEndpoint "MULTI-evolve" "ai")
+          (mkExtEndpoint "Docling" "apps")
+          (mkExtEndpoint "MULTI-evolve" "apps")
           # tau
           (mkExtEndpoint "Nextcloud" "apps")
           (mkExtEndpoint "n8n" "apps")
+          (mkExtEndpoint "Vaultwarden" "apps")
           # rho
           (mkExtEndpoint "Grafana" "monitoring")
           (mkExtEndpoint "Prometheus" "monitoring")
           (mkExtEndpoint "Loki" "monitoring")
-          (mkExtEndpoint "PostgreSQL" "db")
+          (mkExtEndpoint "PostgreSQL" "platform")
         ];
     };
   };

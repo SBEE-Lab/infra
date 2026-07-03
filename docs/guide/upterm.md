@@ -30,6 +30,6 @@ ssh <session-id>:<token>@upterm.sjanglab.org -p 2323
 | 웹 안내 페이지 | `https://upterm.sjanglab.org` |
 | Relay endpoint | `ssh://upterm.sjanglab.org:2323` |
 | 인증 | 세션 호스트가 지정한 GitHub 사용자 allow-list |
-| 모니터링 | Gatus `Upterm Web`, `Upterm Relay` |
+| 모니터링 | Gatus `Upterm` |
 
 세션은 임시 공유 용도입니다. 장기 접속이나 서버 작업은 [SSH 접속](../dev/ssh-access.md)을 사용하세요.

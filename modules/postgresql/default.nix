@@ -13,7 +13,7 @@ in
   gatusCheck.push = [
     {
       name = "PostgreSQL";
-      group = "db";
+      group = "platform";
       systemdService = "postgresql.service";
     }
   ];

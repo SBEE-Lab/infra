@@ -16,7 +16,13 @@ in
     {
       name = "Grafana";
       group = "monitoring";
-      url = "http://${wgAdminAddr}:3000/api/health";
+      checks = [
+        { url = "http://${wgAdminAddr}:3000/api/health"; }
+        {
+          url = "https://logging.sjanglab.org/";
+          expectedStatus = 302;
+        }
+      ];
     }
   ];
 

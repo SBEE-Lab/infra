@@ -13,8 +13,11 @@ in
   gatusCheck.push = [
     {
       name = "Docling";
-      group = "ai";
-      url = "http://127.0.0.1:${toString doclingPort}/health";
+      group = "apps";
+      checks = [
+        { url = "http://127.0.0.1:${toString doclingPort}/health"; }
+        { url = "https://${domain}/health"; }
+      ];
     }
   ];
 
