@@ -1,5 +1,6 @@
 {
   config,
+  lib,
   pkgs,
   ...
 }:
@@ -164,6 +165,38 @@ in
   };
   sops.secrets.whiteboard-jwt = {
     sopsFile = ./secrets.yaml;
+  };
+  sops.secrets.nextcloud-oidc-client-secret = {
+    sopsFile = ../../terraform/authentik/oidc-secrets.yaml;
+    key = "NEXTCLOUD_CLIENT_SECRET";
+    owner = "nextcloud";
+    group = "nextcloud";
+    mode = "0400";
+    restartUnits = [ "nextcloud-oidc-authentik.service" ];
+  };
+
+  systemd.services.nextcloud-oidc-authentik = {
+    description = "Configure Authentik OIDC provider for Nextcloud";
+    wantedBy = [ "multi-user.target" ];
+    requires = [ "nextcloud-setup.service" ];
+    after = [ "nextcloud-setup.service" ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+    };
+    script = ''
+      ${lib.getExe config.services.nextcloud.occ} user_oidc:provider authentik \
+        --clientid=4GdFUqIaLHa3Hx5VnMul6RU8iaJG8GqtUHXHjfqo \
+        --clientsecret-file=${config.sops.secrets.nextcloud-oidc-client-secret.path} \
+        --discoveryuri=https://auth.sjanglab.org/application/o/nextcloud/.well-known/openid-configuration \
+        --scope="openid email profile groups" \
+        --mapping-uid=email \
+        --mapping-groups=groups \
+        --mapping-quota=quota \
+        --extra-claims=nextcloud-groups \
+        --group-provisioning=1 \
+        --send-id-token-hint=1
+    '';
   };
 
   networking.firewall.allowedTCPPorts = [

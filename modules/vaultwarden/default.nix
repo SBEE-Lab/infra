@@ -13,7 +13,7 @@
 
   services.vaultwarden = {
     enable = true;
-    environmentFile = config.sops.secrets.vaultwarden-env.path;
+    environmentFile = config.sops.templates.vaultwarden-env.path;
     backupDir = "/var/backup/vaultwarden";
 
     config = {
@@ -43,6 +43,25 @@
     owner = "vaultwarden";
     group = "vaultwarden";
     mode = "0400";
+  };
+
+  sops.secrets.vaultwarden-oidc-client-secret = {
+    sopsFile = ../../terraform/authentik/oidc-secrets.yaml;
+    key = "VAULTWARDEN_CLIENT_SECRET";
+    owner = "vaultwarden";
+    group = "vaultwarden";
+    mode = "0400";
+    restartUnits = [ "vaultwarden.service" ];
+  };
+
+  sops.templates.vaultwarden-env = {
+    owner = "vaultwarden";
+    group = "vaultwarden";
+    mode = "0400";
+    content = ''
+      ${config.sops.placeholder.vaultwarden-env}
+      SSO_CLIENT_SECRET=${config.sops.placeholder.vaultwarden-oidc-client-secret}
+    '';
   };
 
   systemd.tmpfiles.rules = [
