@@ -1,20 +1,10 @@
-# Nixbot PostgreSQL database health/backup helpers (deployed on psi)
+# Nixbot database health/backup helpers (deployed on psi)
 {
   lib,
   pkgs,
   ...
 }:
 {
-  imports = [ ../gatus/check.nix ];
-
-  gatusCheck.push = [
-    {
-      name = "Nixbot PostgreSQL";
-      group = "ci";
-      systemdService = "postgresql.service";
-    }
-  ];
-
   # services.nixbot provisions the nixbot database and peer-authenticated user.
   services.postgresql = {
     enable = true;

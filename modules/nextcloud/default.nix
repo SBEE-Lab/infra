@@ -21,8 +21,7 @@ in
     {
       name = "Nextcloud";
       group = "apps";
-      url = "http://127.0.0.1:80/status.php";
-      expectedStatus = 301;
+      url = "https://cloud.sjanglab.org/status.php";
     }
   ];
 

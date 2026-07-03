@@ -14,7 +14,7 @@
     {
       name = "ntfy";
       url = "https://ntfy.sjanglab.org/v1/health";
-      group = "infra";
+      group = "platform";
     }
   ];
 

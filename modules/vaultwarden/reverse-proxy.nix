@@ -5,7 +5,18 @@ let
   certDir = "/var/lib/acme/${domain}";
 in
 {
-  imports = [ ../acme/sync.nix ];
+  imports = [
+    ../acme/sync.nix
+    ../gatus/check.nix
+  ];
+
+  gatusCheck.push = [
+    {
+      name = "Vaultwarden";
+      group = "apps";
+      url = "https://${domain}/alive";
+    }
+  ];
 
   acmeSyncer.mkReceiver = [
     {

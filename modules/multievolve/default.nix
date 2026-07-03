@@ -22,8 +22,14 @@ in
   gatusCheck.push = [
     {
       name = "MULTI-evolve";
-      group = "ai";
-      url = "http://127.0.0.1:${toString port}/_stcore/health";
+      group = "apps";
+      checks = [
+        { url = "http://127.0.0.1:${toString port}/_stcore/health"; }
+        {
+          url = "https://${domain}/";
+          expectedStatus = 302;
+        }
+      ];
     }
   ];
 

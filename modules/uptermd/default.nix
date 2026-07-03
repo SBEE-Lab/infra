@@ -35,14 +35,9 @@ in
 
   gatusCheck.pull = [
     {
-      name = "Upterm Web";
-      url = "https://${domain}";
-      group = "dev";
-    }
-    {
-      name = "Upterm Relay";
+      name = "Upterm";
       url = "tcp://${domain}:${toString port}";
-      group = "dev";
+      group = "platform";
       conditions = [ "[CONNECTED] == true" ];
     }
   ];

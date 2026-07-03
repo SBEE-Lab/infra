@@ -28,8 +28,25 @@ let
     in
     "${sanitize ep.group}_${sanitize ep.name}";
 
+  mkUrlCheck = check: ''
+    check_url ${lib.escapeShellArg check.url} ${lib.escapeShellArg (toString check.expectedStatus)}
+  '';
+
   mkPushScript =
     ep:
+    let
+      checks =
+        if ep.checks != null then
+          ep.checks
+        else if ep.url != null then
+          [
+            {
+              inherit (ep) url expectedStatus;
+            }
+          ]
+        else
+          [ ];
+    in
     pkgs.writeShellScript "gatus-push-${mkKey ep}" (
       if ep.systemdService != null then
         ''
@@ -52,14 +69,24 @@ let
       else
         ''
           set -euo pipefail
-          status=$(${pkgs.curl}/bin/curl -sf --max-time 30 -o /dev/null -w "%{http_code}" "${ep.url}" 2>/dev/null) || true
-          if [ "$status" = "${toString ep.expectedStatus}" ]; then
-            success=true
-            error=""
-          else
-            success=false
-            error="expected ${toString ep.expectedStatus}, got $status"
-          fi
+          success=true
+          error=""
+
+          check_url() {
+            local url=$1
+            local expected=$2
+            local status
+            status=$(${pkgs.curl}/bin/curl -sf --max-time 30 -o /dev/null -w "%{http_code}" "$url" 2>/dev/null) || true
+            if [ "$status" != "$expected" ]; then
+              success=false
+              if [ -n "$error" ]; then
+                error="$error; "
+              fi
+              error="''${error}$url expected $expected, got $status"
+            fi
+          }
+
+          ${lib.concatMapStringsSep "" mkUrlCheck checks}
           ${pkgs.curl}/bin/curl -sf --max-time 10 \
             -X POST \
             -G \
@@ -89,6 +116,16 @@ let
     };
   };
 
+  urlCheckSubmodule = lib.types.submodule {
+    options = {
+      url = lib.mkOption { type = lib.types.str; };
+      expectedStatus = lib.mkOption {
+        type = lib.types.int;
+        default = 200;
+      };
+    };
+  };
+
   pushSubmodule = lib.types.submodule {
     options = {
       name = lib.mkOption { type = lib.types.str; };
@@ -100,6 +137,11 @@ let
       expectedStatus = lib.mkOption {
         type = lib.types.int;
         default = 200;
+      };
+      checks = lib.mkOption {
+        type = lib.types.nullOr (lib.types.listOf urlCheckSubmodule);
+        default = null;
+        description = "HTTP checks that must all pass before pushing success";
       };
       systemdService = lib.mkOption {
         type = lib.types.nullOr lib.types.str;
@@ -129,11 +171,24 @@ in
 
   # Push: systemd timers on the declaring host
   config = lib.mkIf (cfg.push != [ ]) {
-    # Validate: each push entry must have exactly one of url or systemdService
-    assertions = map (ep: {
-      assertion = (ep.url != null) != (ep.systemdService != null);
-      message = "gatusCheck.push '${ep.name}': exactly one of 'url' or 'systemdService' must be set";
-    }) cfg.push;
+    # Validate: each push entry must have exactly one check source.
+    assertions = lib.concatMap (ep: [
+      {
+        assertion =
+          builtins.length (
+            lib.filter (x: x) [
+              (ep.url != null)
+              (ep.checks != null)
+              (ep.systemdService != null)
+            ]
+          ) == 1;
+        message = "gatusCheck.push '${ep.name}': exactly one of 'url', 'checks', or 'systemdService' must be set";
+      }
+      {
+        assertion = ep.checks == null || ep.checks != [ ];
+        message = "gatusCheck.push '${ep.name}': checks must not be empty";
+      }
+    ]) cfg.push;
 
     sops.secrets.gatus-push-token = {
       sopsFile = ./secrets.yaml;
