@@ -102,10 +102,12 @@
   };
 
   sops.secrets.headscale-oidc-secret = {
-    sopsFile = ./secrets.yaml;
+    sopsFile = ../../terraform/authentik/oidc-secrets.yaml;
+    key = "HEADSCALE_CLIENT_SECRET";
     owner = "headscale";
     group = "headscale";
     mode = "0400";
+    restartUnits = [ "headscale.service" ];
   };
 
   # ACME certificate

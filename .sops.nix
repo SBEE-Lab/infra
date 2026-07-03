@@ -65,6 +65,10 @@ let
       "modules/nfs/secrets.yaml" = [ "psi" ];
       "modules/users/xrdp-passwords.yaml" = [ "psi" ];
       "terraform/authentik/secrets.yaml" = [ ];
+      "terraform/authentik/oidc-secrets.yaml" = [
+        "eta"
+        "tau"
+      ];
       "terraform/authentik/users.yaml" = [ ];
       "terraform/cloudflare/secrets.yaml" = [ ];
       "terraform/github/secrets.yaml" = [ ];

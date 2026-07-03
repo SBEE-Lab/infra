@@ -69,6 +69,20 @@ policy_id_by_name() {
     head -n1
 }
 
+oauth2_id_by_name() {
+  local name=$1
+  api "providers/oauth2/?search=$(jq -rn --arg v "$name" '$v|@uri')&page_size=100" |
+    jq -r --arg name "$name" '.results[] | select(.name == $name) | .pk' |
+    head -n1
+}
+
+scope_mapping_id_by_name() {
+  local name=$1
+  api "propertymappings/provider/scope/?search=$(jq -rn --arg v "$name" '$v|@uri')&page_size=100" |
+    jq -r --arg name "$name" '.results[] | select(.name == $name) | .pk' |
+    head -n1
+}
+
 binding_id_by_target_policy() {
   local target=$1
   local policy=$2
@@ -140,4 +154,25 @@ while IFS='|' read -r app external_host policy_key; do
 done <<'EOF'
 n8n|https://n8n.sjanglab.org|researchers
 logging|https://logging.sjanglab.org|admins
+EOF
+
+while IFS='|' read -r key name; do
+  import_if_missing "authentik_property_mapping_provider_scope.oidc_group[$(json_quote "$key")]" "$(scope_mapping_id_by_name "$name")"
+done <<'EOF'
+headscale|headscale-groups
+nextcloud|nextcloud-groups
+EOF
+
+while IFS='|' read -r key name slug; do
+  import_if_missing "authentik_provider_oauth2.oidc[$(json_quote "$key")]" "$(oauth2_id_by_name "$name")"
+  app_id=$(app_uuid_by_slug "$slug")
+  if [ -n "$app_id" ]; then
+    import_if_missing "authentik_application.oidc[$(json_quote "$key")]" "$slug"
+  else
+    echo "skip application for $slug: no remote object"
+  fi
+done <<'EOF'
+headscale|Headscale|headscale
+nextcloud|Nextcloud|nextcloud
+vaultwarden|Vaultwarden|vaultwarden
 EOF
