@@ -1,6 +1,53 @@
-{ config, ... }:
+{ config, pkgs, ... }:
 let
   inherit (config.networking.sbee) hosts;
+  wgAdminAddr = config.networking.sbee.currentHost.wg-admin;
+
+  blackboxConfig = pkgs.writeText "blackbox.yml" (
+    builtins.toJSON {
+      modules = {
+        http_2xx = {
+          prober = "http";
+          timeout = "10s";
+          http = {
+            preferred_ip_protocol = "ip4";
+            follow_redirects = true;
+            fail_if_ssl = false;
+            fail_if_not_ssl = true;
+          };
+        };
+        http_2xx_or_redirect = {
+          prober = "http";
+          timeout = "10s";
+          http = {
+            preferred_ip_protocol = "ip4";
+            follow_redirects = false;
+            fail_if_ssl = false;
+            fail_if_not_ssl = true;
+            valid_status_codes = [
+              200
+              204
+              301
+              302
+              303
+              307
+              308
+            ];
+          };
+        };
+        tcp_connect = {
+          prober = "tcp";
+          timeout = "5s";
+          tcp.preferred_ip_protocol = "ip4";
+        };
+        icmp = {
+          prober = "icmp";
+          timeout = "5s";
+          icmp.preferred_ip_protocol = "ip4";
+        };
+      };
+    }
+  );
 in
 {
   imports = [
@@ -87,5 +134,17 @@ in
   };
 
   networking.hostName = "eta";
+
+  services.prometheus.exporters.blackbox = {
+    enable = true;
+    listenAddress = wgAdminAddr;
+    port = 9115;
+    configFile = blackboxConfig;
+  };
+
+  networking.firewall.interfaces."wg-admin".allowedTCPPorts = [
+    9115 # blackbox exporter
+  ];
+
   system.stateVersion = "25.05";
 }

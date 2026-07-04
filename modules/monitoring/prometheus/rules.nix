@@ -97,6 +97,17 @@ in
                 description = "{{ $labels.group }}/{{ $labels.name }} is failing";
               };
             }
+
+            {
+              alert = "BlackboxProbeFailed";
+              expr = ''probe_success{job=~"blackbox_.*"} == 0'';
+              for = "3m";
+              labels.severity = "warning";
+              annotations = {
+                summary = "Synthetic probe failed";
+                description = "{{ $labels.probe_scope }}/{{ $labels.service }} probe {{ $labels.instance }} is failing";
+              };
+            }
           ];
         }
       ];
