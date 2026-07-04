@@ -36,32 +36,56 @@ curl -fsSL https://tailscale.com/install.sh | sh
 nix run nixpkgs#tailscale -- up --login-server https://hs.sjanglab.org
 ```
 
-## 2. VPN 연결
+## 2. 기기 이름 확인
+
+Headscale은 VPN 기기 이름을 DNS 이름으로도 사용하므로 영문 소문자, 숫자, 하이픈만 사용해야 합니다.
+
+| 좋은 예 | 피해야 할 예 |
+|---------|--------------|
+| `lab-imac`, `researcher-macbook`, `student-laptop` | `내 노트북`, `lab pc`, `lab_pc`, `노트북` |
+
+한글, 공백, 밑줄, 특수문자가 포함된 이름으로 등록하면 Headscale에서 `invalid-xxxxxx` 같은 임시 이름으로 표시될 수 있습니다.
+
+CLI를 사용할 수 있으면 로그인 시 이름을 직접 지정할 수 있습니다:
+
+```bash
+tailscale up --login-server https://hs.sjanglab.org --hostname lab-imac
+```
+
+이미 등록 후 `invalid-*` 이름이 보이면 관리자에게 수정 요청을 보내세요.
+
+## 3. VPN 연결
 
 Tailscale의 기본 서버 대신 SBEE Lab의 Headscale 서버(`https://hs.sjanglab.org`)에 연결해야 합니다.
 
 ### Windows
 
-1. 시스템 트레이의 Tailscale 아이콘을 우클릭합니다
-1. **Preferences** (또는 **Settings**)를 엽니다
-1. **Use custom server** 항목에 `https://hs.sjanglab.org`을 입력합니다
-1. **Log in**을 클릭합니다
-
-또는 PowerShell(관리자)에서:
+PowerShell 또는 명령 프롬프트에서 Headscale 서버를 지정해 연결합니다. 기기 이름을 함께 고정하려면 `--hostname`을 붙입니다:
 
 ```powershell
-# 레지스트리에 서버 등록
-reg add "HKLM\SOFTWARE\Tailscale IPN" /v LoginServer /t REG_SZ /d "https://hs.sjanglab.org" /f
+tailscale up --login-server https://hs.sjanglab.org --hostname lab-imac
+```
 
-# Tailscale 서비스 재시작
+명령을 찾을 수 없으면 설치 경로의 `tailscale.exe`를 직접 실행합니다:
+
+```powershell
+& "$env:ProgramFiles\Tailscale\tailscale.exe" up --login-server https://hs.sjanglab.org --hostname lab-imac
+```
+
+관리자가 정책으로 로그인 서버를 고정해야 하는 경우 PowerShell(관리자)에서 설정합니다:
+
+```powershell
+reg add "HKLM\SOFTWARE\Policies\Tailscale" /v LoginURL /t REG_SZ /d "https://hs.sjanglab.org" /f
 net stop Tailscale & net start Tailscale
 ```
 
 ### macOS / Linux (CLI)
 
 ```bash
-tailscale login --login-server https://hs.sjanglab.org
+tailscale up --login-server https://hs.sjanglab.org --hostname lab-imac
 ```
+
+`lab-imac`은 예시입니다. 실제 기기에 맞는 DNS-safe 이름으로 바꿔 사용하세요.
 
 ### iOS
 
@@ -81,7 +105,7 @@ ______________________________________________________________________
 
 브라우저가 열리면 Authentik으로 로그인합니다. 소속 그룹(`sjanglab-admins`, `sjanglab-researchers`, `sjanglab-students`)에 따라 접근 권한이 자동으로 결정됩니다.
 
-## 3. 연결 확인
+## 4. 연결 확인
 
 ```bash
 tailscale status
