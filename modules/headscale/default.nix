@@ -4,6 +4,7 @@
     ../acme
     ../gatus/check.nix
     ./tag-sync.nix
+    ./audit.nix
   ];
 
   gatusCheck.pull = [
@@ -100,6 +101,9 @@
 
       logtail.enabled = false;
       metrics_listen_addr = "127.0.0.1:9090";
+
+      # JSON logs so Vector can classify audit events reliably (audit.nix)
+      log.format = "json";
 
       # ACL policy is managed by terraform/headscale through the Headscale API.
       policy.mode = "database";
