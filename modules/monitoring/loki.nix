@@ -41,6 +41,16 @@ in
       limits_config = {
         retention_period = "168h"; # 7 days
         ingestion_burst_size_mb = 16;
+
+        # Audit streams keep 90 days; headscale_nodes snapshots are
+        # repetitive state and stay on the 7-day default.
+        retention_stream = [
+          {
+            selector = ''{log_type=~"ssh|ssh_bastion|audit|authentik|headscale"}'';
+            priority = 1;
+            period = "2160h"; # 90 days
+          }
+        ];
       };
 
       compactor = {
