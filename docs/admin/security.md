@@ -220,7 +220,6 @@ flowchart LR
   src["auditd / journald"] --> vec["Vector"]
   vec --> loki["Loki (rho)"]
   loki --> graf["Grafana"]
-  graf --> ntfy["ntfy (알림)"]
 ```
 
 ## 시스템 안정성

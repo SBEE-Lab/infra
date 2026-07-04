@@ -1,361 +1,186 @@
-# Access & Audit monitoring plan
+# Monitoring stack notes
 
-## Status
+This directory contains the Nix-owned monitoring stack for rho/eta/psi/tau.
 
-Branch: `monitoring-stack-reliability`
+## Current model
 
-The bundle from `~/Downloads/monitoringaudit.bundle` was applied, reviewed against live eta/rho state, fixed, and rewritten into clean logical commits on top of `e6a2c4e`.
+- **rho** runs Prometheus, Loki, and Grafana.
+- **eta** runs Gatus and blackbox exporter.
+- **all hosts** run Vector for host metrics and logs.
+- **psi** exports job freshness snapshots and NVIDIA GPU metrics.
+- **Grafana** is tailnet/wg-admin only at `https://logging.sjanglab.org/` with anonymous Viewer access.
+- **Gatus** is tailnet-only at `https://status.sjanglab.org/` and remains the user-facing status page.
 
-Final commits after cleanup:
+## Dashboards
 
-| Commit | Purpose | Status |
-| --- | --- | --- |
-| `9635638 headscale: collect control-plane audit events` | Headscale JSON logs, node inventory snapshots, node summary snapshots | Clean and self-contained |
-| `126ec47 authentik: collect access audit events` | Authentik login/app/admin/forward-auth audit collection | Clean and self-contained |
-| `a189264 monitoring: keep audit labels bounded` | Remove `user` Loki label and keep audit streams for 90 days | Clean and self-contained |
-| `488bf56 monitoring: add access and audit dashboard` | Split dashboard provisioning and add `SjangLab Access & Audit` | Clean and self-contained |
-| `e13e8da docs: document access audit collection` | Document streams, label policy, retention, validation, and this plan | Clean and self-contained |
+Grafana dashboards are provisioned from Nix under `modules/monitoring/grafana/dashboards/`.
 
-Build validation after cleanup:
+- `infra.nix`: high-level home dashboard.
+- `hosts.nix`: host resources, metrics freshness, wg-admin reachability, Headscale node status.
+- `apps.nix`: Gatus smoke status, synthetic probes, browser app access flows.
+- `jobs.nix`: db-sync/borg/job status and freshness.
+- `access-audit.nix`: SSH, Authentik, and Headscale audit drilldown.
+- `ai-resources.nix`: AI endpoint smoke, psi resources, db-sync, GPU metrics.
 
-```bash
-nix build .#checks.x86_64-linux.nixos-eta .#checks.x86_64-linux.nixos-rho --impure --no-link
-```
+Datasource UIDs are pinned so dashboard JSON stays stable:
 
-Result: passed. Runtime validation on eta/rho also confirmed `authentik` and `headscale_nodes` streams reach Loki after parser/unit/socket fixes.
+- Prometheus: `PBFA97CFB590B2093`
+- Loki: `P8E80F9AEF21F6940`
 
-## Review findings applied
+## Logs and labels
 
-
-### Runtime fixes after first deploy
-
-Live validation found two deployment-only issues and both are fixed in the rewritten commits:
-
-- Vector `include_units` must use concrete systemd unit names (`authentik.service`, `authentik-worker.service`, `headscale.service`). Mixing bare names caused Authentik audit events to be missed in the production pipeline.
-- Headscale creates `/run/headscale/headscale.sock` as owner-only. Vector already had the `headscale` supplementary group, but the socket still needed `chmod 0770` after Headscale startup. `headscale: collect control-plane audit events` now adds a `postStart` hook for this.
-
-Runtime checks passed after deploy:
-
-```logql
-{log_type="authentik", event="forward_auth_deny"}
-{log_type="headscale_nodes", event="node_snapshot"}
-{log_type="headscale_nodes", event="nodes_summary"}
-```
-
-### Bundle history cleanup
-
-The incoming bundle had one structural history issue: the Headscale commit deleted `modules/monitoring/grafana/dashboards.nix`, while the dashboard split belonged to the later Grafana commit.
-
-Cleanup rewrote the stack so:
-
-- `headscale: collect control-plane audit events` only changes Headscale audit code/config.
-- `monitoring: add access and audit dashboard` performs the dashboard file split and old dashboard file deletion.
-
-### Authentik parser fixes
-
-Live eta logs showed Authentik writes JSON as journald `MESSAGE`. The parser keeps that model.
-
-Applied fixes:
-
-- handles `parsed.user` as either object (`user.username`) or string (`"akadmin"`).
-- preserves outpost application name from `parsed.name`.
-- uses `client_ip` as `source_ip` only when present.
-- stores outpost `remote` as `proxy_remote`, not `source_ip`, because observed values are internal proxy/requester addresses.
-- keeps only whitelisted fields in output.
-
-Observed Authentik event/actions:
-
-- `authentik.events.models` + `action="login_failed"`
-- `authentik.events.models` + `action="login"`
-- `authentik.events.models` + `action="authorize_application"`
-- `authentik.outpost.proxyv2.application` with `/outpost.goauthentik.io/auth/nginx` and `status=401|403` for forward-auth denials
-
-### Headscale snapshot fixes
-
-Live `headscale nodes list --output json` returns an array. `last_seen` and `expiry` are protobuf-style objects with `seconds`/`nanos` fields.
-
-Applied fixes:
-
-- per-node rows now use `event="node_snapshot"`.
-- `last_seen_seconds` and `expiry_seconds` are flattened numeric fields.
-- tags are flattened into a comma-separated field.
-- one summary row is emitted per snapshot run with `event="nodes_summary"`.
-- summary fields: `total_count`, `online_count`, `expired_count`, `near_expiry_count`.
-- `headscale_nodes` Loki sink labels now include bounded `event` so summaries and node rows are cheap to query.
-
-Tested snapshot jq against live eta data; sample summary produced:
-
-```json
-{"log_type":"headscale_nodes","event":"nodes_summary","host":"eta","total_count":9,"online_count":4,"expired_count":0,"near_expiry_count":1}
-```
-
-### Dashboard query fixes
-
-Applied fixes:
-
-- Main `Headscale nodes online` stat now reads summary snapshots:
-
-```logql
-last_over_time({log_type="headscale_nodes", event="nodes_summary"} | json | unwrap online_count [10m])
-```
-
-- Access & Audit node inventory now queries only node rows:
-
-```logql
-{log_type="headscale_nodes", event="node_snapshot"}
-```
-
-- The node inventory panel uses `timeFrom = "10m"` to avoid showing 24h of repeated snapshots.
-
-### Vector permissions
-
-Evaluation confirms eta Vector keeps both required groups:
-
-```text
-[ "systemd-journal" "headscale" ]
-```
-
-rho Vector remains:
-
-```text
-[ "systemd-journal" ]
-```
-
-### Label cardinality
-
-Static check found no remaining variable Loki labels such as:
-
-- `user = "{{ user }}"`
-- `source_ip = "{{ ... }}"`
-- `app = "{{ ... }}"`
-- `node = "{{ ... }}"`
-
-Allowed labels remain bounded:
+Loki label cardinality stays bounded. Use only these stream labels:
 
 - `host`
 - `log_type`
 - `event`
 
-Variable values stay in JSON fields.
+Keep high-cardinality values in JSON fields only:
 
-## Final design
-
-### Dashboard model
-
-Use one combined drilldown dashboard first:
-
-- UID: `sjanglab-access-audit`
-- Title: `SjangLab Access & Audit`
-- Rows:
-  - SSH
-  - Authentik
-  - Headscale
-
-Keep `sjanglab-infra` as Grafana home and overview dashboard.
-
-Main dashboard contains high-level signals only:
-
-- SSH login failures over 24h
-- Authentik login failures over 24h
-- Headscale online node count from latest summary snapshot
-- Gatus current endpoint health table
-- Prometheus target table
-- host/resource summary
-- psi systemd status until a Jobs dashboard exists
-
-Detailed audit panels live in Access & Audit:
-
-- Recent SSH events
-- SSH bastion forwards
-- failed SSH logins by source IP
-- Authentik login timeline
-- Authentik failed login table
-- Authentik app authorization table
-- Authentik admin/policy/forward-auth log view
-- Headscale node inventory
-- Headscale control-plane events
-
-### Gatus vs service status
-
-Keep Gatus on the main dashboard as user-facing current health. Do not replace service/job monitoring with Gatus.
-
-- Gatus answers whether the user-facing URL/auth/proxy/TLS/app path works.
-- systemd/job snapshots answer whether the underlying service/job is healthy and when it last succeeded.
-
-Detailed Gatus uptime/history belongs in a later Apps dashboard, not Access & Audit.
-
-### Headscale audit scope
-
-Collected now:
-
-- node registration/re-registration from Headscale logs
-- node expiry/logout/expire events from Headscale logs
-- preauth key usage from Headscale logs
-- OIDC denial or group mismatch from Headscale logs
-- ACL/policy errors from Headscale logs
-- periodic node inventory and summary snapshots from `headscale nodes list --output json`
-
-Out of scope:
-
-- WireGuard/tailnet data-plane traffic
-- browser app access
-- actual internal SSH target access
-
-Those belong to app/nginx/Authentik/SSH logs, not Headscale.
-
-### Authentik audit scope
-
-Collected now from logs:
-
-- login success/failure/logout
-- app authorization (`authorize_application`)
-- forward-auth denial (`/outpost.goauthentik.io/auth/nginx` with 401/403)
-- admin/user/group/provider/model changes
-- policy/system exceptions
-
-Logs are sufficient for the first implementation. Authentik Events API polling remains a later option if logs miss important fields or stronger deduplication/state is needed.
-
-### Retention
-
-Default Loki retention stays 7 days:
-
-```nix
-retention_period = "168h";
-```
+- `user`
+- `source_ip`
+- `app`
+- `node`
+- `unit`
 
 Audit streams keep 90 days:
 
-```nix
-retention_stream = [
-  {
-    selector = ''{log_type=~"ssh|ssh_bastion|audit|authentik|headscale"}'';
-    priority = 1;
-    period = "2160h";
-  }
-];
+```logql
+{log_type=~"ssh|ssh_bastion|audit|authentik|headscale"}
 ```
 
-`headscale_nodes` stays on the 7-day default because it is repetitive state snapshot data.
+`headscale_nodes` remains on default retention because it is repeated state data.
 
-If audit requirements exceed 90 days, add explicit archive/export later rather than extending all Loki streams indefinitely.
+## Synthetic probes
 
-## Implementation map
+rho Prometheus scrapes eta blackbox exporter.
 
-Headscale:
+- `blackbox_exporter`: eta exporter health, one scrape target.
+- `blackbox_http`: eta vantage public HTTPS probes.
+- `blackbox_tailnet_http`: eta vantage wg-admin HTTPS probes with hostname/SNI override.
+- `blackbox_tcp`: eta vantage TCP probes.
+- `blackbox_icmp`: eta vantage wg-admin ICMP reachability.
 
-- `modules/headscale/default.nix`
-  - imports `./audit.nix`
-  - sets `settings.log.format = "json"`
-- `modules/headscale/audit.nix`
-  - journald source for `headscale.service`
-  - parser/filter/sink for `log_type="headscale"`
-  - exec source for node snapshots and summary
-  - bounded Loki labels only
+Internal eta probes validate the internal/tailnet view. Public endpoints still need an outside-tailnet vantage before alerting is complete.
+
+## Job freshness
+
+psi writes systemd job snapshots to Loki every 60 seconds:
+
+```logql
+{host="psi", log_type="systemd_status", event="job_snapshot"}
+```
+
+Each row includes:
+
+- `unit`
+- `health=OK|WARN|FAIL`
+- `health_reason`
+- `last_success_age_seconds`
+- `last_start_age_seconds`
+- `last_exit_age_seconds`
+- `next_due_seconds`
+- `max_success_age_seconds`
+
+Prometheus cannot evaluate these LogQL streams directly. Job freshness alerts need Loki ruler or a metric exporter.
+
+## Access and audit streams
 
 Authentik:
 
-- `modules/authentik/default.nix`
-  - imports `./audit.nix`
-- `modules/authentik/audit.nix`
-  - journald source for `authentik.service` and `authentik-worker.service`
-  - parser/filter/sink for `log_type="authentik"`
-  - whitelisted output fields only
+```logql
+{log_type="authentik"}
+```
 
-Monitoring:
+Important events:
 
-- `modules/monitoring/vector/default.nix`
-  - removes variable `user` label from remote ssh/audit Loki sinks
-- `modules/monitoring/vector/monitor-systems.nix`
-  - removes variable `user` label from local ssh/audit Loki sinks
-- `modules/monitoring/loki.nix`
-  - adds 90-day audit `retention_stream`
-- `modules/monitoring/grafana/default.nix`
-  - imports `./dashboards`
-- `modules/monitoring/grafana/dashboards/default.nix`
-  - shared dashboard builder/provisioning
-- `modules/monitoring/grafana/dashboards/infra.nix`
-  - main overview, no detailed SSH panels
-- `modules/monitoring/grafana/dashboards/access-audit.nix`
-  - SSH/Authentik/Headscale drilldown
+- `login`
+- `login_failed`
+- `logout`
+- `app_authorize`
+- `admin_change`
+- `policy_error`
+- `forward_auth_deny`
 
-Docs:
+Headscale control plane:
 
-- `docs/admin/monitoring.md`
-  - audit streams, retention, labels, dashboards
-- `modules/monitoring/README.md`
-  - implementation/review plan and validation checklist
+```logql
+{log_type="headscale"}
+```
 
-## Validation plan before merge
+Important events:
 
-### Build
+- `node_register`
+- `node_expire`
+- `preauth_key`
+- `oidc_denied`
+- `error`
 
-Already passed after cleanup, but rerun before final push/merge if more edits occur:
+Headscale inventory snapshots:
+
+```logql
+{log_type="headscale_nodes", event="node_snapshot"}
+{log_type="headscale_nodes", event="nodes_summary"}
+```
+
+These are control-plane and inventory signals only, not WireGuard data-plane traffic.
+
+## Alerting state
+
+Prometheus alert rules exist, but Alertmanager/Slack delivery is not enabled yet.
+
+Current Prometheus rule intent:
+
+- `HostMetricsMissing`: critical host metric freshness.
+- `DiskSpaceLow`: warning disk pressure.
+- `MemoryLow`: warning memory pressure.
+- `HighCPULoad`: warning sustained CPU pressure.
+- `PrometheusTargetDown`: critical generic scrape target failure, excluding blackbox probe jobs and GPU exporter.
+- `GatusEndpointDown`: warning for Gatus-only CI/platform heartbeats.
+- `BlackboxExporterDown`: critical eta blackbox exporter failure.
+- `BlackboxProbeFailed`: critical for public and wg-admin probes, warning for tailnet app probes.
+- `NvidiaGpuExporterDown`: warning GPU exporter failure.
+
+Gatus currently sends ntfy alerts. Slack routing should be added through Alertmanager first, then Gatus native alerting should be narrowed to bootstrap/stack-health use.
+
+## Alerting gaps before completion
+
+- Enable Alertmanager on rho with Slack receivers.
+- Add inhibit rules to suppress child alerts when parent failures explain them.
+- Add outside-tailnet public probe vantage.
+- Add Loki ruler for job freshness and audit bursts.
+- Add Alertmanager health check to Gatus/Prometheus after enabling it.
+- Document Slack channels, severity policy, and runbooks.
+
+## Validation
+
+Build changed host checks:
 
 ```bash
-id=$(pueue add --print-task-id -- 'nix build .#checks.x86_64-linux.nixos-eta .#checks.x86_64-linux.nixos-rho --impure --no-link')
+id=$(pueue add --print-task-id -- 'nix build .#checks.x86_64-linux.nixos-eta .#checks.x86_64-linux.nixos-rho .#checks.x86_64-linux.nixos-psi .#checks.x86_64-linux.nixos-tau --impure --no-link')
 pueue follow "$id"
 pueue log --lines 100 "$id"
 ```
 
-### Deploy
+Prometheus smoke queries:
 
-Deploy rho and eta separately so failures are isolated:
-
-```bash
-id=$(pueue add --print-task-id -- 'inv deploy --hosts rho')
-pueue follow "$id"
-
-id=$(pueue add --print-task-id -- 'inv deploy --hosts eta')
-pueue follow "$id"
+```promql
+up{job="blackbox_exporter"}
+probe_success{job=~"blackbox_.*"}
+up{job="nvidia-gpu"}
+nvidia_smi_utilization_gpu_ratio{job="nvidia-gpu"}
+gatus_results_endpoint_success
 ```
 
-Order:
+Loki smoke queries:
 
-1. rho first for Loki retention/dashboard provisioning.
-2. eta second for Headscale/Authentik/Vector sources.
-
-### Runtime checks
-
-On eta:
-
-```bash
-systemctl is-active vector headscale authentik authentik-worker
-systemctl --failed --no-pager
-journalctl -u vector -n 100 --no-pager
-```
-
-After eta deploy, verify Headscale JSON log shape because current live logs are text until `log.format = "json"` is active:
-
-```bash
-journalctl -u headscale.service -n 50 -o json \
-  | jq -c '(.MESSAGE | fromjson? // empty)'
-```
-
-On rho:
-
-```bash
-systemctl is-active loki grafana prometheus vector
-systemctl --failed --no-pager
-journalctl -u loki -n 100 --no-pager | grep -i retention || true
-```
-
-Loki checks:
-
-```bash
-curl -fsS -G http://10.100.0.3:3100/loki/api/v1/query_range \
-  --data-urlencode 'query={log_type="authentik"}' \
-  --data-urlencode 'since=30m' \
-  --data-urlencode 'limit=5'
-
-curl -fsS -G http://10.100.0.3:3100/loki/api/v1/query_range \
-  --data-urlencode 'query={log_type="headscale_nodes"}' \
-  --data-urlencode 'since=10m' \
-  --data-urlencode 'limit=20'
-
-curl -fsS -G http://10.100.0.3:3100/loki/api/v1/query_range \
-  --data-urlencode 'query={log_type="headscale"}' \
-  --data-urlencode 'since=30m' \
-  --data-urlencode 'limit=10'
+```logql
+{log_type="ssh"}
+{log_type="ssh_bastion", event="bastion_forward"}
+{log_type="authentik"}
+{log_type="headscale"}
+{log_type="headscale_nodes"}
+{host="psi", log_type="systemd_status", event="job_snapshot"}
 ```
 
 Label check should be time-bounded because old streams can retain old labels until they expire:
@@ -368,29 +193,4 @@ curl -fsS -G http://10.100.0.3:3100/loki/api/v1/series \
   | jq '.data[]'
 ```
 
-No new series should contain indexed labels such as `user`, `source_ip`, `node`, or `app`.
-
-### Dashboard checks
-
-Open `https://logging.sjanglab.org/`:
-
-- Home dashboard remains `SjangLab Infrastructure`.
-- Main audit stat row renders.
-- `Headscale nodes online` uses summary snapshot and does not double-count.
-
-Open `SjangLab Access & Audit`:
-
-- SSH row renders recent SSH events and bastion forwards.
-- Authentik row renders login failures, app authorizations, admin/policy/forward-auth events.
-- Headscale row renders recent node inventory and control-plane events.
-
-## Scope left for later
-
-- Apps dashboard for Gatus uptime/history and latency.
-- Jobs dashboard for db-sync/borg timers, last success age, duration, and logs.
-- Hosts dashboard for host metrics and failed units.
-- Platform dashboard for Prometheus/Loki/Grafana/Vector ingestion health.
-- Authentik Events API polling if logs are insufficient.
-- Audit export/archive beyond 90 days.
-- Loki ruler/Alertmanager alerts for login failure bursts and suspicious events.
-- Existing unrelated `borg-mirror-sync.service` failure on rho (`rsync: Failed to exec ssh`).
+No current series should contain indexed labels such as `user`, `source_ip`, `node`, or `app`.

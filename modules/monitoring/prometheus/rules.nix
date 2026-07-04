@@ -78,7 +78,7 @@ in
 
             {
               alert = "PrometheusTargetDown";
-              expr = "up == 0";
+              expr = ''up{job!~"blackbox_.*|blackbox_exporter|nvidia-gpu"} == 0'';
               for = "2m";
               labels.severity = "critical";
               annotations = {
@@ -89,7 +89,7 @@ in
 
             {
               alert = "GatusEndpointDown";
-              expr = "gatus_results_endpoint_success == 0";
+              expr = ''gatus_results_endpoint_success{group=~"ci|platform"} == 0'';
               for = "5m";
               labels.severity = "warning";
               annotations = {
@@ -99,13 +99,35 @@ in
             }
 
             {
+              alert = "BlackboxExporterDown";
+              expr = ''up{job="blackbox_exporter"} == 0'';
+              for = "2m";
+              labels.severity = "critical";
+              annotations = {
+                summary = "Blackbox exporter down";
+                description = "{{ $labels.host }} blackbox exporter is unavailable";
+              };
+            }
+
+            {
               alert = "BlackboxProbeFailed";
-              expr = ''probe_success{job=~"blackbox_.*"} == 0'';
+              expr = ''probe_success{job=~"blackbox_.*", probe_scope=~"public|wg-admin"} == 0'';
               for = "3m";
-              labels.severity = "warning";
+              labels.severity = "critical";
               annotations = {
                 summary = "Synthetic probe failed";
                 description = "{{ $labels.probe_scope }}/{{ $labels.service }} probe {{ $labels.instance }} is failing";
+              };
+            }
+
+            {
+              alert = "BlackboxProbeFailed";
+              expr = ''probe_success{job=~"blackbox_.*", probe_scope="tailnet"} == 0'';
+              for = "5m";
+              labels.severity = "warning";
+              annotations = {
+                summary = "Tailnet synthetic probe failed";
+                description = "{{ $labels.service }} probe {{ $labels.instance }} is failing";
               };
             }
 

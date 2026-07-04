@@ -200,6 +200,16 @@ in
         ];
       }
       {
+        job_name = "blackbox_exporter";
+        scrape_interval = "60s";
+        static_configs = [
+          {
+            targets = [ "${hosts.eta.wg-admin}:9115" ];
+            labels.host = "eta";
+          }
+        ];
+      }
+      {
         job_name = "blackbox_http";
         metrics_path = "/probe";
         params.module = [ "http_2xx" ];
