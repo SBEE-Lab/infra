@@ -8,7 +8,7 @@ A: DNS가 올바르게 설정되었는지 확인합니다. `tailscale status`로
 
 **Q: Tailscale 기기 이름이 `invalid-*`로 보입니다.**
 
-A: 기기 hostname에 한글, 공백, 밑줄, 특수문자가 포함되어 Headscale의 DNS 이름 규칙을 통과하지 못한 경우입니다. `lab-imac`처럼 영문 소문자/숫자/하이픈만 쓰는 이름으로 바꾸거나 관리자에게 rename을 요청하세요. 자세한 내용은 [VPN 설정 — 기기 이름 확인](../guide/vpn-setup.md#2-%EA%B8%B0%EA%B8%B0-%EC%9D%B4%EB%A6%84-%ED%99%95%EC%9D%B8)을 참조하세요.
+A: 기기 hostname에 한글, 공백, 밑줄, 특수문자가 포함되어 Headscale의 DNS 이름 규칙을 통과하지 못한 경우입니다. `lab-imac`처럼 영문 소문자/숫자/하이픈만 쓰는 이름으로 바꾸거나 관리자에게 rename을 요청하세요. 자세한 내용은 [VPN 설정](../guide/vpn-setup.md)을 참조하세요.
 
 **Q: SSH 접속이 거부됩니다.**
 
