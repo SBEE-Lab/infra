@@ -10,7 +10,7 @@ in
   imports = [
     ./default.nix
     ../loki.nix
-    ../grafana.nix
+    ../grafana
     ../prometheus
     ../../gatus/check.nix
   ];
