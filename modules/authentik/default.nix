@@ -3,6 +3,7 @@
   imports = [
     ../acme
     ../gatus/check.nix
+    ./audit.nix
   ];
 
   gatusCheck.pull = [
