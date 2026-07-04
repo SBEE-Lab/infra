@@ -26,6 +26,7 @@
   virtualisation.docker.enable = true;
   hardware.nvidia-container-toolkit.enable = true;
 
-  # allow only x86_64-linux
-  hardware.graphics.enable32Bit = true;
+  # psi runs CUDA services, not 32-bit desktop apps. Keeping this off avoids
+  # pulling i686 graphics drivers into every system build.
+  hardware.graphics.enable32Bit = false;
 }
