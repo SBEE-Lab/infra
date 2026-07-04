@@ -231,6 +231,16 @@ in
         static_configs = builtins.map mkBlackboxStaticConfig blackboxIcmpTargets;
         relabel_configs = blackboxRelabelConfigs;
       }
+      {
+        job_name = "nvidia-gpu";
+        scrape_interval = "30s";
+        static_configs = [
+          {
+            targets = [ "${hosts.psi.wg-admin}:9835" ];
+            labels.host = "psi";
+          }
+        ];
+      }
     ];
   };
 

@@ -108,6 +108,18 @@ in
                 description = "{{ $labels.probe_scope }}/{{ $labels.service }} probe {{ $labels.instance }} is failing";
               };
             }
+
+            {
+              alert = "NvidiaGpuExporterDown";
+              expr = ''up{job="nvidia-gpu"} == 0'';
+              for = "3m";
+              labels.severity = "warning";
+              annotations = {
+                summary = "GPU exporter down";
+                description = "{{ $labels.host }} nvidia-gpu exporter is unavailable";
+              };
+            }
+
           ];
         }
       ];

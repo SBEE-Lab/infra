@@ -212,6 +212,18 @@ in
     # Enable databases needed for research
     databases = dbSyncDatabases;
   };
+
+  services.prometheus.exporters.nvidia-gpu = {
+    enable = true;
+    listenAddress = config.networking.sbee.currentHost.wg-admin;
+    port = 9835;
+    extraFlags = [ "--no-shutdown-on-error" ];
+  };
+
+  networking.firewall.interfaces."wg-admin".allowedTCPPorts = [
+    9835 # nvidia-gpu exporter
+  ];
+
   services.vector.settings = {
     sources.psi_systemd_status_source = {
       type = "exec";
