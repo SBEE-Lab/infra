@@ -29,7 +29,7 @@ flowchart LR
     gatus["Gatus"]
   end
 
-  ntfy["ntfy (알림)"]
+  ntfy["ntfy (Gatus 알림)"]
 
   vec -- "메트릭" --> prom
   vec -- "로그" --> loki
@@ -37,7 +37,6 @@ flowchart LR
   loki --> graf
   hosts -- "헬스체크 Push" --> gatus
   gatus --> ntfy
-  graf --> ntfy
 ```
 
 ### Vector (로그/메트릭 수집)
@@ -88,12 +87,14 @@ eta의 Vector가 journald에서 수집해 이벤트를 분류합니다 (`modules
 - Remote write receiver 활성화
 - Scrape jobs:
   - `vector`: rho Vector exporter
+  - `blackbox_exporter`: eta blackbox exporter 자체 health
   - `blackbox_http`: eta vantage public HTTPS probes (`auth`, `hs`, `n8n`, `ntfy`)
   - `blackbox_tailnet_http`: eta vantage wg-admin HTTPS probes with hostname/SNI override for tailnet-only apps
   - `blackbox_tcp`: eta vantage TCP probe for Upterm
   - `blackbox_icmp`: eta vantage ICMP probe for wg-admin host reachability
   - `nvidia-gpu`: psi GPU exporter
-- Alert rules: SSH 브루트포스, 디스크 부족, 메모리 부족, 높은 CPU, 노드 다운, Gatus endpoint down, blackbox probe failed, GPU exporter down
+- Alert rules: 호스트 메트릭 freshness, 디스크 부족, 메모리 부족, 높은 CPU, generic scrape target down, Gatus CI/platform heartbeat down, blackbox exporter down, blackbox probe failed, GPU exporter down
+- Alert delivery: Prometheus rules are evaluated locally, but Alertmanager/Slack delivery is not enabled yet.
 
 ### Loki (rho)
 
@@ -109,4 +110,4 @@ eta의 Vector가 journald에서 수집해 이벤트를 분류합니다 (`modules
 - External endpoint heartbeat: 15분 동안 push가 없으면 실패 처리
 - 그룹: `apps`, `ai`, `ci`, `monitoring`, `platform`
 - 기본 정렬: group 기준
-- 알림: ntfy (`ntfy.sjanglab.org`, 토픽: `gatus`)
+- 알림: ntfy (`ntfy.sjanglab.org`, 토픽: `gatus`). Slack/Alertmanager integration is planned but not enabled yet.
