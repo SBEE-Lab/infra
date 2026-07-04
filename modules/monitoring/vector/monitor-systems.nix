@@ -28,13 +28,12 @@ in
     ssh_logs_local = {
       type = "loki";
       inputs = [ "filter_ssh" ];
-      endpoint = "http://127.0.0.1:3100";
+      endpoint = "http://${wgAdminAddr}:3100";
       encoding.codec = "json";
       labels = {
         host = "{{ host }}";
         log_type = "{{ log_type }}";
         event = "{{ event }}";
-        user = "{{ user }}";
       };
     };
 
@@ -42,13 +41,12 @@ in
     audit_logs_local = {
       type = "loki";
       inputs = [ "filter_audit" ];
-      endpoint = "http://127.0.0.1:3100";
+      endpoint = "http://${wgAdminAddr}:3100";
       encoding.codec = "json";
       labels = {
         host = "{{ host }}";
         log_type = "{{ log_type }}";
         event = "{{ event }}";
-        user = "{{ user }}";
       };
     };
 
@@ -70,7 +68,6 @@ in
       "--storage.tsdb.retention.time=30d"
     ];
 
-    # scrab local vector metric
     scrapeConfigs = [
       {
         job_name = "vector";

@@ -65,7 +65,7 @@ in
         nextflow_logs = {
           type = "loki";
           inputs = [ "parse_nextflow" ];
-          endpoint = "http://127.0.0.1:3100";
+          endpoint = "http://${wgAdminAddr}:3100";
           encoding.codec = "json";
           labels = {
             log_type = "nextflow";
