@@ -53,7 +53,6 @@ in
   imports = [
     ../modules/hardware/vultr-vms.nix
     ../modules/disko/ext4-root.nix
-    ../modules/ntfy.nix
     ../modules/headscale
     ../modules/authentik
     ../modules/vaultwarden

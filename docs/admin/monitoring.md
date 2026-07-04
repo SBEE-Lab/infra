@@ -29,14 +29,11 @@ flowchart LR
     gatus["Gatus"]
   end
 
-  ntfy["ntfy (Gatus 알림)"]
-
   vec -- "메트릭" --> prom
   vec -- "로그" --> loki
   prom --> graf
   loki --> graf
   hosts -- "헬스체크 Push" --> gatus
-  gatus --> ntfy
 ```
 
 ### Vector (로그/메트릭 수집)
@@ -88,7 +85,7 @@ eta의 Vector가 journald에서 수집해 이벤트를 분류합니다 (`modules
 - Scrape jobs:
   - `vector`: rho Vector exporter
   - `blackbox_exporter`: eta blackbox exporter 자체 health
-  - `blackbox_http`: eta vantage public HTTPS probes (`auth`, `hs`, `n8n`, `ntfy`)
+  - `blackbox_http`: eta vantage public HTTPS probes (`auth`, `hs`, `n8n`)
   - `blackbox_tailnet_http`: eta vantage wg-admin HTTPS probes with hostname/SNI override for tailnet-only apps
   - `blackbox_tcp`: eta vantage TCP probe for Upterm
   - `blackbox_icmp`: eta vantage ICMP probe for wg-admin host reachability
@@ -110,4 +107,4 @@ eta의 Vector가 journald에서 수집해 이벤트를 분류합니다 (`modules
 - External endpoint heartbeat: 15분 동안 push가 없으면 실패 처리
 - 그룹: `apps`, `ai`, `ci`, `monitoring`, `platform`
 - 기본 정렬: group 기준
-- 알림: ntfy (`ntfy.sjanglab.org`, 토픽: `gatus`). Slack/Alertmanager integration is planned but not enabled yet.
+- 알림: 없음. Slack/Alertmanager integration is planned but not enabled yet.

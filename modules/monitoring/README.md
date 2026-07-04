@@ -141,7 +141,7 @@ Current Prometheus rule intent:
 - `BlackboxProbeFailed`: critical for public and wg-admin probes, warning for tailnet app probes.
 - `NvidiaGpuExporterDown`: warning GPU exporter failure.
 
-Gatus currently sends ntfy alerts. Slack routing should be added through Alertmanager first, then Gatus native alerting should be narrowed to bootstrap/stack-health use.
+Gatus does not send alerts directly. Slack routing should be added through Alertmanager, with any bootstrap/stack-health alerting designed explicitly.
 
 ## Alerting gaps before completion
 

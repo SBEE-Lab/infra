@@ -9,7 +9,7 @@ in
     ./rules.nix
   ];
 
-  # TODO: enable alertmanager when ntfy integration is ready
+  # TODO: enable alertmanager when Slack integration is ready
   services.prometheus.alertmanager = {
     enable = false;
     listenAddress = wgAdminAddr;
