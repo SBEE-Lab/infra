@@ -10,7 +10,10 @@ let
   prometheusUrl = "http://${wgAdminAddr}:9090";
 in
 {
-  imports = [ ../gatus/check.nix ];
+  imports = [
+    ./dashboards
+    ../../gatus/check.nix
+  ];
 
   gatusCheck.push = [
     {
@@ -54,7 +57,7 @@ in
       # Grafana only listens on wg-admin, so only WG-authenticated hosts can reach it.
       "auth.anonymous" = {
         enabled = true;
-        org_name = "Public";
+        org_name = "Main Org.";
         org_role = "Viewer";
       };
     };
@@ -65,6 +68,7 @@ in
       datasources.settings.datasources = [
         {
           name = "Prometheus";
+          uid = "PBFA97CFB590B2093";
           type = "prometheus";
           url = prometheusUrl;
           isDefault = true;
@@ -72,6 +76,7 @@ in
         }
         {
           name = "Loki";
+          uid = "P8E80F9AEF21F6940";
           type = "loki";
           url = lokiUrl;
           editable = false;
@@ -81,13 +86,13 @@ in
   };
 
   sops.secrets.grafana-admin-password = {
-    sopsFile = ./secrets.yaml;
+    sopsFile = ../secrets.yaml;
     owner = "grafana";
     group = "grafana";
   };
 
   sops.secrets.grafana-secret-key = {
-    sopsFile = ./secrets.yaml;
+    sopsFile = ../secrets.yaml;
     owner = "grafana";
     group = "grafana";
   };
