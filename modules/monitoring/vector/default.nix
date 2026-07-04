@@ -55,6 +55,17 @@ in
             "memory"
             "network"
           ];
+          filesystem.mountpoints.excludes = [
+            "/etc/group"
+            "/etc/hostname"
+            "/etc/hosts"
+            "/etc/passwd"
+            "/etc/resolv.conf"
+            "/etc/shadow"
+            "/run/credentials/*"
+            "/run/docker/netns/*"
+            "/var/lib/docker/overlay2/*/merged"
+          ];
         };
 
         network_stats = {
@@ -210,7 +221,6 @@ in
               host = "{{ host }}";
               log_type = "{{ log_type }}";
               event = "{{ event }}";
-              user = "{{ user }}";
             };
             batch = {
               max_bytes = 1048576;
@@ -228,7 +238,6 @@ in
               host = "{{ host }}";
               log_type = "{{ log_type }}";
               event = "{{ event }}";
-              user = "{{ user }}";
             };
             batch = {
               max_bytes = 1048576;

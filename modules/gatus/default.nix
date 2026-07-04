@@ -73,6 +73,7 @@ in
           (mkExtEndpoint "n8n" "apps")
           (mkExtEndpoint "Vaultwarden" "apps")
           # rho
+          (mkExtEndpoint "Gatus" "monitoring")
           (mkExtEndpoint "Grafana" "monitoring")
           (mkExtEndpoint "Prometheus" "monitoring")
           (mkExtEndpoint "Loki" "monitoring")
