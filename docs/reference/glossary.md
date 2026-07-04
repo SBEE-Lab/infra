@@ -28,7 +28,6 @@
 | **Nextcloud** | 자체 호스팅 파일 동기화, 캘린더, 문서 협업 플랫폼 |
 | **NixOS** | 선언적 Linux 배포판 |
 | **nix-ld** | NixOS에서 동적 링크 라이브러리를 제공하는 호환성 레이어 |
-| **ntfy** | HTTP 기반 푸시 알림 서비스 |
 | **OIDC** | OpenID Connect. OAuth 2.0 기반 인증 프로토콜 |
 | **Ollama** | 로컬 LLM 추론 서버. OpenAI 호환 API 제공 |
 | **sops-nix** | NixOS에서 sops 암호화 시크릿을 관리하는 도구 |

@@ -10,7 +10,6 @@
     in
     {
       inherit (unstable)
-        ntfy-sh
         somo
         opentofu
         buildbot

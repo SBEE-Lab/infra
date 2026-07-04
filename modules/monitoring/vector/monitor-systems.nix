@@ -23,11 +23,6 @@ let
       scope = "public";
       target = "https://n8n.sjanglab.org/healthz";
     }
-    {
-      service = "ntfy";
-      scope = "public";
-      target = "https://ntfy.sjanglab.org/v1/health";
-    }
   ];
 
   blackboxTailnetHttpTargets = [

@@ -54,16 +54,6 @@ resource "cloudflare_dns_record" "buildbot" {
   comment = "Nixbot CI/CD edge proxy (eta -> psi)"
 }
 
-resource "cloudflare_dns_record" "ntfy" {
-  zone_id = data.sops_file.secrets.data["CLOUDFLARE_ZONE_ID"]
-  name    = "ntfy.sjanglab.org"
-  content = "141.164.53.203"
-  type    = "A"
-  ttl     = 300
-  proxied = false
-  comment = "ntfy notification service"
-}
-
 resource "cloudflare_dns_record" "headscale" {
   zone_id = data.sops_file.secrets.data["CLOUDFLARE_ZONE_ID"]
   name    = "hs.sjanglab.org"

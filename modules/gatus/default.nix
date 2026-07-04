@@ -28,17 +28,6 @@ in
 
       ui.default-sort-by = "group";
 
-      alerting.ntfy = {
-        topic = "gatus";
-        url = "https://ntfy.sjanglab.org";
-        priority = 3;
-        default-alert = {
-          failure-threshold = 3;
-          success-threshold = 2;
-          send-on-resolved = true;
-        };
-      };
-
       # Consumed from gatusCheck.pull declared by service modules
       endpoints = map (ep: {
         inherit (ep)
@@ -48,7 +37,6 @@ in
           interval
           conditions
           ;
-        alerts = [ { type = "ntfy"; } ];
       }) cfg.pull;
 
       # External endpoints: each remote host pushes its own health status
@@ -60,7 +48,6 @@ in
             inherit name group;
             token = "\${GATUS_EXTERNAL_TOKEN}";
             heartbeat.interval = "15m";
-            alerts = [ { type = "ntfy"; } ];
           };
         in
         [
