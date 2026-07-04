@@ -5,6 +5,127 @@
 { config, ... }:
 let
   wgAdminAddr = config.networking.sbee.currentHost.wg-admin;
+  hosts = config.networking.sbee.hosts;
+
+  blackboxHttpTargets = [
+    {
+      service = "authentik";
+      scope = "public";
+      target = "https://auth.sjanglab.org";
+    }
+    {
+      service = "headscale";
+      scope = "public";
+      target = "https://hs.sjanglab.org/health";
+    }
+    {
+      service = "n8n";
+      scope = "public";
+      target = "https://n8n.sjanglab.org/healthz";
+    }
+    {
+      service = "ntfy";
+      scope = "public";
+      target = "https://ntfy.sjanglab.org/v1/health";
+    }
+  ];
+
+  blackboxTailnetHttpTargets = [
+    {
+      service = "gatus";
+      target = "https://${hosts.rho.wg-admin}/";
+      hostname = "status.sjanglab.org";
+    }
+    {
+      service = "grafana";
+      target = "https://${hosts.rho.wg-admin}/";
+      hostname = "logging.sjanglab.org";
+    }
+    {
+      service = "nextcloud";
+      target = "https://${hosts.tau.wg-admin}/status.php";
+      hostname = "cloud.sjanglab.org";
+    }
+    {
+      service = "vaultwarden";
+      target = "https://${hosts.tau.wg-admin}/alive";
+      hostname = "vault.sjanglab.org";
+    }
+    {
+      service = "docling";
+      target = "https://${hosts.psi.wg-admin}/health";
+      hostname = "docling.sjanglab.org";
+    }
+    {
+      service = "multievolve";
+      target = "https://${hosts.psi.wg-admin}/";
+      hostname = "multievolve.sjanglab.org";
+    }
+  ];
+
+  blackboxTcpTargets = [
+    {
+      service = "upterm";
+      scope = "public";
+      target = "upterm.sjanglab.org:2323";
+    }
+  ];
+
+  blackboxIcmpTargets = builtins.map (host: {
+    service = host;
+    scope = "wg-admin";
+    target = hosts.${host}.wg-admin;
+  }) (builtins.attrNames hosts);
+
+  mkBlackboxStaticConfig = target: {
+    targets = [ target.target ];
+    labels = {
+      inherit (target) service;
+      probe_scope = target.scope;
+    };
+  };
+
+  mkBlackboxTailnetStaticConfig = target: {
+    targets = [ target.target ];
+    labels = {
+      inherit (target) service hostname;
+      probe_scope = "tailnet";
+    };
+  };
+
+  blackboxRelabelConfigs = [
+    {
+      source_labels = [ "__address__" ];
+      target_label = "__param_target";
+    }
+    {
+      source_labels = [ "__param_target" ];
+      target_label = "instance";
+    }
+    {
+      target_label = "__address__";
+      replacement = "${hosts.eta.wg-admin}:9115";
+    }
+  ];
+
+  blackboxTailnetRelabelConfigs = [
+    {
+      source_labels = [ "__address__" ];
+      target_label = "__param_target";
+    }
+    {
+      source_labels = [ "hostname" ];
+      target_label = "__param_hostname";
+    }
+    {
+      source_labels = [ "hostname" ];
+      target_label = "instance";
+    }
+    {
+      target_label = "__address__";
+      replacement = "${hosts.eta.wg-admin}:9115";
+    }
+  ];
 in
 {
   imports = [
@@ -77,6 +198,38 @@ in
             targets = [ "${wgAdminAddr}:9598" ];
           }
         ];
+      }
+      {
+        job_name = "blackbox_http";
+        metrics_path = "/probe";
+        params.module = [ "http_2xx" ];
+        scrape_interval = "60s";
+        static_configs = builtins.map mkBlackboxStaticConfig blackboxHttpTargets;
+        relabel_configs = blackboxRelabelConfigs;
+      }
+      {
+        job_name = "blackbox_tailnet_http";
+        metrics_path = "/probe";
+        params.module = [ "http_2xx_or_redirect" ];
+        scrape_interval = "60s";
+        static_configs = builtins.map mkBlackboxTailnetStaticConfig blackboxTailnetHttpTargets;
+        relabel_configs = blackboxTailnetRelabelConfigs;
+      }
+      {
+        job_name = "blackbox_tcp";
+        metrics_path = "/probe";
+        params.module = [ "tcp_connect" ];
+        scrape_interval = "60s";
+        static_configs = builtins.map mkBlackboxStaticConfig blackboxTcpTargets;
+        relabel_configs = blackboxRelabelConfigs;
+      }
+      {
+        job_name = "blackbox_icmp";
+        metrics_path = "/probe";
+        params.module = [ "icmp" ];
+        scrape_interval = "60s";
+        static_configs = builtins.map mkBlackboxStaticConfig blackboxIcmpTargets;
+        relabel_configs = blackboxRelabelConfigs;
       }
     ];
   };
