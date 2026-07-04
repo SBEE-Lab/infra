@@ -3,6 +3,12 @@
 ## 대시보드
 
 - **Grafana**: `https://logging.sjanglab.org` (익명 Viewer 접근 가능, wg-admin 경유)
+  - `SjangLab Infrastructure` (홈): 현재 건강 상태와 감사 요약 카운트
+  - `SjangLab Hosts`: 호스트 리소스, 메트릭 freshness, Headscale 노드 상태
+  - `SjangLab Apps`: Gatus 앱 smoke 상태와 앱 인증/거부 흐름
+  - `SjangLab Jobs`: db-sync/borg 같은 batch/sync/backup 상태
+  - `SjangLab Access & Audit`: SSH bastion, Authentik, Headscale 감사 드릴다운
+  - `SjangLab AI Resources`: AI 서비스 smoke, psi 리소스, 데이터 동기화 상태
 - **Gatus**: `https://status.sjanglab.org` (tailnet 내부 공개 상태 페이지)
 
 ## 스택 구성
@@ -41,18 +47,58 @@ flowchart LR
 | 수집 대상 | 전송처 | 주기 |
 |---------|--------|------|
 | sshd 로그 | Loki (rho:3100) | 실시간 |
+| SSH bastion forward 매핑 | Loki (rho:3100) | 실시간 |
 | auditd 로그 | Loki (rho:3100) | 실시간 |
+| Authentik 감사 이벤트 (eta) | Loki (rho:3100) | 실시간 |
+| Headscale 컨트롤플레인 이벤트 (eta) | Loki (rho:3100) | 실시간 |
+| Headscale 노드 인벤토리 스냅샷 (eta) | Loki (rho:3100) | 300초 |
 | 호스트 메트릭 | Prometheus (rho:9090) | 60초 |
+| psi job freshness/status snapshot | Loki (rho:3100) | 60초 |
+
+eta는 SSH 인증 로그와 같은 PID의 outbound socket을 관찰해 `ssh_bastion` 로그를 생성하고 Loki로 직접 전송합니다. ProxyJump 때문에 대상 호스트가 eta의 내부 IP만 보더라도 실제 접속원 IP, bastion 사용자, 대상 호스트를 함께 조회할 수 있습니다.
+
+```logql
+{log_type="ssh_bastion", event="bastion_forward"}
+```
+
+대상 호스트의 SSH 로그와 맞출 때는 `target_host`, `bastion_user`, 시간대, `bastion_local_port`를 함께 봅니다. 대상 호스트 sshd 로그의 `source_port`가 eta에서 기록한 `bastion_local_port`입니다.
+
+### Job freshness (psi)
+
+psi는 `borgbackup-job-psi.service`와 `db-sync-*.service` 상태를 60초마다 snapshot으로 기록합니다 (`log_type="systemd_status"`, `event="job_snapshot"`). 각 행은 `health=OK|WARN|FAIL`, `health_reason`, `last_success_age_seconds`, `next_due_seconds`, `max_success_age_seconds`를 포함합니다. `FAIL`은 systemd 실패/비정상 exit, `WARN`은 성공 기록이 없거나 마지막 성공이 freshness 한계를 넘은 상태입니다.
+
+### 접근 감사 (Authentik / Headscale)
+
+eta의 Vector가 journald에서 수집해 이벤트를 분류합니다 (`modules/authentik/audit.nix`, `modules/headscale/audit.nix`):
+
+- **Authentik** (`log_type="authentik"`): `login`, `login_failed`, `logout`, `app_authorize`(브라우저 앱 인가), `admin_change`, `policy_error`, `forward_auth_deny`
+- **Headscale** (`log_type="headscale"`): `node_register`, `node_expire`, `preauth_key`, `oidc_denied`, `error` — 컨트롤플레인/멤버십 감사이며 tailnet 데이터플레인 트래픽은 관측 대상이 아닙니다
+- **Headscale 노드 인벤토리** (`log_type="headscale_nodes"`): 5분 주기 스냅샷 (`event="node_snapshot"`)과 집계 행(`event="nodes_summary"`)으로 node, user, IP, tags, online, health, health_reason, last_seen_seconds, expiry_seconds를 기록합니다
+
+```logql
+{log_type="authentik", event="login_failed"}
+{log_type="headscale", event="node_register"}
+```
+
+**레이블 정책**: Loki 레이블은 bounded 값(`host`, `log_type`, `event`)만 사용합니다. `user`, `source_ip`, `app`, `node` 등 고카디널리티 값은 JSON 필드로만 저장하고 LogQL `| json`으로 조회합니다. 시크릿/쿠키/인증 헤더는 수집하지 않습니다. Authentik `login`/`app_authorize` 이벤트의 `client_ip`는 실제 클라이언트 IP로 보존하지만, `forward_auth_deny`의 `remote`는 내부 프록시 주소일 수 있어 `proxy_remote` 필드로만 기록합니다.
 
 ### Prometheus (rho)
 
 - 리텐션: 30일
 - Remote write receiver 활성화
-- Alert rules: SSH 브루트포스, 디스크 부족, 메모리 부족, 높은 CPU, 노드 다운
+- Scrape jobs:
+  - `vector`: rho Vector exporter
+  - `blackbox_http`: eta vantage public HTTPS probes (`auth`, `hs`, `n8n`, `ntfy`)
+  - `blackbox_tailnet_http`: eta vantage wg-admin HTTPS probes with hostname/SNI override for tailnet-only apps
+  - `blackbox_tcp`: eta vantage TCP probe for Upterm
+  - `blackbox_icmp`: eta vantage ICMP probe for wg-admin host reachability
+  - `nvidia-gpu`: psi GPU exporter
+- Alert rules: SSH 브루트포스, 디스크 부족, 메모리 부족, 높은 CPU, 노드 다운, Gatus endpoint down, blackbox probe failed, GPU exporter down
 
 ### Loki (rho)
 
-- 리텐션: 7일
+- 리텐션: 기본 7일, 감사 스트림(`log_type=~"ssh|ssh_bastion|audit|authentik|headscale"`)은 90일
+  - `headscale_nodes` 스냅샷은 반복 상태 데이터라 기본 7일 적용
 - 스토리지: 로컬 파일시스템 (`/var/lib/loki`)
 
 ### Gatus (eta)
@@ -61,6 +107,6 @@ flowchart LR
 - Push 방식: 내부 서비스가 로컬/사용자 경로를 확인한 뒤 상태 보고
 - 저장소: SQLite (`/var/lib/gatus/gatus.sqlite`)로 재시작 후 uptime 유지
 - External endpoint heartbeat: 15분 동안 push가 없으면 실패 처리
-- 그룹: `apps`, `ci`, `monitoring`, `platform`
+- 그룹: `apps`, `ai`, `ci`, `monitoring`, `platform`
 - 기본 정렬: group 기준
 - 알림: ntfy (`ntfy.sjanglab.org`, 토픽: `gatus`)
