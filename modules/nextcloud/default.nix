@@ -10,6 +10,16 @@ let
   collaboraPort = 9980;
   whiteboardPort = 3002;
   certDir = "/var/lib/acme/${domain}";
+  oidcProvider = {
+    identifier = "authentik";
+    clientId = "4GdFUqIaLHa3Hx5VnMul6RU8iaJG8GqtUHXHjfqo";
+    discoveryUri = "https://auth.sjanglab.org/application/o/nextcloud/.well-known/openid-configuration";
+    scope = "openid email profile groups";
+    mappingUid = "email";
+    mappingGroups = "groups";
+    mappingQuota = "quota";
+    extraClaims = "nextcloud-groups";
+  };
 in
 {
   imports = [
@@ -179,20 +189,23 @@ in
     wantedBy = [ "multi-user.target" ];
     requires = [ "nextcloud-setup.service" ];
     after = [ "nextcloud-setup.service" ];
+    # Authentik's OAuth2 client is managed by Terraform; the Nextcloud-side
+    # user_oidc provider lives in Nextcloud's database and must be reconciled via occ.
+    restartTriggers = [ (builtins.toJSON oidcProvider) ];
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
     };
     script = ''
-      ${lib.getExe config.services.nextcloud.occ} user_oidc:provider authentik \
-        --clientid=4GdFUqIaLHa3Hx5VnMul6RU8iaJG8GqtUHXHjfqo \
+      ${lib.getExe config.services.nextcloud.occ} user_oidc:provider ${oidcProvider.identifier} \
+        --clientid=${oidcProvider.clientId} \
         --clientsecret-file=${config.sops.secrets.nextcloud-oidc-client-secret.path} \
-        --discoveryuri=https://auth.sjanglab.org/application/o/nextcloud/.well-known/openid-configuration \
-        --scope="openid email profile groups" \
-        --mapping-uid=email \
-        --mapping-groups=groups \
-        --mapping-quota=quota \
-        --extra-claims=nextcloud-groups \
+        --discoveryuri=${oidcProvider.discoveryUri} \
+        --scope="${oidcProvider.scope}" \
+        --mapping-uid=${oidcProvider.mappingUid} \
+        --mapping-groups=${oidcProvider.mappingGroups} \
+        --mapping-quota=${oidcProvider.mappingQuota} \
+        --extra-claims=${oidcProvider.extraClaims} \
         --group-provisioning=1 \
         --send-id-token-hint=1
     '';
