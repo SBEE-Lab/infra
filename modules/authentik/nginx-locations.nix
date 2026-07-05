@@ -24,6 +24,10 @@ in
     # Auth endpoint (internal, for auth_request subrequest)
     "/outpost.goauthentik.io/auth/nginx" = {
       proxyPass = "${authentikOutpost}/outpost.goauthentik.io/auth/nginx";
+      # extraConfig sets all headers the outpost needs; the recommended-proxy
+      # include would duplicate Host/X-Forwarded-* and the embedded outpost
+      # rejects requests with duplicated headers (400).
+      recommendedProxySettings = false;
       extraConfig = ''
         internal;
         proxy_pass_request_body off;
@@ -39,6 +43,8 @@ in
     # Start/callback (external, for browser redirects)
     "/outpost.goauthentik.io" = {
       proxyPass = "${authentikOutpost}/outpost.goauthentik.io";
+      # Same duplicated-header opt-out as the auth endpoint above.
+      recommendedProxySettings = false;
       extraConfig = ''
         proxy_set_header Host $host;
         proxy_set_header X-Original-URL $scheme://$host$request_uri;
