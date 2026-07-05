@@ -43,6 +43,11 @@ let
       hostname = "logging.sjanglab.org";
     }
     {
+      service = "n8n-ui";
+      target = "https://${hosts.tau.wg-admin}/";
+      hostname = "n8n.sjanglab.org";
+    }
+    {
       service = "nextcloud";
       target = "https://${hosts.tau.wg-admin}/status.php";
       hostname = "cloud.sjanglab.org";
