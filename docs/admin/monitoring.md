@@ -96,7 +96,7 @@ eta의 Vector가 journald에서 수집해 이벤트를 분류합니다 (`modules
   - `blackbox_exporter`: eta blackbox exporter 자체 health
   - `alertmanager`: rho Alertmanager health (Alertmanager SOPS keys가 있을 때)
   - `blackbox_http`: eta vantage public HTTPS probes (`auth`, `hs`, `n8n`)
-  - `blackbox_tailnet_http`: eta vantage wg-admin HTTPS probes with hostname/SNI override for tailnet-only apps
+  - `blackbox_tailnet_http`: eta vantage wg-admin HTTPS probes with Host/SNI override for tailnet-only apps (`n8n-ui`, `grafana`, `nextcloud`, etc.)
   - `blackbox_tcp`: eta vantage TCP probe for Upterm
   - `blackbox_icmp`: eta vantage ICMP probe for wg-admin host reachability
   - `nvidia-gpu`: psi GPU exporter
