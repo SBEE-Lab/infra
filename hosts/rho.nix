@@ -6,6 +6,7 @@
     ../modules/wake-on-lan.nix
     ../modules/tailscale
     ../modules/postgresql
+    ../modules/rustfs
     ../modules/monitoring/vector/monitor-systems.nix
     ../modules/monitoring/reverse-proxy.nix
     ../modules/gatus/reverse-proxy.nix

@@ -65,11 +65,13 @@ in
           (mkExtEndpoint "Nextcloud" "apps")
           (mkExtEndpoint "n8n" "apps")
           (mkExtEndpoint "Vaultwarden" "apps")
+          (mkExtEndpoint "RustFS tau" "storage")
           # rho
           (mkExtEndpoint "Gatus" "monitoring")
           (mkExtEndpoint "Grafana" "monitoring")
           (mkExtEndpoint "Prometheus" "monitoring")
           (mkExtEndpoint "Loki" "monitoring")
+          (mkExtEndpoint "RustFS rho" "storage")
         ]
         ++ lib.optional hasAlertmanagerSecrets (mkExtEndpoint "Alertmanager" "monitoring")
         ++ [

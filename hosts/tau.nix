@@ -6,6 +6,7 @@
     ../modules/wake-on-lan.nix
     ../modules/tailscale
     ../modules/postgresql/replica.nix
+    ../modules/rustfs
     ../modules/monitoring/vector/monitor-services.nix
     ../modules/nextcloud
     ../modules/n8n
