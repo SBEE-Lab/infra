@@ -22,6 +22,7 @@ flowchart LR
   subgraph rho["rho"]
     prom["Prometheus"]
     loki["Loki"]
+    alertmanager["Alertmanager"]
     graf["Grafana"]
   end
 
@@ -29,10 +30,18 @@ flowchart LR
     gatus["Gatus"]
   end
 
+  slack_alerts["Slack #infra-alerts"]
+  slack_audit["Slack #infra-audit"]
+  healthchecks["healthchecks.io"]
+
   vec -- "메트릭" --> prom
   vec -- "로그" --> loki
   prom --> graf
   loki --> graf
+  prom -- "alerts" --> alertmanager
+  alertmanager --> slack_alerts
+  alertmanager --> slack_audit
+  alertmanager -- "Watchdog ping" --> healthchecks
   hosts -- "헬스체크 Push" --> gatus
 ```
 
@@ -85,13 +94,42 @@ eta의 Vector가 journald에서 수집해 이벤트를 분류합니다 (`modules
 - Scrape jobs:
   - `vector`: rho Vector exporter
   - `blackbox_exporter`: eta blackbox exporter 자체 health
+  - `alertmanager`: rho Alertmanager health (Alertmanager SOPS keys가 있을 때)
   - `blackbox_http`: eta vantage public HTTPS probes (`auth`, `hs`, `n8n`)
   - `blackbox_tailnet_http`: eta vantage wg-admin HTTPS probes with hostname/SNI override for tailnet-only apps
   - `blackbox_tcp`: eta vantage TCP probe for Upterm
   - `blackbox_icmp`: eta vantage ICMP probe for wg-admin host reachability
   - `nvidia-gpu`: psi GPU exporter
-- Alert rules: 호스트 메트릭 freshness, 디스크 부족, 메모리 부족, 높은 CPU, generic scrape target down, Gatus CI/platform heartbeat down, blackbox exporter down, blackbox probe failed, GPU exporter down
-- Alert delivery: Prometheus rules are evaluated locally, but Alertmanager/Slack delivery is not enabled yet.
+- Alert rules: 호스트 메트릭 freshness, 디스크 부족/심각 부족, 메모리 부족, 높은 CPU, generic scrape target down, Gatus non-app heartbeat down, blackbox exporter down, blackbox probe failed, GPU exporter down, Watchdog dead-man
+- Alert delivery: Alertmanager routes operational alerts to Slack `#infra-alerts`, audit alerts to `#infra-audit`, and the always-firing `Watchdog` to healthchecks.io. healthchecks.io then notifies Slack `#infra-alerts` through its integration if the Watchdog stops pinging.
+
+### Alert delivery bootstrap
+
+Slack 앱 설정은 `modules/monitoring/alerts/slack-app-manifest.json`이 source of truth입니다. `modules/monitoring/alerts` 디렉터리에서 direnv를 허용하면 Slack CLI가 포함된 `slack-deploy` shell에 들어갑니다:
+
+```bash
+cd modules/monitoring/alerts
+direnv allow
+```
+
+운영 원칙:
+
+- Slack app/bot/scope: manifest JSON으로 선언하고 Slack CLI가 `.slack/hooks.json`을 통해 app을 생성/업데이트합니다.
+- Slack app install: Slack CLI로 app을 install하고, 필요하면 admin OAuth 승인을 완료합니다.
+- Slack channel: workspace resource라 수동으로 준비합니다 (`#infra-alerts`, `#infra-audit`).
+- Slack webhook URL: channel-bound secret이라 Slack admin이 생성하고 SOPS에 저장합니다.
+- healthchecks.io Watchdog check: `terraform/healthchecksio`에서 관리하고, sensitive `ping_url` output을 SOPS에 수동 저장합니다. healthchecks.io Slack integration은 UI에서 1회 생성하고 Terraform이 check에 연결합니다.
+- CI: manifest JSON syntax 검증만 합니다. Slack token이나 webhook URL을 CI에 넣지 않습니다.
+
+필요한 SOPS keys:
+
+```yaml
+alertmanager-slack-infra-alerts-webhook: ENC[...]
+alertmanager-slack-infra-audit-webhook: ENC[...]
+alertmanager-healthchecks-ping-url: ENC[...]
+```
+
+자세한 Slack bootstrap/drift check 절차는 `modules/monitoring/alerts/README.md`를 봅니다.
 
 ### Loki (rho)
 
@@ -105,6 +143,6 @@ eta의 Vector가 journald에서 수집해 이벤트를 분류합니다 (`modules
 - Push 방식: 내부 서비스가 로컬/사용자 경로를 확인한 뒤 상태 보고
 - 저장소: SQLite (`/var/lib/gatus/gatus.sqlite`)로 재시작 후 uptime 유지
 - External endpoint heartbeat: 15분 동안 push가 없으면 실패 처리
-- 그룹: `apps`, `ai`, `ci`, `monitoring`, `platform`
+- 그룹: `apps`, `ai`, `ci`, `monitoring`, `platform`, `storage`
 - 기본 정렬: group 기준
-- 알림: 없음. Slack/Alertmanager integration is planned but not enabled yet.
+- 알림: 직접 전송 없음. Prometheus가 Gatus metrics를 평가하고, Alertmanager SOPS keys가 있을 때 Alertmanager가 Slack으로 라우팅합니다.
