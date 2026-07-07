@@ -26,6 +26,11 @@ let
     };
   }) monitoredHosts;
 
+  rustfsStoreHosts = [
+    "rho"
+    "tau"
+  ];
+
   opsWarning = {
     severity = "warning";
     alert_category = "ops";
@@ -45,6 +50,16 @@ in
           interval = "60s";
           rules =
             hostFreshnessRules
+            ++ (lib.sbee.monitoring.mkFilesystemFreeSpaceAlerts {
+              alertPrefix = "RustFSStore";
+              hosts = rustfsStoreHosts;
+              mountpoint = "/srv";
+              warningFreePercent = 15;
+              criticalFreePercent = 8;
+              warningLabels = opsWarning;
+              criticalLabels = opsCritical;
+              summaryPrefix = "RustFS store";
+            })
             ++ [
               {
                 alert = "DiskSpaceLow";

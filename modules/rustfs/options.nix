@@ -150,10 +150,18 @@ in
       description = "RustFS users that must exist before backup jobs use the S3 API.";
     };
 
-    monitoring.gatus.enable = lib.mkOption {
-      type = lib.types.bool;
-      default = true;
-      description = "Register a Gatus readiness check for RustFS.";
+    monitoring = {
+      gatus.enable = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "Register a Gatus readiness check for RustFS.";
+      };
+
+      loki.enable = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "Ship RustFS service logs to the central Loki instance.";
+      };
     };
   };
 }
