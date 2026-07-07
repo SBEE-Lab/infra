@@ -29,7 +29,11 @@ resource "github_repository" "infra" {
 
 resource "github_repository_pages" "infra" {
   repository = github_repository.infra.name
-  build_type = "workflow"
+
+  source {
+    branch = "gh-pages"
+    path   = "/"
+  }
 }
 
 resource "github_repository_ruleset" "infra" {
