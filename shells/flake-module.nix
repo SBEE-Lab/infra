@@ -1,6 +1,6 @@
 {
   perSystem =
-    { pkgs, config, ... }:
+    { pkgs, ... }:
     {
       devShells.default = pkgs.mkShellNoCC {
         buildInputs = with pkgs; [
@@ -34,7 +34,7 @@
           wireguard-tools
 
           # docs tools
-          config.packages.zensical
+          zensical
         ];
       };
     };
