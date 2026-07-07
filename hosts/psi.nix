@@ -19,10 +19,7 @@ let
     # alphafold.enable = true;  # Very large, enable when needed
   };
 
-  monitoredSystemdUnits = [
-    "borgbackup-job-psi.service"
-  ]
-  ++ map (name: "db-sync-${name}.service") (builtins.attrNames dbSyncDatabases);
+  monitoredSystemdUnits = map (name: "db-sync-${name}.service") (builtins.attrNames dbSyncDatabases);
 
   systemdStatusScript = pkgs.writeShellScript "psi-systemd-status" ''
     exec ${pkgs.python3}/bin/python3 - <<'PY'
@@ -100,7 +97,7 @@ let
         next_due_seconds = seconds_until(timer_fields.get("NextElapseUSecRealtime", ""))
         last_success_age = last_exit_age if result_status == "success" and last_exit_status in ("", "0") else None
 
-        max_success_age = 36 * 3600 if unit.startswith("borgbackup-") else 45 * 24 * 3600
+        max_success_age = 45 * 24 * 3600
         health = "OK"
         health_reason = "ok"
         if result_status not in ("", "success") or last_exit_status not in ("", "0"):
@@ -155,7 +152,6 @@ in
     ../modules/buildbot/database.nix
     ../modules/buildbot/master.nix
     ../modules/buildbot/reverse-proxy.nix
-    ../modules/borgbackup/psi/client.nix
     ../modules/monitoring/vector
     ../modules/harmonia
     ../modules/multievolve

@@ -19,7 +19,7 @@ graph LR
 
   eta -- "인증서 동기화" --> psi & tau
   rho -- "WAL 스트리밍" --> tau
-  tau -- "Borg 미러" --> rho
+  tau -- "S3 백업 미러" --> rho
   psi -- "Harmonia 캐시" --> rho & tau & eta
 ```
 
@@ -27,8 +27,8 @@ graph LR
 |--------|------|------------|
 | **eta** | Vultr VPS | nginx 리버스 프록시, Authentik SSO, Headscale VPN, Vaultwarden, Gatus, Upterm relay, Harmonia, ACME 인증서 |
 | **psi** | KREN 베어메탈 | Nixbot+PostgreSQL+nginx/TLS, Ollama, Docling (GPU), Apptainer, db-sync, 16TB NVMe + 60TB HDD |
-| **rho** | 랩 내부 베어메탈 | PostgreSQL (프라이머리), Grafana, Prometheus, Loki, Vector, Borg 미러 |
-| **tau** | 랩 내부 베어메탈 | Nextcloud, Collabora, n8n, PostgreSQL (레플리카), Borg 백업 저장소 |
+| **rho** | 랩 내부 베어메탈 | PostgreSQL (프라이머리), Grafana, Prometheus, Loki, Vector, S3 백업 미러 |
+| **tau** | 랩 내부 베어메탈 | Nextcloud, Collabora, n8n, PostgreSQL (레플리카), S3 primary 백업 저장소 |
 
 호스트별 IP, 네트워크 위치, 방화벽 정책은 [네트워크](network.md)를 참조하세요.
 

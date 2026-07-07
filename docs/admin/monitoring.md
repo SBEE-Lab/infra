@@ -6,7 +6,7 @@
   - `SjangLab Infrastructure` (홈): 현재 건강 상태와 감사 요약 카운트
   - `SjangLab Hosts`: 호스트 리소스, 메트릭 freshness, Headscale 노드 상태
   - `SjangLab Apps`: Gatus 앱 smoke 상태와 앱 인증/거부 흐름
-  - `SjangLab Jobs`: db-sync/borg 같은 batch/sync/backup 상태
+  - `SjangLab Jobs`: db-sync 및 batch/sync/backup 상태
   - `SjangLab Access & Audit`: SSH bastion, Authentik, Headscale 감사 드릴다운
   - `SjangLab AI Resources`: AI 서비스 smoke, psi 리소스, 데이터 동기화 상태
 - **Gatus**: `https://status.sjanglab.org` (tailnet 내부 공개 상태 페이지)
@@ -70,7 +70,7 @@ eta는 SSH 인증 로그와 같은 PID의 outbound socket을 관찰해 `ssh_bast
 
 ### Job freshness (psi)
 
-psi는 `borgbackup-job-psi.service`와 `db-sync-*.service` 상태를 60초마다 snapshot으로 기록합니다 (`log_type="systemd_status"`, `event="job_snapshot"`). 각 행은 `health=OK|WARN|FAIL`, `health_reason`, `last_success_age_seconds`, `next_due_seconds`, `max_success_age_seconds`를 포함합니다. `FAIL`은 systemd 실패/비정상 exit, `WARN`은 성공 기록이 없거나 마지막 성공이 freshness 한계를 넘은 상태입니다.
+psi는 `db-sync-*.service` 상태를 60초마다 snapshot으로 기록합니다 (`log_type="systemd_status"`, `event="job_snapshot"`). 각 행은 `health=OK|WARN|FAIL`, `health_reason`, `last_success_age_seconds`, `next_due_seconds`, `max_success_age_seconds`를 포함합니다. `FAIL`은 systemd 실패/비정상 exit, `WARN`은 성공 기록이 없거나 마지막 성공이 freshness 한계를 넘은 상태입니다. 백업 job freshness는 S3 백업 전환 후 별도 snapshot 대상에 추가합니다.
 
 ### 접근 감사 (Authentik / Headscale)
 
