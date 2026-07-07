@@ -14,12 +14,12 @@
 graph LR
   eta["<b>eta</b><br/>게이트웨이 · 인증<br/>nginx · Authentik · Headscale · Upterm"]
   psi["<b>psi</b><br/>GPU · CI/CD<br/>Nixbot · Nixbot DB · Ollama · Docling"]
-  rho["<b>rho</b><br/>DB · 모니터링<br/>PostgreSQL · Grafana · Loki"]
-  tau["<b>tau</b><br/>앱 · 백업<br/>Nextcloud · n8n · Borg"]
+  rho["<b>rho</b><br/>DB · 모니터링 · S3 미러<br/>PostgreSQL · Grafana · Loki · RustFS"]
+  tau["<b>tau</b><br/>앱 · 백업<br/>Nextcloud · n8n · RustFS"]
 
   eta -- "인증서 동기화" --> psi & tau
   rho -- "WAL 스트리밍" --> tau
-  tau -- "S3 백업 미러" --> rho
+  tau -- "S3 delayed mirror" --> rho
   psi -- "Harmonia 캐시" --> rho & tau & eta
 ```
 

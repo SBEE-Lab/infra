@@ -33,5 +33,7 @@
 
   networking.hostName = "tau";
 
+  services.rustfs.enable = true;
+
   system.stateVersion = "25.05";
 }

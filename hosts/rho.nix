@@ -32,5 +32,7 @@
 
   networking.hostName = "rho";
 
+  services.rustfs.enable = true;
+
   system.stateVersion = "25.05";
 }
