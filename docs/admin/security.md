@@ -91,7 +91,7 @@ root의 `authorized_keys`에는 관리자 키만 등록됩니다 (`modules/users
 |------|--------|------|----------|
 | `nixbot` | Nixbot CI | isSystemUser | `nix.settings.extra-allowed-users` |
 | `harmonia` | Nix 바이너리 캐시 | isSystemUser | `nix.settings.allowed-users` |
-| `borg` | Borgbackup | — | SSH 키 전용, 특정 경로만 접근 |
+| `rustfs` | RustFS S3 저장소 | isSystemUser | `/srv/rustfs/data` 전용 |
 | `acme-sync-*` | TLS 인증서 동기화 | — | rsync 전용, 제한된 경로 |
 | `postgres` | PostgreSQL | isSystemUser | DB 전용 |
 | `nextcloud` | Nextcloud | isSystemUser | — |
@@ -145,7 +145,7 @@ root의 `authorized_keys`에는 관리자 키만 등록됩니다 (`modules/users
 |----------|------------|------|
 | `hosts/<host>.yaml` | 해당 호스트 + admin | root 비밀번호 해시, WireGuard 키 |
 | `modules/acme/secrets.yaml` | eta, psi, tau | Cloudflare API 인증 |
-| `modules/borgbackup/*/secrets.yaml` | 해당 호스트 | Legacy Borg 암호화 키, SSH 키 (S3 백업 전환 후 제거 예정) |
+| `hosts/rho.yaml`, `hosts/tau.yaml` | 해당 호스트 | RustFS root access key/secret key (bootstrap, break-glass 전용) |
 | `modules/buildbot/secrets.yaml` | psi | Nixbot GitHub App/OAuth 시크릿 |
 | `modules/authentik/secrets.yaml` | eta | OIDC 클라이언트 시크릿 |
 | `modules/postgresql/secrets.yaml` | rho, tau | DB 사용자 암호 |
@@ -191,14 +191,17 @@ sops updatekeys hosts/psi.yaml
 | 복제 | WAL 스트리밍 (rho → tau) |
 | 암호 관리 | sops 암호화 |
 
-### Borgbackup
+### RustFS S3 backup store
 
 | 설정 | 값 |
 |------|-----|
-| 암호화 | `repokey-blake2` |
-| 보관 | 일 7개, 주 4개, 월 3~6개 |
-| 전송 | SSH (포트 10022, 전용 키) |
-| 저장소 | tau (전용 borg 계정, 제한된 경로) |
+| API 바인드 | wg-admin IP만 (`:9100`) |
+| console 바인드 | localhost only (`127.0.0.1:9101`) |
+| 저장소 | `/srv/rustfs/data` |
+| bucket state | `rustfs-bootstrap.service`가 S3 API로 생성/검증 |
+| client 인증 | access key / secret key |
+
+RustFS root credential은 bootstrap과 break-glass 용도로만 사용합니다. Backup job은 별도 writer/pruner/reader/mirror credential과 IAM policy를 사용해야 합니다.
 
 ## 감사 및 모니터링
 

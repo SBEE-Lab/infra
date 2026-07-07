@@ -37,6 +37,18 @@ flowchart LR
   tau_s3 -- "delayed mirror" --> rho_s3
 ```
 
+## RustFS bootstrap
+
+`services.rustfs`는 daemon과 bucket bootstrap을 함께 선언합니다. Bucket 같은 object store 내부 state는 `rustfs-bootstrap.service`가 RustFS readiness를 기다린 뒤 S3-compatible client로 적용합니다.
+
+`rustfs-bootstrap.service`는 선언된 object-store state를 다음 순서로 수렴합니다.
+
+- `services.rustfs.ensureBuckets`: bucket 생성, bucket versioning enable, versioning 상태 확인
+- `services.rustfs.ensurePolicies`: canned IAM policy 생성
+- `services.rustfs.ensureUsers`: access key/user 생성, policy attach
+
+RustFS root credential은 bootstrap과 break-glass 용도로만 사용합니다. rustic/restic job은 별도 writer/prune/restore credential을 사용해야 합니다. RustFS console UI는 현재 upstream package에서 static asset이 빠져 있어 운영 절차에 포함하지 않습니다.
+
 ## psi 백업 범위
 
 psi 전체를 백업하지 않습니다. S3 primary에는 quota 안에 들어오는 protected subset만 저장합니다.
