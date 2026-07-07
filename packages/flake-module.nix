@@ -8,6 +8,7 @@
     }:
     {
       packages = {
+        slack-cli = pkgs.callPackage ./slack-cli { };
         zensical = pkgs.python3.pkgs.callPackage ./zensical { };
       }
       // lib.optionalAttrs pkgs.stdenv.isLinux {

@@ -87,6 +87,7 @@
         ./formatter/flake-module.nix
         ./shells/flake-module.nix
         ./terraform/flake-module.nix
+        ./modules/monitoring/alerts/flake-module.nix
       ];
       perSystem =
         { system, ... }:
