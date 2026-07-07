@@ -1,10 +1,15 @@
 # Terraform
 
+## State backend
+
+Terragrunt uses PostgreSQL state on rho through `terraform/tunnel.sh`. The `terraform/.envrc` direnv environment loads the backend password from `terraform/secrets.yaml`.
+
 ## Required Tokens
 
 - Vultr
 - GitHub
 - Cloudflare
+- healthchecks.io
 
 ## Token Types and Permissions
 
@@ -28,3 +33,7 @@
 - Zone:Zone:Read
 - Zone:DNS:Edit
 - Zone:Zone Settings:Edit (for SSL)
+
+### healthchecks.io
+
+- API key with permission to manage checks in the target project

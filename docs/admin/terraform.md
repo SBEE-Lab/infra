@@ -1,6 +1,6 @@
 # Terraform
 
-외부 리소스(Cloudflare DNS, GitHub), Authentik 애플리케이션 정책, Headscale ACL policy를 코드로 관리합니다.
+외부 리소스(Cloudflare DNS, GitHub, healthchecks.io), Authentik 애플리케이션 정책, Headscale ACL policy를 코드로 관리합니다.
 
 ## 백엔드
 
@@ -57,6 +57,21 @@ terragrunt init
 terragrunt plan
 terragrunt apply
 ```
+
+### healthchecks.io
+
+`terraform/healthchecksio`는 rho Alertmanager dead-man switch용 `rho-alertmanager-watchdog` check를 관리하고 healthchecks.io Slack integration을 check에 연결합니다. healthchecks.io API key는 `terraform/healthchecksio/secrets.yaml`의 `HEALTHCHECKSIO_API_KEY`로 전달합니다. Slack integration 자체는 healthchecks.io UI에서 `#infra-alerts`로 먼저 생성합니다.
+
+```bash
+cd terraform/healthchecksio
+direnv allow ..
+terragrunt init
+terragrunt plan
+terragrunt apply
+terragrunt output -raw rho_alertmanager_watchdog_ping_url
+```
+
+`ping_url`은 secret입니다. Terraform output을 확인한 뒤 `modules/monitoring/secrets.yaml`의 `alertmanager-healthchecks-ping-url`에 수동으로 저장합니다. Terraform apply가 SOPS 파일을 수정하지 않습니다.
 
 ### GitHub
 

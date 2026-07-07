@@ -26,6 +26,16 @@
         spdx = "MPL-2.0";
         homepage = "https://registry.terraform.io/providers/awlsring/headscale";
       };
+
+      healthchecksioProvider = pkgs.terraform-providers.mkProvider {
+        owner = "kristofferahl";
+        repo = "terraform-provider-healthchecksio";
+        rev = "v2.3.0";
+        hash = "sha256-mR4mJiXF3YFY0DG9M9EjuR+V1cNTfvbY1gPL5A+V9T0=";
+        vendorHash = "sha256-NauILuu4noOVZIBRfueFBx5Mx2sl7GGzyhL7254MndY=";
+        spdx = "Apache-2.0";
+        homepage = "https://registry.terraform.io/providers/kristofferahl/healthchecksio";
+      };
     in
     {
       devShells.terraform = pkgs.mkShellNoCC {
@@ -57,6 +67,7 @@
           p.cloudflare_cloudflare
           authentikProvider
           headscaleProvider
+          healthchecksioProvider
         ]);
       };
     };
