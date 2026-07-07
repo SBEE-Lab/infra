@@ -49,6 +49,16 @@ flowchart LR
 
 RustFS root credential은 bootstrap과 break-glass 용도로만 사용합니다. rustic/restic job은 별도 writer/prune/restore credential을 사용해야 합니다. RustFS console UI는 현재 upstream package에서 static asset이 빠져 있어 운영 절차에 포함하지 않습니다.
 
+## RustFS monitoring
+
+`services.rustfs.monitoring`은 daemon liveness만 담당합니다.
+
+- Gatus: `/health/ready` readiness check
+- Loki: `rustfs.service`, `rustfs-bootstrap.service` journald logs
+- Prometheus: `/srv` filesystem freshness and free-space alerts
+
+Backup freshness, mirror lag, prune success, restore drill freshness는 rustic/restic job 쪽에서 별도 SLA로 추가합니다.
+
 ## psi 백업 범위
 
 psi 전체를 백업하지 않습니다. S3 primary에는 quota 안에 들어오는 protected subset만 저장합니다.

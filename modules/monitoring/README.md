@@ -18,7 +18,7 @@ Grafana dashboards are provisioned from Nix under `modules/monitoring/grafana/da
 - `infra.nix`: high-level home dashboard.
 - `hosts.nix`: host resources, metrics freshness, wg-admin reachability, Headscale node status.
 - `apps.nix`: Gatus smoke status, synthetic probes, browser app access flows.
-- `jobs.nix`: db-sync/borg/job status and freshness.
+- `jobs.nix`: db-sync and batch/sync/backup status freshness.
 - `access-audit.nix`: SSH, Authentik, and Headscale audit drilldown.
 - `ai-resources.nix`: AI endpoint smoke, psi resources, db-sync, GPU metrics.
 
