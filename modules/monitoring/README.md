@@ -7,7 +7,7 @@ This directory contains the Nix-owned monitoring stack for rho/eta/psi/tau.
 - **rho** runs Prometheus, Loki, and Grafana.
 - **eta** runs Gatus and blackbox exporter.
 - **all hosts** run Vector for host metrics and logs.
-- **psi** exports job freshness snapshots and NVIDIA GPU metrics.
+- **psi** exports db-sync job freshness snapshots and NVIDIA GPU metrics.
 - **Grafana** is tailnet/wg-admin only at `https://logging.sjanglab.org/` with anonymous Viewer access.
 - **Gatus** is tailnet-only at `https://status.sjanglab.org/` and remains the user-facing status page.
 
@@ -65,7 +65,7 @@ Internal eta probes validate the internal/tailnet view. Public endpoints still n
 
 ## Job freshness
 
-psi writes systemd job snapshots to Loki every 60 seconds:
+psi writes db-sync systemd job snapshots to Loki every 60 seconds:
 
 ```logql
 {host="psi", log_type="systemd_status", event="job_snapshot"}
@@ -81,6 +81,8 @@ Each row includes:
 - `last_exit_age_seconds`
 - `next_due_seconds`
 - `max_success_age_seconds`
+
+S3 backup jobs should be added to this snapshot stream after the backup store migration.
 
 Prometheus cannot evaluate these LogQL streams directly. Job freshness alerts need Loki ruler or a metric exporter.
 

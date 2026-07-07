@@ -32,6 +32,6 @@
 
 - **위치**: 랩 내부 (NAT)
 - **내부 IP**: 10.80.169.40
-- **역할**: Nextcloud, n8n, PostgreSQL 레플리카, Borg 백업
+- **역할**: Nextcloud, n8n, PostgreSQL 레플리카, S3 백업 저장소
 - **태그**: `nat-behind`, `lab-network`, `kren-dns`
-- **스토리지**: HDD (Borg 백업 저장소)
+- **스토리지**: HDD (S3 백업 저장소)

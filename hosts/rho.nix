@@ -6,8 +6,6 @@
     ../modules/wake-on-lan.nix
     ../modules/tailscale
     ../modules/postgresql
-    ../modules/borgbackup/rho/client.nix
-    ../modules/borgbackup/mirror.nix
     ../modules/monitoring/vector/monitor-systems.nix
     ../modules/monitoring/reverse-proxy.nix
     ../modules/gatus/reverse-proxy.nix
@@ -21,7 +19,7 @@
       data = {
         disks.hdd1 = "/dev/disk/by-id/ata-WDC_WD20SPZX-00UA7T0_WD-WXB2A153H96N";
         disks.hdd2 = "/dev/disk/by-id/ata-WDC_WD20SPZX-00UA7T0_WD-WXB2A153H6KD";
-        mountpoint = "/backup";
+        mountpoint = "/srv";
         extraXfsOptions = [
           "largeio"
           "allocsize=64m"

@@ -85,8 +85,7 @@ in
     '';
   };
 
-  # PostgreSQL backup is handled by borgbackup/rho/client.nix
-  # which runs pg_dumpall before borg backup
+  # PostgreSQL backup is moving to the S3 backup store.
 
   sops.secrets.pg-replicator-password = {
     owner = "postgres";
