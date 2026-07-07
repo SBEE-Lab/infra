@@ -1,6 +1,8 @@
-{ self, ... }:
+{ inputs, self, ... }:
 {
   imports = [ ./sops.nix ];
+
+  flake.herculesCI = import ./effects.nix { inherit inputs self; };
 
   perSystem =
     {
