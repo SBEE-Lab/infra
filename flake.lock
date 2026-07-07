@@ -313,18 +313,19 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1783148766,
-        "narHash": "sha256-uslt2pqShTIXDdAHRHv2QkYLsVdY8Oqwz0EA48/RSM8=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "a50de1b7d8a586adc18d2395c19de7d6058e6030",
-        "type": "github"
+        "lastModified": 1783444163,
+        "narHash": "sha256-xOExacSdP5uETslOy+2XyJTOCrQkBnS3NccjkfW1N+s=",
+        "ref": "main",
+        "rev": "b2ada1857a2f617429038ffc5762b1316f74ee74",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/SBEE-Lab/nixpkgs"
       },
       "original": {
-        "owner": "NixOS",
-        "ref": "nixos-26.05",
-        "repo": "nixpkgs",
-        "type": "github"
+        "ref": "main",
+        "shallow": true,
+        "type": "git",
+        "url": "https://github.com/SBEE-Lab/nixpkgs"
       }
     },
     "nixpkgs_3": {
