@@ -13,6 +13,9 @@ in
 
   networking.firewall.enable = false;
 
+  # The installer should not import stale ZFS root pools from disks it inspects.
+  boot.zfs.forceImportRoot = false;
+
   networking.usePredictableInterfaceNames = false;
   systemd.network.enable = true;
   networking.useNetworkd = true;
