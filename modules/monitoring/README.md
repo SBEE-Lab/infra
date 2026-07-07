@@ -127,30 +127,30 @@ These are control-plane and inventory signals only, not WireGuard data-plane tra
 
 ## Alerting state
 
-Prometheus alert rules exist, but Alertmanager/Slack delivery is not enabled yet.
+Prometheus sends alerts to Alertmanager on rho. Alertmanager routes operational alerts to Slack `#infra-alerts`, audit/security alerts to `#infra-audit`, and the always-firing `Watchdog` alert to healthchecks.io as a dead-man switch. healthchecks.io is attached to its Slack `infra-alerts` integration so rho alerting-path failures notify outside rho.
 
 Current Prometheus rule intent:
 
 - `HostMetricsMissing`: critical host metric freshness.
 - `DiskSpaceLow`: warning disk pressure.
+- `DiskSpaceCritical`: critical disk pressure.
 - `MemoryLow`: warning memory pressure.
 - `HighCPULoad`: warning sustained CPU pressure.
-- `PrometheusTargetDown`: critical generic scrape target failure, excluding blackbox probe jobs and GPU exporter.
-- `GatusEndpointDown`: warning for Gatus-only CI/platform heartbeats.
+- `PrometheusTargetDown`: critical generic scrape target failure, excluding blackbox probe jobs, blackbox exporter, and GPU exporter.
+- `GatusEndpointDown`: warning for non-app Gatus heartbeats; app endpoints are covered by blackbox tailnet probes.
 - `BlackboxExporterDown`: critical eta blackbox exporter failure.
 - `BlackboxProbeFailed`: critical for public and wg-admin probes, warning for tailnet app probes.
 - `NvidiaGpuExporterDown`: warning GPU exporter failure.
+- `Watchdog`: present only when Alertmanager secrets exist; always firing and routed only to healthchecks.io, never to Slack.
 
-Gatus does not send alerts directly. Slack routing should be added through Alertmanager, with any bootstrap/stack-health alerting designed explicitly.
+Gatus does not send alerts directly. Prometheus evaluates Gatus metrics and Alertmanager handles Slack delivery.
 
-## Alerting gaps before completion
+## Remaining alerting work
 
-- Enable Alertmanager on rho with Slack receivers.
-- Add inhibit rules to suppress child alerts when parent failures explain them.
-- Add outside-tailnet public probe vantage.
 - Add Loki ruler for job freshness and audit bursts.
-- Add Alertmanager health check to Gatus/Prometheus after enabling it.
-- Document Slack channels, severity policy, and runbooks.
+- Add outside-tailnet public probe vantage.
+- Document alert runbooks and silence policy.
+- Fix workstation wg-admin routing if direct local access to `10.100.0.0/24` is required; current service health checks should run from rho/eta or through SSH until then.
 
 ## Validation
 
