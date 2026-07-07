@@ -82,6 +82,7 @@
         "aarch64-darwin"
       ];
       imports = [
+        ./lib/flake-module.nix
         ./configurations.nix
         ./checks/flake-module.nix
         ./docs/flake-module.nix

@@ -15,6 +15,12 @@ let
 
   system = "x86_64-linux";
 
+  lib = nixpkgs.lib.extend (
+    _: _: {
+      sbee = self.lib.sbee;
+    }
+  );
+
   pkgs = import nixpkgs {
     inherit system;
     config.allowUnfree = true;
@@ -36,9 +42,9 @@ let
       modules,
       useCuda ? false,
     }:
-    nixpkgs.lib.nixosSystem {
+    lib.nixosSystem {
       inherit system;
-      specialArgs = { inherit self inputs; };
+      specialArgs = { inherit self inputs lib; };
       modules = modules ++ [ { nixpkgs.pkgs = if useCuda then pkgsCuda else pkgs; } ];
     };
 
