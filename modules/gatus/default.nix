@@ -4,6 +4,12 @@ let
   port = 8081; # 8080 is used by headscale
   systemCollector = hosts.rho.wg-admin;
   cfg = config.gatusCheck;
+  monitoringSecretsText = builtins.readFile ../monitoring/secrets.yaml;
+  hasAlertmanagerSecrets = lib.all (name: lib.hasInfix "${name}:" monitoringSecretsText) [
+    "alertmanager-slack-infra-alerts-webhook"
+    "alertmanager-slack-infra-audit-webhook"
+    "alertmanager-healthchecks-ping-url"
+  ];
 in
 {
   imports = [ ./check.nix ];
@@ -64,6 +70,9 @@ in
           (mkExtEndpoint "Grafana" "monitoring")
           (mkExtEndpoint "Prometheus" "monitoring")
           (mkExtEndpoint "Loki" "monitoring")
+        ]
+        ++ lib.optional hasAlertmanagerSecrets (mkExtEndpoint "Alertmanager" "monitoring")
+        ++ [
           (mkExtEndpoint "PostgreSQL" "platform")
         ];
     };
