@@ -14,7 +14,7 @@
       packages.docs =
         pkgs.runCommand "docs"
           {
-            buildInputs = [ config.packages.zensical ];
+            buildInputs = [ pkgs.zensical ];
             files = fileset.toSource {
               root = ../.;
               fileset = docsFiles;
@@ -33,7 +33,10 @@
         extraConfig = {
           include_mail = true;
           include_verbatim = true;
-          exclude = [ "docker:.*" ];
+          exclude = [
+            "docker:.*"
+            "file://.*/404.html#__skip"
+          ];
           root_dir = "${site}";
         };
         remap = {
