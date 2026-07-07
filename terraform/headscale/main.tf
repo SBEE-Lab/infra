@@ -29,11 +29,6 @@ locals {
     ]
   }
 
-  headscale_users = {
-    for username, user in local.users : username => user
-    if can(regex("@", username))
-  }
-
   policy = {
     groups = local.policy_groups
 
@@ -95,23 +90,6 @@ locals {
   }
 }
 
-resource "headscale_user" "user" {
-  for_each = local.headscale_users
-
-  name = each.key
-
-  lifecycle {
-    prevent_destroy = true
-    ignore_changes = [
-      display_name,
-      email,
-      profile_picture_url,
-    ]
-  }
-}
-
 resource "headscale_policy" "tailnet" {
-  depends_on = [headscale_user.user]
-
   policy = jsonencode(local.policy)
 }

@@ -48,12 +48,11 @@ terragrunt plan
 
 `terraform/headscale`은 Headscale database ACL policy를 관리합니다. Headscale API key는 `terraform/headscale/secrets.yaml`의 `HEADSCALE_API_KEY`로 전달합니다. 사용자 membership은 `terraform/authentik/users.yaml`을 함께 읽어 Authentik과 같은 source of truth를 사용합니다.
 
-Headscale module은 `services.headscale.settings.policy.mode = "database"` 배포 후 apply합니다. 기존 Headscale users는 먼저 import합니다. `headscale_policy`는 provider가 import를 지원하지 않아 첫 apply가 singleton database policy를 설정하면서 Terraform state를 만듭니다.
+Headscale 사용자 계정은 Terraform에서 사전 생성하지 않습니다. Authentik 그룹 membership이 OIDC `allowed_groups` 인가 경계이고, Headscale은 인가된 사용자의 첫 VPN 로그인 때 OIDC `iss/sub` 기준 user를 생성합니다. Headscale module은 `services.headscale.settings.policy.mode = "database"` 배포 후 apply합니다. `headscale_policy`는 provider가 import를 지원하지 않아 첫 apply가 singleton database policy를 설정하면서 Terraform state를 만듭니다.
 
 ```bash
 cd terraform/headscale
 terragrunt init
-./import-existing.sh
 terragrunt plan
 terragrunt apply
 ```
