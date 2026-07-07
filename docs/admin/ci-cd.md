@@ -56,10 +56,10 @@ GitHub App 설정은 Nixbot 형식으로 유지해야 합니다.
 |------|-----|
 | Webhook URL | `https://buildbot.sjanglab.org/webhooks/github` |
 | OAuth callback | `https://buildbot.sjanglab.org/auth/github/callback` |
-| Repository permissions | Contents: Read-only, Checks: Read & write, Metadata: Read-only, Pull requests: Read-only |
+| Repository permissions | Contents: Read & write, Checks: Read & write, Issues: Read & write, Metadata: Read-only, Pull requests: Read & write |
 | Events | Push, Pull request, Check run, Check suite |
 
-권한을 변경하면 각 installation에서 새 권한 승인이 필요합니다.
+`Contents` 쓰기 권한은 docs effect의 `gh-pages` push와 updater의 update branch push에 필요합니다. `Pull requests` 쓰기 권한은 updater PR 생성에, `Issues` 쓰기 권한은 `auto-merge` label 추가에 필요합니다. 권한을 변경하면 각 installation에서 새 권한 승인이 필요합니다.
 
 ### 관리자 변경
 
@@ -70,13 +70,28 @@ Nixbot 관리자를 변경하려면:
 1. OAuth 시크릿 갱신 필요 시 `sops modules/buildbot/secrets.yaml`로 편집
 1. `inv deploy --hosts psi`
 
-### 빌드 재트리거
+### 빌드/effect 재트리거
 
-실패한 빌드는 Nixbot 웹 UI에서 수동으로 재트리거할 수 있습니다. `https://buildbot.sjanglab.org`에 GitHub 계정으로 로그인한 뒤, 해당 빌드 페이지에서 재시작 버튼을 클릭합니다.
+실패한 빌드와 effect는 Nixbot 웹 UI에서 수동으로 재트리거할 수 있습니다. `https://buildbot.sjanglab.org`에 GitHub 계정으로 로그인한 뒤, 해당 빌드 페이지에서 재시작 버튼을 클릭합니다.
+
+### Hercules-style effects
+
+리포지토리의 `flake.herculesCI`가 Nixbot effect를 정의합니다. Nixbot은 effect 실행 시 GitHub App installation token을 `GitToken` secret으로 전달하고, effect는 이 token으로 git push와 GitHub CLI 작업을 수행합니다.
+
+| Effect | Trigger | 동작 |
+|--------|---------|------|
+| `docs-pages` | `main` push | `.#docs` 결과를 `gh-pages` 브랜치로 force-push합니다. GitHub Pages source는 `terraform/github/repo.tf`에서 `gh-pages` `/`로 관리합니다. |
+| `update-packages` | 매일 03:00 UTC | `.#updater -- --pr`를 실행해 updateable package별 PR을 생성합니다. |
 
 ### 외부 캐시 푸시
 
 Nixbot은 `mulatta/dots`, `mulatta/seqtable` 빌드 성공 결과만 `https://niks3.mulatta.io`로 push합니다. 전체 빌드는 psi의 Harmonia cache에서 계속 제공됩니다.
+
+## Package 자동 업데이트
+
+Nixbot scheduled effect가 매일 03:00 UTC에 `.#updater -- --pr`를 실행합니다. Updater는 `packages/*/nix-update-args` 또는 `packages/*/update.py`를 발견해 package별 update branch와 PR을 만듭니다. 현재 `slack-cli`가 `nix-update`/GitHub releases 기반 업데이트 대상으로 등록되어 있습니다.
+
+생성된 PR에는 `auto-merge` label이 붙고, 기존 auto-merge 워크플로우가 CI 성공 뒤 squash merge합니다.
 
 ## Flake 입력 자동 업데이트
 
