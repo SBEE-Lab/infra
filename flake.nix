@@ -69,6 +69,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.treefmt-nix.follows = "treefmt-nix";
     };
+
+    rustfs.url = "github:rustfs/rustfs";
   };
 
   outputs =
