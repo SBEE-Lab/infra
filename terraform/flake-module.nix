@@ -55,6 +55,8 @@
         PGPORT = "15432";
         PGUSER = "terraform";
         PGDATABASE = "terraform";
+        TG_TF_PATH = "${config.packages.terraform}/bin/tofu";
+        TERRAGRUNT_TFPATH = "${config.packages.terraform}/bin/tofu";
       };
       packages = {
         terraform = pkgs.opentofu.withPlugins (p: [
