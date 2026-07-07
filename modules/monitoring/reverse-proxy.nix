@@ -46,6 +46,22 @@ in
             proxy_set_header X-Forwarded-Proto $scheme;
           '';
         };
+        "= /alertmanager" = {
+          return = "301 /alertmanager/";
+        };
+        "/alertmanager/" = {
+          proxyPass = "http://${currentHost.wg-admin}:9093";
+          extraConfig = authentikAuth.protectLocation + ''
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header Accept-Encoding "";
+            sub_filter_once on;
+            sub_filter_types text/html;
+            sub_filter "JSON.parse(localStorage.getItem('firstDayOfWeek'))" "JSON.parse(localStorage.getItem('firstDayOfWeek') || '\"Monday\"')";
+          '';
+        };
       };
     };
   };

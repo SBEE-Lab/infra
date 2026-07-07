@@ -2,10 +2,16 @@
 # - Local Loki sink for logs
 # - Prometheus server with remote write receiver
 # - Vector exporter for local metrics
-{ config, ... }:
+{ config, lib, ... }:
 let
   wgAdminAddr = config.networking.sbee.currentHost.wg-admin;
   hosts = config.networking.sbee.hosts;
+  monitoringSecretsText = builtins.readFile ../secrets.yaml;
+  hasAlertmanagerSecrets = lib.all (name: lib.hasInfix "${name}:" monitoringSecretsText) [
+    "alertmanager-slack-infra-alerts-webhook"
+    "alertmanager-slack-infra-audit-webhook"
+    "alertmanager-healthchecks-ping-url"
+  ];
 
   blackboxHttpTargets = [
     {
@@ -204,6 +210,19 @@ in
           }
         ];
       }
+    ]
+    ++ lib.optional hasAlertmanagerSecrets {
+      job_name = "alertmanager";
+      metrics_path = "/alertmanager/metrics";
+      scrape_interval = "60s";
+      static_configs = [
+        {
+          targets = [ "${wgAdminAddr}:9093" ];
+          labels.host = "rho";
+        }
+      ];
+    }
+    ++ [
       {
         job_name = "blackbox_http";
         metrics_path = "/probe";
