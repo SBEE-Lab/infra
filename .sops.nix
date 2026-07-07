@@ -73,6 +73,7 @@ let
       "terraform/cloudflare/secrets.yaml" = [ ];
       "terraform/github/secrets.yaml" = [ ];
       "terraform/headscale/secrets.yaml" = [ ];
+      "terraform/healthchecksio/secrets.yaml" = [ ];
       "terraform/vultr/secrets.yaml" = [ ];
     }
     // {
