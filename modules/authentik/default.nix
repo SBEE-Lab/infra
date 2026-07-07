@@ -9,7 +9,7 @@
   gatusCheck.pull = [
     {
       name = "Authentik";
-      url = "https://auth.sjanglab.org";
+      url = "https://auth.sjanglab.org/api/v3/root/config/";
       group = "platform";
     }
   ];
