@@ -277,6 +277,19 @@ in
           }
         ];
       }
+      {
+        job_name = "restic";
+        scrape_interval = "5m";
+        static_configs = [
+          {
+            targets = [ "${hosts.psi.wg-admin}:9753" ];
+            labels = {
+              host = "psi";
+              repository = "psi-protected";
+            };
+          }
+        ];
+      }
     ];
   };
 
