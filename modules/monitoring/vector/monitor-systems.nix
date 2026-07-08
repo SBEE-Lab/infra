@@ -189,10 +189,17 @@ in
     enable = true;
     listenAddress = wgAdminAddr;
 
+    # Alertmanager generator URLs must be reachable from browsers, so point
+    # them at the authenticated reverse proxy instead of the wg-admin address.
+    webExternalUrl = "https://logging.sjanglab.org/prometheus";
+
     # enable remote write receiver
     extraFlags = [
       "--web.enable-remote-write-receiver"
       "--storage.tsdb.retention.time=30d"
+      # Keep internal API paths stable for Grafana and remote-write while source
+      # links point at the authenticated reverse proxy path.
+      "--web.route-prefix=/"
     ];
 
     scrapeConfigs = [
