@@ -6,20 +6,23 @@
 }:
 let
   cfg = config.services.rustfs;
-  monitoring = lib.sbee.monitoring;
+  sbeeLib = lib.sbee or { };
+  monitoring = if builtins.isAttrs sbeeLib && sbeeLib ? monitoring then sbeeLib.monitoring else null;
   endpoint = "http://${cfg.listenAddress}:${toString cfg.apiPort}";
-  metricsCollector = config.networking.sbee.hosts.rho.wg-admin;
-  hasGatusCheck = monitoring.hasOption options [
-    "gatusCheck"
-    "push"
-  ];
+  metricsCollector = config.networking.sbee.hosts.rho.wg-admin or "127.0.0.1";
+  hasGatusCheck =
+    monitoring != null
+    && monitoring.hasOption options [
+      "gatusCheck"
+      "push"
+    ];
 in
 {
   config = lib.mkIf cfg.enable (
     lib.mkMerge [
       {
         assertions =
-          lib.optional cfg.monitoring.gatus.enable (
+          lib.optional (cfg.monitoring.gatus.enable && monitoring != null) (
             monitoring.requireOption {
               inherit options;
               path = [
@@ -36,7 +39,7 @@ in
           };
       }
 
-      (lib.mkIf (cfg.monitoring.gatus.enable && hasGatusCheck) {
+      (lib.mkIf (cfg.monitoring.gatus.enable && monitoring != null && hasGatusCheck) {
         gatusCheck.push = [
           (monitoring.mkGatusHttpCheck {
             name = "RustFS ${config.networking.hostName}";
@@ -46,7 +49,7 @@ in
         ];
       })
 
-      (lib.mkIf cfg.monitoring.loki.enable {
+      (lib.mkIf (cfg.monitoring.loki.enable && monitoring != null) {
         services.vector.settings = monitoring.mkJournaldLokiPipeline {
           name = "rustfs";
           hostName = config.networking.hostName;

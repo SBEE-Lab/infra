@@ -32,6 +32,19 @@
 
   networking.hostName = "rho";
 
+  sops.secrets = {
+    rustfs-access-key = {
+      owner = "rustfs";
+      group = "rustfs";
+      mode = "0400";
+    };
+    rustfs-secret-key = {
+      owner = "rustfs";
+      group = "rustfs";
+      mode = "0400";
+    };
+  };
+
   services.rustfs.enable = true;
 
   system.stateVersion = "25.05";
