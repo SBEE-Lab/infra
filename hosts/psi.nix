@@ -33,6 +33,7 @@ in
     ../modules/monitoring/vector
     ../modules/monitoring/systemd-status-exporter.nix
     ../modules/backup/psi-protected.nix
+    ../modules/backup/postgresql.nix
     ../modules/harmonia
     ../modules/multievolve
     # ../modules/vllm
@@ -89,7 +90,14 @@ in
 
   networking.hostName = "psi";
 
-  services.sbee.backups.psiProtected.enable = true;
+  services.sbee.backups = {
+    psiProtected.enable = true;
+    postgresql = {
+      enable = true;
+      databases = [ "nixbot" ];
+      startAt = "*-*-* 02:30:00";
+    };
+  };
 
   services.sbee.systemdStatusExporter = {
     enable = true;

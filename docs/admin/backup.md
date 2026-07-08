@@ -59,7 +59,7 @@ RustFS root credential은 bootstrap과 break-glass 용도로만 사용합니다.
 - Loki: `rustfs.service`, `rustfs-bootstrap.service` journald logs
 - Prometheus: `/srv` filesystem freshness and free-space alerts
 
-Backup/check/prune/restore drill freshness는 psi의 `systemd_status` Loki stream에 포함됩니다. tau→rho mirror는 `backup-mirror-psi-protected.service`/timer 로그와 systemd 상태로 확인합니다.
+Backup/check/prune/restore drill freshness는 `systemd_status` Loki stream에 포함됩니다. psi는 protected data와 Nixbot PostgreSQL job을, rho는 PostgreSQL backup과 delayed mirror job을 기록합니다.
 
 ## psi 백업 범위
 
@@ -81,14 +81,38 @@ psi 전체를 백업하지 않습니다. S3 primary에는 quota 안에 들어오
 - public bioinformatics database mirror
 - cache, work, temp, intermediate
 
+## PostgreSQL 백업 범위
+
+Streaming replica는 장애 대응용이고 백업으로 간주하지 않습니다. PostgreSQL은 논리 덤프를 만든 뒤 restic native S3로 tau primary RustFS에 저장합니다.
+
+백업 대상:
+
+- rho: `terraform`, `nextcloud`, `n8n`
+- psi: `nixbot`
+- globals: `pg_dumpall --globals-only`
+- database dump: `pg_dump --format=custom --create --clean --if-exists`
+
+저장소:
+
+- rho: `backups/rho/postgresql/`
+- psi: `backups/psi/postgresql/`
+
+스케줄과 보관:
+
+- dump + backup: daily (`rho` 04:30, `psi` 02:30)
+- check: monthly, reader credential
+- prune: weekly, pruner credential
+- retention: daily 7, weekly 4, monthly 6
+- restore drill: weekly, latest snapshot에서 `globals.sql`과 custom dump를 복원하고 `pg_restore --list`로 검증
+
 ## tau→rho delayed mirror
 
 rho가 tau primary RustFS에서 pull 방식으로 secondary RustFS에 복사합니다.
 
-- unit: `backup-mirror-psi-protected.service`
+- units: `backup-mirror-psi-protected.service`, `backup-mirror-psi-postgresql.service`, `backup-mirror-rho-postgresql.service`
 - timer: daily, `RandomizedDelaySec=2h`
-- source: `tau:backups/psi/protected/`
-- destination: `rho:backups/psi/protected/`
+- sources: `tau:backups/psi/protected/`, `tau:backups/psi/postgresql/`, `tau:backups/rho/postgresql/`
+- destinations: matching prefixes on rho RustFS
 - rclone options: `copy --immutable --min-age 24h --exclude 'locks/**' --s3-no-check-bucket`
 
 즉시 delete propagation은 하지 않습니다. tau에서 사라진 object도 rho에 남으므로 prune/delete 실수에 대한 지연 완충 역할을 합니다. source는 psi restic reader credential을 사용하고, destination은 rho-local mirror credential을 사용합니다.

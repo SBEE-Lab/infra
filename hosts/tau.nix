@@ -8,7 +8,7 @@
     ../modules/tailscale
     ../modules/postgresql/replica.nix
     ../modules/rustfs
-    ../modules/backup/psi-protected-primary.nix
+    ../modules/backup/primary.nix
     ../modules/monitoring/vector/monitor-services.nix
     ../modules/nextcloud
     ../modules/n8n
@@ -49,7 +49,12 @@
   };
 
   services.rustfs.enable = true;
-  services.sbee.backups.psiProtectedPrimary.enable = true;
+  services.sbee.backups = {
+    primary = {
+      psiProtected.enable = true;
+      postgresql.enable = true;
+    };
+  };
 
   system.stateVersion = "25.05";
 }

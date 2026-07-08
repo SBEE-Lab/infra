@@ -1,4 +1,4 @@
-# Nixbot database health/backup helpers (deployed on psi)
+# Nixbot database helpers (deployed on psi)
 {
   lib,
   pkgs,
@@ -15,6 +15,4 @@
       port = 5432;
     };
   };
-
-  services.postgresqlBackup.databases = lib.mkAfter [ "nixbot" ];
 }

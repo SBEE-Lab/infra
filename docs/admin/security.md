@@ -145,7 +145,7 @@ root의 `authorized_keys`에는 관리자 키만 등록됩니다 (`modules/users
 |----------|------------|------|
 | `hosts/<host>.yaml` | 해당 호스트 + admin | root 비밀번호 해시, WireGuard 키 |
 | `modules/acme/secrets.yaml` | eta, psi, tau | Cloudflare API 인증 |
-| `hosts/rho.yaml`, `hosts/tau.yaml` | 해당 호스트 | RustFS root access key/secret key (bootstrap, break-glass 전용) |
+| `hosts/rho.yaml`, `hosts/tau.yaml` | 해당 호스트 | RustFS root access key/secret key (bootstrap, break-glass 전용), host-local backup passwords |
 | `modules/buildbot/secrets.yaml` | psi | Nixbot GitHub App/OAuth 시크릿 |
 | `modules/authentik/secrets.yaml` | eta | OIDC 클라이언트 시크릿 |
 | `modules/postgresql/secrets.yaml` | rho, tau | DB 사용자 암호 |
@@ -201,7 +201,7 @@ sops updatekeys hosts/psi.yaml
 | bucket state | `rustfs-bootstrap.service`가 S3 API로 생성/검증 |
 | client 인증 | access key / secret key |
 
-RustFS root credential은 bootstrap과 break-glass 용도로만 사용합니다. Backup job은 별도 writer/pruner/reader/mirror credential과 IAM policy를 사용해야 합니다.
+RustFS root credential은 bootstrap과 break-glass 용도로만 사용합니다. Backup job은 repo별 writer/pruner/reader/mirror credential과 IAM policy를 사용해야 합니다.
 
 ## 감사 및 모니터링
 
