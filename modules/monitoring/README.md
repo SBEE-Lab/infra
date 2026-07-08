@@ -7,7 +7,7 @@ This directory contains the Nix-owned monitoring stack for rho/eta/psi/tau.
 - **rho** runs Prometheus, Loki, and Grafana.
 - **eta** runs Gatus and blackbox exporter.
 - **all hosts** run Vector for host metrics and logs.
-- **psi** exports db-sync job freshness snapshots and NVIDIA GPU metrics.
+- **psi** exports biodb job freshness snapshots and NVIDIA GPU metrics.
 - **Grafana** is tailnet/wg-admin only at `https://logging.sjanglab.org/` with anonymous Viewer access.
 - **Gatus** is tailnet-only at `https://status.sjanglab.org/` and remains the user-facing status page.
 
@@ -18,9 +18,9 @@ Grafana dashboards are provisioned from Nix under `modules/monitoring/grafana/da
 - `infra.nix`: high-level home dashboard.
 - `hosts.nix`: host resources, metrics freshness, wg-admin reachability, Headscale node status.
 - `apps.nix`: Gatus smoke status, synthetic probes, browser app access flows.
-- `jobs.nix`: db-sync and batch/sync/backup status freshness.
+- `jobs.nix`: biodb and batch/sync/backup status freshness.
 - `access-audit.nix`: SSH, Authentik, and Headscale audit drilldown.
-- `ai-resources.nix`: AI endpoint smoke, psi resources, db-sync, GPU metrics.
+- `ai-resources.nix`: AI endpoint smoke, psi resources, GPU metrics.
 
 Datasource UIDs are pinned so dashboard JSON stays stable:
 
@@ -65,7 +65,7 @@ Internal eta probes validate the internal/tailnet view. Public endpoints still n
 
 ## Job freshness
 
-psi writes db-sync systemd job snapshots to Loki every 60 seconds:
+psi writes biodb systemd job snapshots to Loki every 60 seconds:
 
 ```logql
 {host="psi", log_type="systemd_status", event="job_snapshot"}
