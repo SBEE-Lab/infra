@@ -1,5 +1,5 @@
 # SjangLab Jobs dashboard
-# Batch/sync health. Current source is psi db-sync systemd status snapshots in Loki.
+# Batch/sync health. Current source is psi biodb systemd status snapshots in Loki.
 { datasources }:
 let
   inherit (datasources) loki;
@@ -83,9 +83,9 @@ in
     })
     (statPanel {
       id = 2;
-      title = "db-sync failures";
+      title = "biodb failures";
       x = 8;
-      expr = ''sum(count_over_time({host="psi", log_type="systemd_status", event="job_snapshot"} | json | health = "FAIL" | unit =~ "db-sync-.*" [10m]))'';
+      expr = ''sum(count_over_time({host="psi", log_type="systemd_status", event="job_snapshot"} | json | health = "FAIL" | unit =~ "biodb-.*" [10m]))'';
     })
     (statPanel {
       id = 3;

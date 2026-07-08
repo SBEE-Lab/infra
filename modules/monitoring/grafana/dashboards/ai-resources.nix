@@ -2,7 +2,7 @@
 # GPU/AI-service view. GPU metrics come from prometheus-nvidia-gpu-exporter on psi.
 { datasources }:
 let
-  inherit (datasources) prometheus loki;
+  inherit (datasources) prometheus;
 in
 {
   uid = "sjanglab-ai-resources";
@@ -160,72 +160,6 @@ in
       ];
     }
     {
-      id = 5;
-      title = "psi job status affecting AI/data";
-      type = "table";
-      datasource = loki;
-      gridPos = {
-        h = 8;
-        w = 24;
-        x = 0;
-        y = 16;
-      };
-      options = {
-        showHeader = true;
-        cellHeight = "sm";
-        footer.show = false;
-      };
-      transformations = [
-        {
-          id = "extractFields";
-          options = {
-            source = "Line";
-            format = "json";
-            replace = true;
-            keepTime = true;
-          };
-        }
-        {
-          id = "organize";
-          options = {
-            excludeByName = {
-              host = true;
-              log_type = true;
-              message = true;
-            };
-            indexByName = {
-              Time = 0;
-              health = 1;
-              health_reason = 2;
-              unit = 3;
-              last_success_age_seconds = 4;
-              next_due_seconds = 5;
-              active_state = 6;
-              sub_state = 7;
-              result = 8;
-              last_exit_status = 9;
-            };
-            renameByName = {
-              active_state = "active";
-              sub_state = "sub";
-              last_exit_status = "exit";
-              health_reason = "reason";
-              last_success_age_seconds = "last success age";
-              next_due_seconds = "next due";
-            };
-          };
-        }
-      ];
-      targets = [
-        {
-          refId = "A";
-          datasource = loki;
-          expr = ''{host="psi", log_type="systemd_status", event="job_snapshot"} | json | unit =~ "db-sync-.*"'';
-        }
-      ];
-      timeFrom = "10m";
-    }
-    {
       id = 6;
       title = "GPU utilization";
       type = "timeseries";
@@ -234,7 +168,7 @@ in
         h = 8;
         w = 8;
         x = 0;
-        y = 24;
+        y = 16;
       };
       fieldConfig.defaults = {
         unit = "percentunit";
@@ -259,7 +193,7 @@ in
         h = 8;
         w = 8;
         x = 8;
-        y = 24;
+        y = 16;
       };
       fieldConfig.defaults = {
         unit = "bytes";
@@ -289,7 +223,7 @@ in
         h = 8;
         w = 8;
         x = 16;
-        y = 24;
+        y = 16;
       };
       fieldConfig.defaults.min = 0;
       targets = [

@@ -5,7 +5,7 @@
   ...
 }:
 let
-  dbSyncDatabases = {
+  biodbDatabases = {
     blast-nr.enable = true;
     blast-nt.enable = true;
     blast-swissprot.enable = true;
@@ -37,7 +37,8 @@ in
     ../modules/harmonia
     ../modules/multievolve
     # ../modules/vllm
-    ../modules/db-sync/databases.nix
+    ../modules/biodb
+    ../modules/biodb/databases.nix
     ../modules/docling
   ];
 
@@ -101,16 +102,16 @@ in
 
   services.sbee.systemdStatusExporter = {
     enable = true;
-    units = map (name: "db-sync-${name}.service") (builtins.attrNames dbSyncDatabases);
+    units = map (name: "biodb-${name}.service") (builtins.attrNames biodbDatabases);
   };
 
-  # Database sync management
-  services.db-sync = {
+  # Bioinformatics database sync management
+  services.biodb = {
     enable = true;
     root = "/data/databases";
 
     # Enable databases needed for research
-    databases = dbSyncDatabases;
+    databases = biodbDatabases;
   };
 
   services.prometheus.exporters.nvidia-gpu = {
