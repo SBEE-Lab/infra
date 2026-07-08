@@ -88,21 +88,117 @@
         "aarch64-darwin"
       ];
       imports = [
+        inputs.treefmt-nix.flakeModule
         ./lib/flake-module.nix
         ./configurations.nix
         ./checks/flake-module.nix
         ./docs/flake-module.nix
         ./packages/flake-module.nix
-        ./formatter/flake-module.nix
-        ./shells/flake-module.nix
         ./terraform/flake-module.nix
         ./modules/monitoring/alerts/flake-module.nix
       ];
       perSystem =
         { system, ... }:
-        {
-          _module.args.pkgs = import inputs.nixpkgs {
+        let
+          pkgs = import inputs.nixpkgs {
             localSystem.system = system;
+          };
+        in
+        {
+          _module.args.pkgs = pkgs;
+
+          treefmt = {
+            projectRootFile = ".git/config";
+
+            programs = {
+              # Nix formatters & linters
+              nixfmt.enable = true;
+              deadnix.enable = true;
+              statix.enable = true;
+
+              # Python formatters & linters
+              ruff-check.enable = true;
+              ruff-format.enable = true;
+
+              # Shell formatters & linter
+              shellcheck.enable = true;
+              shfmt.enable = true;
+
+              # Infrastructure as Code
+              terraform.enable = true;
+              hclfmt.enable = true;
+
+              # Markdown formatter (docs/ only)
+              mdformat = {
+                enable = true;
+                includes = [ "docs/**/*.md" ];
+              };
+
+              # Other formatters
+              keep-sorted.enable = true;
+              yamlfmt.enable = true;
+              taplo.enable = true;
+            };
+
+            settings.formatter =
+              let
+                nixExcludes = [
+                  "*.lock"
+                  "*/secrets.yaml"
+                  "hosts/**.yaml"
+                  "modules/users/admins.nix"
+                  "modules/users/researchers.nix"
+                  "modules/users/students.nix"
+                ];
+              in
+              {
+                deadnix.excludes = nixExcludes;
+                statix.excludes = nixExcludes;
+              };
+
+            settings.global.excludes = [
+              "hosts/**.yaml"
+              "*/secrets.yaml"
+              "*/secrets.yml"
+              "*.lock"
+              ".gitignore"
+            ];
+          };
+
+          devShells.default = pkgs.mkShellNoCC {
+            buildInputs = with pkgs; [
+              # deploy tools
+              python3.pkgs.invoke
+              python3.pkgs.deploykit
+              python3.pkgs.bcrypt
+
+              # nix tools
+              nixVersions.latest
+              nixos-rebuild
+              nixos-anywhere
+
+              # basic tools
+              gitMinimal
+              coreutils
+              findutils
+              rsync
+              yq-go
+              fd
+
+              # secret tools
+              openssh
+              sops
+              ssh-to-age
+              age
+              mkpasswd
+
+              # network tools
+              dnsmasq
+              wireguard-tools
+
+              # docs tools
+              zensical
+            ];
           };
         };
     };
