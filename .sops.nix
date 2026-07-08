@@ -55,7 +55,6 @@ let
         "tau"
       ];
       "modules/borgbackup/psi/secrets.yaml" = [ "psi" ];
-      "modules/borgbackup/rho/secrets.yaml" = [ "rho" ];
       "hosts/shared/psi-backup.yaml" = [
         "psi"
         "rho"
