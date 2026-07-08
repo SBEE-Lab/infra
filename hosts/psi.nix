@@ -147,6 +147,7 @@ in
   imports = [
     ../modules/disko/xfs-root.nix
     ../modules/disko/xfs-mdadm.nix
+    ../modules/disko/xfs-project-quota.nix
     ../modules/nvidia.nix
     ../modules/tailscale
     ../modules/buildbot/database.nix
@@ -185,6 +186,15 @@ in
           "filestreams"
         ];
       };
+    };
+  };
+
+  disko.xfsProjectQuotas = {
+    enable = true;
+    filesystems."/".projects.blobs = {
+      id = 1001;
+      path = "/blobs";
+      blockHardLimit = "200g";
     };
   };
 
