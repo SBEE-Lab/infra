@@ -4,6 +4,7 @@ ssh_host_ed25519_key: ENC[AES256_GCM,data:vJb6NdtYZyLpH3l25HOb70t96vVXbjEMhKqMAf
 ssh_host_ed25519_key.pub: ENC[AES256_GCM,data:+pttzQR4Fj1BXJVr9LovWn7ZPUkuoqbWc+PANpTIdovLiNi5ROAJmGE/DS40dJ+GYc/z7kGVCfIoQYFGrKcDXaM8+3XLBqu0aSThd68lEnHpixHjhuMssu8wiyQt7Lmh6DDfDb/9BA==,iv:Ng1W4QK/hhbVoGYWrOyHaodpvEBw7lG8vujWVPmoEtc=,tag:NKE2EG7R+YCKInacilkyuA==,type:str]
 wg-admin-key: ENC[AES256_GCM,data:Qqzx8wn6jntiYNv+zifgUh907cDR8VioRoXGSPNJIIoOn/EYOfihLxHNHa8=,iv:v0wM9o7zKSv8JI1G2Ck9ntCUKgwE8RYnzpNAGHtrLC0=,tag:lylxCEPOIL16+bl8T5E5GQ==,type:str]
 psi-restic-protected-repository-password: ENC[AES256_GCM,data:zucufMPYagc1ds0RwJzZzpOprubAe1TPiGFGvZKrKPhvDSVSa5cFxWZ7PpiTDytz2uJUl643NohR7FWXx02kiw==,iv:GA2YI6ZU8a5xR2IBwZEty+bX3wrJ5RzmAl1UWbC74Xc=,tag:99FRo4o7htEKcXIj2pVumA==,type:str]
+psi-postgresql-repository-password: ENC[AES256_GCM,data:VNneeciyzhJDQITNdyQSIee5mGASmv3oURk6n5tYVFALnpLdC3Z/QkhnFt+d5ioj2q93Aze+NAfTwafK9Guevw==,iv:h28oxXXmaUIPyr+uTpAuXsnPC9bxNQPmfoOXEJ6+7Rs=,tag:itTksP9BwPaLXWH40IXYhw==,type:str]
 sops:
     age:
         - enc: |
@@ -24,7 +25,7 @@ sops:
             5CsUF+WQMSwguQ6xf5i8AQn5rLbiZ47mWKjWdLYfB4g4RnidY2txVw==
             -----END AGE ENCRYPTED FILE-----
           recipient: age1730f3cxdyh56zw8xcvlmpa7u2x7353wu4u0e58kyx24rsefgp98sxehm6s
-    lastmodified: "2026-07-08T14:34:54Z"
-    mac: ENC[AES256_GCM,data:4lgiAujnxI2PsqJTle577Bvi6qo7MJ0qVtrBnPrc4vb18lRK/ELuhl8VCrjwOnFWF+m5HpJHGHVeVp5Nul+OvL4h1FtGyZHRWk9JRV4mfgw0hp2qUOokoaYV5ZLOwsxOhM7vRzGmVfq6NUd4igg4j86SRVVb1pzz7+wJ1X7ShSI=,iv:27bW6dXhBThd50CPOW9JCH2qG8ru6koEb3xC/cAoKVk=,tag:nVFKcbcOGXuoGG4/VP/aaQ==,type:str]
+    lastmodified: "2026-07-08T16:01:20Z"
+    mac: ENC[AES256_GCM,data:U1OKSUePWPLfKZuPF+LNdoBEqkggIfjlyr1lM8KNtmoBYEkCQMo29yHVBLVY09wqc7wrw0fugQafn1p4hHdbeyZbl1kmY6IWLBpHueiJen8H9dtXXMHl/LitshIbGaS2x+2eRvglYyJhcXiRaWXrdB/yHLn0Rt6kfAhqadx9DTg=,iv:4hjeciRDGHNgqxnIMYGfEbRiwRtkgVUr50CA24STsqg=,tag:vAPNJwD0wMafUNqECbzKig==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.13.1

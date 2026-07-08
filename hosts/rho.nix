@@ -8,8 +8,10 @@
     ../modules/tailscale
     ../modules/postgresql
     ../modules/rustfs
-    ../modules/backup/psi-protected-mirror.nix
+    ../modules/backup/mirror.nix
+    ../modules/backup/postgresql.nix
     ../modules/monitoring/vector/monitor-systems.nix
+    ../modules/monitoring/systemd-status-exporter.nix
     ../modules/monitoring/reverse-proxy.nix
     ../modules/gatus/reverse-proxy.nix
   ];
@@ -48,7 +50,21 @@
   };
 
   services.rustfs.enable = true;
-  services.sbee.backups.psiProtectedMirror.enable = true;
+  services.sbee.backups = {
+    mirror.psiProtected.enable = true;
+    postgresql = {
+      enable = true;
+      databases = [
+        "terraform"
+        "nextcloud"
+        "n8n"
+      ];
+      startAt = "*-*-* 04:30:00";
+    };
+    mirror.postgresql.enable = true;
+  };
+
+  services.sbee.systemdStatusExporter.enable = true;
 
   system.stateVersion = "25.05";
 }
