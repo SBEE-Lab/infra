@@ -72,25 +72,10 @@ let
     ./modules/users
     ./modules/bootloader.nix
     sops-nix.nixosModules.sops
-    (
-      {
-        config,
-        lib,
-        ...
-      }:
-      let
-        sopsFile = ./. + "/hosts/${config.networking.hostName}.yaml";
-      in
-      {
-        users.withSops = builtins.pathExists sopsFile;
-        sops.secrets = lib.mkIf config.users.withSops {
-          root-password-hash.neededForUsers = true;
-        };
-        sops.defaultSopsFile = lib.mkIf (builtins.pathExists sopsFile) sopsFile;
-        time.timeZone = lib.mkForce "Asia/Seoul";
-
-      }
-    )
+    ./modules/sops
+    ({ lib, ... }: {
+      time.timeZone = lib.mkForce "Asia/Seoul";
+    })
   ];
 
   computeModules = commonModules ++ [

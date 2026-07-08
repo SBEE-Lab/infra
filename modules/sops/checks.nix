@@ -14,13 +14,13 @@
               fd
             ];
             files = pkgs.lib.fileset.toSource {
-              root = ../.;
+              root = ../..;
               fileset = pkgs.lib.fileset.unions [
-                (pkgs.lib.fileset.fromSource (pkgs.lib.sources.sourceFilesBySuffices ../. [ ".yaml" ]))
-                ../hosts
-                ../.sops.nix
-                ../pubkeys.json
-                ../modules
+                (pkgs.lib.fileset.fromSource (pkgs.lib.sources.sourceFilesBySuffices ../.. [ ".yaml" ]))
+                ../../hosts
+                ../../.sops.nix
+                ../../pubkeys.json
+                ../../modules
               ];
             };
           }
