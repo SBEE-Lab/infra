@@ -108,22 +108,62 @@ let
       ];
     };
 
-  contracts.psiProtected = rec {
-    repository = "psi-protected";
-    bucket = "backups";
-    prefix = "psi/protected";
-    accessKeys = {
-      writer = "psi-restic-protected-writer";
-      reader = "psi-restic-protected-reader";
-      pruner = "psi-restic-protected-pruner";
-      mirror = "psi-restic-protected-mirror";
+  mkResticContract =
+    {
+      host,
+      name,
+      prefix,
+    }:
+    rec {
+      repository = "${host}-${name}";
+      bucket = "backups";
+      inherit prefix;
+      accessKeys = {
+        writer = "${repository}-writer";
+        reader = "${repository}-reader";
+        pruner = "${repository}-pruner";
+        mirror = "${repository}-mirror";
+      };
+      secretNames = {
+        writer = "${repository}-writer-secret-key";
+        reader = "${repository}-reader-secret-key";
+        pruner = "${repository}-pruner-secret-key";
+        mirror = "${repository}-mirror-secret-key";
+        repositoryPassword = "${repository}-repository-password";
+      };
     };
-    secretNames = {
-      writer = "psi-restic-protected-writer-secret-key";
-      reader = "psi-restic-protected-reader-secret-key";
-      pruner = "psi-restic-protected-pruner-secret-key";
-      mirror = "psi-restic-protected-mirror-secret-key";
-      repositoryPassword = "psi-restic-protected-repository-password";
+
+  contracts = {
+    psiProtected = {
+      repository = "psi-protected";
+      bucket = "backups";
+      prefix = "psi/protected";
+      accessKeys = {
+        writer = "psi-restic-protected-writer";
+        reader = "psi-restic-protected-reader";
+        pruner = "psi-restic-protected-pruner";
+        mirror = "psi-restic-protected-mirror";
+      };
+      secretNames = {
+        writer = "psi-restic-protected-writer-secret-key";
+        reader = "psi-restic-protected-reader-secret-key";
+        pruner = "psi-restic-protected-pruner-secret-key";
+        mirror = "psi-restic-protected-mirror-secret-key";
+        repositoryPassword = "psi-restic-protected-repository-password";
+      };
+    };
+
+    postgresql = {
+      psi = mkResticContract {
+        host = "psi";
+        name = "postgresql";
+        prefix = "psi/postgresql";
+      };
+      rho = mkResticContract {
+        host = "rho";
+        name = "postgresql";
+        prefix = "rho/postgresql";
+      };
     };
   };
 in
