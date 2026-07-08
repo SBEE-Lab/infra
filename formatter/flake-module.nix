@@ -3,8 +3,8 @@
   imports = [ inputs.treefmt-nix.flakeModule ];
   perSystem = {
     treefmt = {
-      # Used to find the project root
-      projectRootFile = ".git/config";
+      # Worktrees have .git as a file, so use the flake itself as the root marker.
+      projectRootFile = "flake.nix";
 
       programs = {
         # Nix formatters & linters
