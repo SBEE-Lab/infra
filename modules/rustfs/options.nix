@@ -1,6 +1,6 @@
 {
   config,
-  inputs,
+  inputs ? null,
   lib,
   pkgs,
   ...
@@ -56,7 +56,14 @@ in
 
     package = lib.mkOption {
       type = lib.types.package;
-      default = inputs.rustfs.packages.${pkgs.stdenv.hostPlatform.system}.default;
+      default =
+        if inputs != null && inputs ? rustfs then
+          inputs.rustfs.packages.${pkgs.stdenv.hostPlatform.system}.default
+        else
+          pkgs.writeShellScriptBin "rustfs-missing" ''
+            echo "services.rustfs.package must be set when flake inputs are unavailable" >&2
+            exit 1
+          '';
       defaultText = "inputs.rustfs.packages.\${pkgs.stdenv.hostPlatform.system}.default";
       description = "RustFS package to run.";
     };
@@ -84,6 +91,24 @@ in
       type = lib.types.path;
       default = "/srv/rustfs/data";
       description = "RustFS object data directory.";
+    };
+
+    rootAccessKeyFile = lib.mkOption {
+      type = lib.types.path;
+      default = "/run/secrets/rustfs-access-key";
+      description = "File containing the RustFS root access key for daemon bootstrap.";
+    };
+
+    rootSecretKeyFile = lib.mkOption {
+      type = lib.types.path;
+      default = "/run/secrets/rustfs-secret-key";
+      description = "File containing the RustFS root secret key for daemon bootstrap.";
+    };
+
+    secretInstallService = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = "sops-install-secrets.service";
+      description = "systemd service that installs RustFS root credential files before daemon/bootstrap use.";
     };
 
     ensureBuckets = lib.mkOption {

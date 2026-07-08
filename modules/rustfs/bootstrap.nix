@@ -48,8 +48,8 @@ let
     text = ''
       set -euo pipefail
 
-      access_key_file=${lib.escapeShellArg config.sops.secrets.rustfs-access-key.path}
-      secret_key_file=${lib.escapeShellArg config.sops.secrets.rustfs-secret-key.path}
+      access_key_file=${lib.escapeShellArg cfg.rootAccessKeyFile}
+      secret_key_file=${lib.escapeShellArg cfg.rootSecretKeyFile}
 
       # systemd provides RUNTIME_DIRECTORY for services with RuntimeDirectory=.
       # shellcheck disable=SC2154
@@ -133,13 +133,13 @@ in
           after = [
             "network-online.target"
             "rustfs.service"
-            "sops-install-secrets.service"
-          ];
+          ]
+          ++ lib.optional (cfg.secretInstallService != null) cfg.secretInstallService;
           wants = [ "network-online.target" ];
           requires = [
             "rustfs.service"
-            "sops-install-secrets.service"
-          ];
+          ]
+          ++ lib.optional (cfg.secretInstallService != null) cfg.secretInstallService;
 
           serviceConfig = {
             Type = "oneshot";
