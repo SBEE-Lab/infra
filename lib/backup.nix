@@ -82,6 +82,30 @@ let
           resources = [ objectArn ];
         }
       ];
+
+      mirror.statements = [
+        {
+          actions = [ "s3:ListBucket" ];
+          resources = [ bucketArn ];
+          condition = prefixCondition;
+        }
+        {
+          actions = [
+            "s3:GetBucketLocation"
+            "s3:GetBucketVersioning"
+          ];
+          resources = [ bucketArn ];
+        }
+        {
+          actions = [
+            "s3:GetObject"
+            "s3:PutObject"
+            "s3:AbortMultipartUpload"
+            "s3:ListMultipartUploadParts"
+          ];
+          resources = [ objectArn ];
+        }
+      ];
     };
 
   contracts.psiProtected = rec {
@@ -92,11 +116,13 @@ let
       writer = "psi-restic-protected-writer";
       reader = "psi-restic-protected-reader";
       pruner = "psi-restic-protected-pruner";
+      mirror = "psi-restic-protected-mirror";
     };
     secretNames = {
       writer = "psi-restic-protected-writer-secret-key";
       reader = "psi-restic-protected-reader-secret-key";
       pruner = "psi-restic-protected-pruner-secret-key";
+      mirror = "psi-restic-protected-mirror-secret-key";
       repositoryPassword = "psi-restic-protected-repository-password";
     };
   };
