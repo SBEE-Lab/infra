@@ -23,18 +23,12 @@ let
 
   pkgs = import nixpkgs {
     inherit system;
-    config.allowUnfree = true;
-    overlays = import ./overlays { inherit inputs; };
   };
 
   # CUDA-enabled pkgs for GPU hosts (psi)
   pkgsCuda = import nixpkgs {
     inherit system;
-    config = {
-      allowUnfree = true;
-      cudaSupport = true;
-    };
-    overlays = import ./overlays { inherit inputs; };
+    config.cudaSupport = true;
   };
 
   nixosSystem =
