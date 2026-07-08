@@ -194,7 +194,10 @@ in
     # The monthly restic check job remains the source of truth for repository
     # integrity. The exporter still reports snapshot freshness without running a
     # check every scrape cycle.
-    systemd.services.prometheus-restic-exporter.environment.NO_CHECK = "1";
+    systemd.services.prometheus-restic-exporter.environment = {
+      NO_CHECK = "1";
+      NO_STATS = "1";
+    };
 
     networking.firewall.interfaces."wg-admin".allowedTCPPorts = [
       9753 # restic exporter
