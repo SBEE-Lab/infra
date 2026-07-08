@@ -19,17 +19,34 @@ let
     # alphafold.enable = true;  # Very large, enable when needed
   };
 
-  monitoredSystemdUnits = map (name: "db-sync-${name}.service") (builtins.attrNames dbSyncDatabases);
+  psiProtected = lib.sbee.backup.contracts.psiProtected;
+  protectedRepository = psiProtected.repository;
+  resticRepository = "s3:http://${config.networking.sbee.hosts.tau.wg-admin}:9100/${psiProtected.bucket}/${psiProtected.prefix}";
+  blobsQuotaBytes = 200 * 1024 * 1024 * 1024;
+  projectBudgetBytes = 10 * 1024 * 1024 * 1024;
+  sharedBackupSecretsFile = ../hosts/shared/psi-backup.yaml;
+  resticEnvTemplateName = role: "restic-${protectedRepository}-${role}-env";
+
+  monitoredSystemdUnits =
+    map (name: "db-sync-${name}.service") (builtins.attrNames dbSyncDatabases)
+    ++ [
+      "backup-guard-${protectedRepository}.service"
+      "restic-backups-${protectedRepository}.service"
+      "restic-backups-${protectedRepository}-check.service"
+      "restic-backups-${protectedRepository}-prune.service"
+      "restic-restore-drill-${protectedRepository}.service"
+    ];
 
   systemdStatusScript = pkgs.writeShellScript "psi-systemd-status" ''
     exec ${pkgs.python3}/bin/python3 - <<'PY'
     import json
     import subprocess
-
-    units = ${builtins.toJSON monitoredSystemdUnits}
     import time
 
-    properties = [
+    HOST = "psi"
+    UNITS = ${builtins.toJSON monitoredSystemdUnits}
+    MAX_SUCCESS_AGE_SECONDS = 45 * 24 * 3600
+    SERVICE_PROPERTIES = [
         "Description",
         "LoadState",
         "ActiveState",
@@ -40,7 +57,7 @@ let
         "ExecMainExitTimestamp",
         "NRestarts",
     ]
-    timer_properties = [
+    TIMER_PROPERTIES = [
         "LoadState",
         "ActiveState",
         "LastTriggerUSec",
@@ -50,88 +67,74 @@ let
 
     now = int(time.time())
 
-    def show(unit, props):
+    def systemctl_show(unit, properties):
         command = ["${pkgs.systemd}/bin/systemctl", "show", "--timestamp=unix", unit]
-        for prop in props:
-            command.extend(["--property", prop])
-        result = subprocess.run(command, text=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, check=False)
-        fields = {}
-        for line in result.stdout.splitlines():
-            if "=" not in line:
-                continue
-            key, value = line.split("=", 1)
-            fields[key] = value
-        return fields
+        command += [argument for prop in properties for argument in ("--property", prop)]
+        result = subprocess.run(
+            command,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        )
+        return dict(line.split("=", 1) for line in result.stdout.splitlines() if "=" in line)
 
-    def unix_seconds(value):
-        if not value or value == "n/a" or value == "0":
+    def unix_timestamp(value):
+        if value in ("", "0", "n/a"):
             return None
-        if value.startswith("@"):
-            value = value[1:]
         try:
-            return int(float(value))
+            return int(float(value.removeprefix("@")))
         except ValueError:
             return None
 
-    def age(value):
-        timestamp = unix_seconds(value)
-        if timestamp is None:
-            return None
-        return max(0, now - timestamp)
+    def age_seconds(value):
+        timestamp = unix_timestamp(value)
+        return None if timestamp is None else max(0, now - timestamp)
 
     def seconds_until(value):
-        timestamp = unix_seconds(value)
-        if timestamp is None:
-            return None
-        return timestamp - now
+        timestamp = unix_timestamp(value)
+        return None if timestamp is None else timestamp - now
 
-    for unit in units:
-        fields = show(unit, properties)
-        timer_fields = show(unit.replace(".service", ".timer"), timer_properties)
+    def health(result, exit_status, last_success_age):
+        if result not in ("", "success") or exit_status not in ("", "0"):
+            return "FAIL", "failed"
+        if last_success_age is None:
+            return "WARN", "never_succeeded"
+        if last_success_age > MAX_SUCCESS_AGE_SECONDS:
+            return "WARN", "stale_success"
+        return "OK", "ok"
 
-        last_exit_status = fields.get("ExecMainStatus", "")
-        result_status = fields.get("Result", "")
-        last_start_age = age(fields.get("ExecMainStartTimestamp", ""))
-        last_exit_age = age(fields.get("ExecMainExitTimestamp", ""))
-        last_trigger_age = age(timer_fields.get("LastTriggerUSec", ""))
-        next_due_seconds = seconds_until(timer_fields.get("NextElapseUSecRealtime", ""))
-        last_success_age = last_exit_age if result_status == "success" and last_exit_status in ("", "0") else None
-
-        max_success_age = 45 * 24 * 3600
-        health = "OK"
-        health_reason = "ok"
-        if result_status not in ("", "success") or last_exit_status not in ("", "0"):
-            health = "FAIL"
-            health_reason = "failed"
-        elif last_success_age is None:
-            health = "WARN"
-            health_reason = "never_succeeded"
-        elif last_success_age > max_success_age:
-            health = "WARN"
-            health_reason = "stale_success"
+    def unit_snapshot(unit):
+        service = systemctl_show(unit, SERVICE_PROPERTIES)
+        timer = systemctl_show(unit.replace(".service", ".timer"), TIMER_PROPERTIES)
+        result = service.get("Result", "")
+        exit_status = service.get("ExecMainStatus", "")
+        last_exit_age = age_seconds(service.get("ExecMainExitTimestamp", ""))
+        last_success_age = last_exit_age if result == "success" and exit_status in ("", "0") else None
+        health_status, health_reason = health(result, exit_status, last_success_age)
 
         event = {
-            "host": "psi",
+            "host": HOST,
             "log_type": "systemd_status",
             "event": "job_snapshot",
             "unit": unit,
-            "description": fields.get("Description", ""),
-            "load_state": fields.get("LoadState", ""),
-            "active_state": fields.get("ActiveState", ""),
-            "sub_state": fields.get("SubState", ""),
-            "result": result_status,
-            "last_exit_status": last_exit_status,
-            "restart_count": fields.get("NRestarts", ""),
-            "timer_load_state": timer_fields.get("LoadState", ""),
-            "timer_active_state": timer_fields.get("ActiveState", ""),
-            "timer_result": timer_fields.get("Result", ""),
-            "last_start_age_seconds": last_start_age,
+            "description": service.get("Description", ""),
+            "load_state": service.get("LoadState", ""),
+            "active_state": service.get("ActiveState", ""),
+            "sub_state": service.get("SubState", ""),
+            "result": result,
+            "last_exit_status": exit_status,
+            "restart_count": service.get("NRestarts", ""),
+            "timer_load_state": timer.get("LoadState", ""),
+            "timer_active_state": timer.get("ActiveState", ""),
+            "timer_result": timer.get("Result", ""),
+            "last_start_age_seconds": age_seconds(service.get("ExecMainStartTimestamp", "")),
             "last_exit_age_seconds": last_exit_age,
-            "last_trigger_age_seconds": last_trigger_age,
+            "last_trigger_age_seconds": age_seconds(timer.get("LastTriggerUSec", "")),
             "last_success_age_seconds": last_success_age,
-            "next_due_seconds": next_due_seconds,
-            "max_success_age_seconds": max_success_age,
-            "health": health,
+            "next_due_seconds": seconds_until(timer.get("NextElapseUSecRealtime", "")),
+            "max_success_age_seconds": MAX_SUCCESS_AGE_SECONDS,
+            "health": health_status,
             "health_reason": health_reason,
         }
         event["message"] = (
@@ -139,7 +142,10 @@ let
             f"{event['active_state']}/{event['sub_state']} result={event['result']} "
             f"exit={event['last_exit_status']} last_success_age={event['last_success_age_seconds']}"
         )
-        print(json.dumps(event, sort_keys=True))
+        return event
+
+    for unit in UNITS:
+        print(json.dumps(unit_snapshot(unit), sort_keys=True))
     PY
   '';
 in
@@ -209,6 +215,157 @@ in
   ];
 
   networking.hostName = "psi";
+
+  sops.secrets = {
+    ${psiProtected.secretNames.writer}.sopsFile = sharedBackupSecretsFile;
+    ${psiProtected.secretNames.reader}.sopsFile = sharedBackupSecretsFile;
+    ${psiProtected.secretNames.pruner}.sopsFile = sharedBackupSecretsFile;
+    ${psiProtected.secretNames.repositoryPassword} = { };
+  };
+
+  sops.templates.${resticEnvTemplateName "writer"} = {
+    owner = "root";
+    group = "root";
+    mode = "0400";
+    content = ''
+      AWS_ACCESS_KEY_ID=${psiProtected.accessKeys.writer}
+      AWS_SECRET_ACCESS_KEY=${config.sops.placeholder.${psiProtected.secretNames.writer}}
+      AWS_DEFAULT_REGION=us-east-1
+    '';
+  };
+  sops.templates.${resticEnvTemplateName "reader"} = {
+    owner = "root";
+    group = "root";
+    mode = "0400";
+    content = ''
+      AWS_ACCESS_KEY_ID=${psiProtected.accessKeys.reader}
+      AWS_SECRET_ACCESS_KEY=${config.sops.placeholder.${psiProtected.secretNames.reader}}
+      AWS_DEFAULT_REGION=us-east-1
+    '';
+  };
+  sops.templates.${resticEnvTemplateName "pruner"} = {
+    owner = "root";
+    group = "root";
+    mode = "0400";
+    content = ''
+      AWS_ACCESS_KEY_ID=${psiProtected.accessKeys.pruner}
+      AWS_SECRET_ACCESS_KEY=${config.sops.placeholder.${psiProtected.secretNames.pruner}}
+      AWS_DEFAULT_REGION=us-east-1
+    '';
+  };
+
+  systemd.tmpfiles.rules = [
+    "f /project/.rustic-backup-sentinel 0644 root root - -"
+    "w /project/.rustic-backup-sentinel - - - - psi protected backup sentinel"
+    "d /var/lib/restic-restore 0755 root root - -"
+  ];
+
+  services.restic.backups = {
+    ${protectedRepository} = {
+      repository = resticRepository;
+      passwordFile = config.sops.secrets.${psiProtected.secretNames.repositoryPassword}.path;
+      environmentFile = config.sops.templates.${resticEnvTemplateName "writer"}.path;
+      paths = [
+        "/project"
+        "/blobs"
+      ];
+      initialize = true;
+      timerConfig = {
+        OnCalendar = "daily";
+        Persistent = true;
+      };
+    };
+
+    "${protectedRepository}-check" = {
+      repository = resticRepository;
+      passwordFile = config.sops.secrets.${psiProtected.secretNames.repositoryPassword}.path;
+      environmentFile = config.sops.templates.${resticEnvTemplateName "reader"}.path;
+      timerConfig = {
+        OnCalendar = "monthly";
+        Persistent = true;
+      };
+      runCheck = true;
+      checkOpts = [ "--no-lock" ];
+      createWrapper = false;
+    };
+
+    "${protectedRepository}-prune" = {
+      repository = resticRepository;
+      passwordFile = config.sops.secrets.${psiProtected.secretNames.repositoryPassword}.path;
+      environmentFile = config.sops.templates.${resticEnvTemplateName "pruner"}.path;
+      timerConfig = {
+        OnCalendar = "weekly";
+        Persistent = true;
+      };
+      pruneOpts = [
+        "--keep-daily 7"
+        "--keep-weekly 4"
+        "--keep-monthly 6"
+      ];
+      createWrapper = false;
+    };
+  };
+
+  systemd.services."backup-guard-${protectedRepository}" = {
+    description = "Guard restic backup source size: ${protectedRepository}";
+    after = [ "xfs-project-quota-root.service" ];
+    requires = [ "xfs-project-quota-root.service" ];
+    serviceConfig.Type = "oneshot";
+    script = ''
+      set -euo pipefail
+      blobs_bytes=$(${pkgs.coreutils}/bin/du -sb /blobs | ${pkgs.coreutils}/bin/cut -f1)
+      if [ "$blobs_bytes" -gt ${toString blobsQuotaBytes} ]; then
+        echo "/blobs exceeds protected backup budget: $blobs_bytes > ${toString blobsQuotaBytes}" >&2
+        exit 1
+      fi
+
+      project_bytes=$(${pkgs.coreutils}/bin/du -sb /project | ${pkgs.coreutils}/bin/cut -f1)
+      if [ "$project_bytes" -gt ${toString projectBudgetBytes} ]; then
+        echo "/project exceeds protected backup budget: $project_bytes > ${toString projectBudgetBytes}" >&2
+        exit 1
+      fi
+    '';
+  };
+
+  systemd.services."restic-backups-${protectedRepository}" = {
+    after = [ "backup-guard-${protectedRepository}.service" ];
+    requires = [ "backup-guard-${protectedRepository}.service" ];
+  };
+
+  systemd.services."restic-restore-drill-${protectedRepository}" = {
+    description = "Restore drill for restic repository: ${protectedRepository}";
+    wants = [ "network-online.target" ];
+    after = [ "network-online.target" ];
+    environment = {
+      RESTIC_REPOSITORY = resticRepository;
+      RESTIC_PASSWORD_FILE = config.sops.secrets.${psiProtected.secretNames.repositoryPassword}.path;
+      RESTIC_CACHE_DIR = "/var/cache/restic-restore-drill-${protectedRepository}";
+    };
+    serviceConfig = {
+      Type = "oneshot";
+      EnvironmentFile = config.sops.templates.${resticEnvTemplateName "reader"}.path;
+      CacheDirectory = "restic-restore-drill-${protectedRepository}";
+      CacheDirectoryMode = "0700";
+    };
+    script = ''
+      set -euo pipefail
+      target=/var/lib/restic-restore/${protectedRepository}
+      ${pkgs.coreutils}/bin/rm -rf "$target"
+      ${pkgs.coreutils}/bin/mkdir -p "$target"
+      ${pkgs.restic}/bin/restic --no-lock restore latest --target "$target" --include /project/.rustic-backup-sentinel
+      ${pkgs.diffutils}/bin/cmp /project/.rustic-backup-sentinel "$target/project/.rustic-backup-sentinel"
+      ${pkgs.coreutils}/bin/rm -rf "$target"
+    '';
+  };
+
+  systemd.timers."restic-restore-drill-${protectedRepository}" = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "weekly";
+      Persistent = true;
+      Unit = "restic-restore-drill-${protectedRepository}.service";
+    };
+  };
 
   # Database sync management
   services.db-sync = {

@@ -32,8 +32,8 @@ flowchart LR
     rho_s3["RustFS S3 mirror<br/>/srv/rustfs/data"]
   end
 
-  psi -- "restic/rustic S3" --> tau_s3
-  rho_src -- "restic/rustic S3" --> tau_s3
+  psi -- "restic native S3" --> tau_s3
+  rho_src -- "restic native S3" --> tau_s3
   tau_s3 -- "delayed mirror" --> rho_s3
 ```
 
@@ -44,10 +44,12 @@ flowchart LR
 `rustfs-bootstrap.service`는 선언된 object-store state를 다음 순서로 수렴합니다.
 
 - `services.rustfs.ensureBuckets`: bucket 생성, bucket versioning enable, versioning 상태 확인
-- `services.rustfs.ensurePolicies`: canned IAM policy 생성
+- `services.rustfs.ensurePolicies`: canned IAM policy 생성/갱신
 - `services.rustfs.ensureUsers`: access key/user 생성, policy attach
 
-RustFS root credential은 bootstrap과 break-glass 용도로만 사용합니다. rustic/restic job은 별도 writer/prune/restore credential을 사용해야 합니다. RustFS console UI는 현재 upstream package에서 static asset이 빠져 있어 운영 절차에 포함하지 않습니다.
+선언에서 제거한 user/policy는 RustFS에서 자동 삭제하지 않습니다. 폐기된 credential은 bootstrap 후 별도 `mc admin user rm` 절차로 제거합니다.
+
+RustFS root credential은 bootstrap과 break-glass 용도로만 사용합니다. restic job은 별도 writer/prune/restore credential을 사용해야 합니다. RustFS console UI는 현재 upstream package에서 static asset이 빠져 있어 운영 절차에 포함하지 않습니다.
 
 ## RustFS monitoring
 
@@ -57,7 +59,7 @@ RustFS root credential은 bootstrap과 break-glass 용도로만 사용합니다.
 - Loki: `rustfs.service`, `rustfs-bootstrap.service` journald logs
 - Prometheus: `/srv` filesystem freshness and free-space alerts
 
-Backup freshness, mirror lag, prune success, restore drill freshness는 rustic/restic job 쪽에서 별도 SLA로 추가합니다.
+Backup/check/prune/restore drill freshness는 psi의 `systemd_status` Loki stream에 포함됩니다. Mirror lag는 tau→rho delayed mirror 구현 시 별도 SLA로 추가합니다.
 
 ## psi 백업 범위
 
@@ -66,9 +68,10 @@ psi 전체를 백업하지 않습니다. S3 primary에는 quota 안에 들어오
 백업 대상:
 
 - `/project`
-- `/blobs/critical`
-- 명시적으로 승격한 최종 산출물
-- manifest, checksum, accession/version 목록
+- `/blobs` 전체
+- `/blobs`는 XFS project quota 200GB와 restic source guard로 상한을 강제합니다.
+- `/project`는 restic source guard로 10GiB 상한을 강제합니다.
+- restore drill은 `/project/.rustic-backup-sentinel` 단일 파일 복원과 비교로 수행합니다.
 
 백업 제외:
 

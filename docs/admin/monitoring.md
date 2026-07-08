@@ -70,7 +70,7 @@ eta는 SSH 인증 로그와 같은 PID의 outbound socket을 관찰해 `ssh_bast
 
 ### Job freshness (psi)
 
-psi는 `db-sync-*.service` 상태를 60초마다 snapshot으로 기록합니다 (`log_type="systemd_status"`, `event="job_snapshot"`). 각 행은 `health=OK|WARN|FAIL`, `health_reason`, `last_success_age_seconds`, `next_due_seconds`, `max_success_age_seconds`를 포함합니다. `FAIL`은 systemd 실패/비정상 exit, `WARN`은 성공 기록이 없거나 마지막 성공이 freshness 한계를 넘은 상태입니다. 백업 job freshness는 S3 백업 전환 후 별도 snapshot 대상에 추가합니다.
+psi는 `db-sync-*.service`와 `restic-*` backup units 상태를 60초마다 snapshot으로 기록합니다 (`log_type="systemd_status"`, `event="job_snapshot"`). 각 행은 `health=OK|WARN|FAIL`, `health_reason`, `last_success_age_seconds`, `next_due_seconds`, `max_success_age_seconds`를 포함합니다. `FAIL`은 systemd 실패/비정상 exit, `WARN`은 성공 기록이 없거나 마지막 성공이 freshness 한계를 넘은 상태입니다.
 
 ### 접근 감사 (Authentik / Headscale)
 
