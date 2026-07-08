@@ -181,6 +181,25 @@ in
       };
     };
 
+    services.prometheus.exporters.restic = {
+      enable = true;
+      listenAddress = config.networking.sbee.currentHost.wg-admin;
+      port = 9753;
+      repository = resticRepository;
+      passwordFile = config.sops.secrets.${psiProtected.secretNames.repositoryPassword}.path;
+      environmentFile = config.sops.templates.${resticEnvTemplateName "reader"}.path;
+      refreshInterval = 3600;
+    };
+
+    # The monthly restic check job remains the source of truth for repository
+    # integrity. The exporter still reports snapshot freshness without running a
+    # check every scrape cycle.
+    systemd.services.prometheus-restic-exporter.environment.NO_CHECK = "1";
+
+    networking.firewall.interfaces."wg-admin".allowedTCPPorts = [
+      9753 # restic exporter
+    ];
+
     services.sbee.systemdStatusExporter.units = [
       "backup-guard-${protectedRepository}.service"
       "restic-backups-${protectedRepository}.service"
