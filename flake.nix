@@ -4,7 +4,6 @@
   inputs = {
     # Shared roots. Other flakes follow these to avoid duplicate lock nodes.
     nixpkgs.url = "git+https://github.com/SBEE-Lab/nixpkgs?shallow=1&ref=main";
-    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
 
     flake-parts = {
       url = "github:hercules-ci/flake-parts";
@@ -48,7 +47,7 @@
     nixos-images = {
       url = "github:nix-community/nixos-images";
       inputs.nixos-stable.follows = "nixpkgs";
-      inputs.nixos-unstable.follows = "nixpkgs-unstable";
+      inputs.nixos-unstable.follows = "nixpkgs";
     };
 
     sops-nix = {
@@ -62,7 +61,11 @@
     };
 
     # Applications.
-    multievolve-nix.url = "github:mulatta/multievolve-nix/nixos-module-service";
+    multievolve-nix = {
+      url = "github:mulatta/multievolve-nix/nixos-module-service";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.treefmt-nix.follows = "treefmt-nix";
+    };
 
     niks3 = {
       url = "github:Mic92/niks3";
@@ -70,7 +73,10 @@
       inputs.treefmt-nix.follows = "treefmt-nix";
     };
 
-    rustfs.url = "github:rustfs/rustfs";
+    rustfs = {
+      url = "github:rustfs/rustfs";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -97,8 +103,6 @@
         {
           _module.args.pkgs = import inputs.nixpkgs {
             localSystem.system = system;
-            config.allowUnfree = true;
-            overlays = import ./overlays { inherit inputs; };
           };
         };
     };
