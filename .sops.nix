@@ -56,6 +56,10 @@ let
       ];
       "modules/borgbackup/psi/secrets.yaml" = [ "psi" ];
       "modules/borgbackup/rho/secrets.yaml" = [ "rho" ];
+      "hosts/shared/psi-backup.yaml" = [
+        "psi"
+        "tau"
+      ];
       "modules/buildbot/secrets.yaml" = [ "psi" ];
       "modules/harmonia/secrets.yaml" = [ "psi" ];
       "modules/monitoring/secrets.yaml" = [ "rho" ];

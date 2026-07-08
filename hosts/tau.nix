@@ -1,4 +1,16 @@
 {
+  config,
+  lib,
+  ...
+}:
+let
+  psiProtected = lib.sbee.backup.contracts.psiProtected;
+  psiProtectedPolicies = lib.sbee.backup.mkResticOperationPolicies {
+    inherit (psiProtected) bucket prefix;
+  };
+  sharedBackupSecretsFile = ../hosts/shared/psi-backup.yaml;
+in
+{
   imports = [
     ../modules/hardware/asrock-deskmini-x600.nix
     ../modules/disko/xfs-root.nix
@@ -44,9 +56,37 @@
       group = "rustfs";
       mode = "0400";
     };
+    ${psiProtected.secretNames.writer}.sopsFile = sharedBackupSecretsFile;
+    ${psiProtected.secretNames.reader}.sopsFile = sharedBackupSecretsFile;
+    ${psiProtected.secretNames.pruner}.sopsFile = sharedBackupSecretsFile;
   };
 
-  services.rustfs.enable = true;
+  services.rustfs = {
+    enable = true;
+    ensureBuckets = [ psiProtected.bucket ];
+    ensurePolicies = {
+      ${psiProtected.accessKeys.writer} = psiProtectedPolicies.writer;
+      ${psiProtected.accessKeys.reader} = psiProtectedPolicies.reader;
+      ${psiProtected.accessKeys.pruner} = psiProtectedPolicies.pruner;
+    };
+    ensureUsers = [
+      {
+        name = psiProtected.accessKeys.writer;
+        secretKeyFile = config.sops.secrets.${psiProtected.secretNames.writer}.path;
+        policies = [ psiProtected.accessKeys.writer ];
+      }
+      {
+        name = psiProtected.accessKeys.reader;
+        secretKeyFile = config.sops.secrets.${psiProtected.secretNames.reader}.path;
+        policies = [ psiProtected.accessKeys.reader ];
+      }
+      {
+        name = psiProtected.accessKeys.pruner;
+        secretKeyFile = config.sops.secrets.${psiProtected.secretNames.pruner}.path;
+        policies = [ psiProtected.accessKeys.pruner ];
+      }
+    ];
+  };
 
   system.stateVersion = "25.05";
 }
