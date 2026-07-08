@@ -9,6 +9,7 @@ pg-nextcloud-password: ENC[AES256_GCM,data:xarS677ySjk1oXcFsSnlUPIjeZcAdW0pjzoY2
 pg-n8n-password: ENC[AES256_GCM,data:qAhC9VCFp0uB4Z11HudzXZuuzdLoPCGiO9+mWF4pzlhGnT0JLCC5vTVYNL0=,iv:foMeb8Us+3QIZ40sTCsbOMIsglLhF7qmkyzKPB0QnpU=,tag:Z6jO3zuocyOJC3r6HHL/Hg==,type:str]
 rustfs-access-key: ENC[AES256_GCM,data:WWkrV6DDZJrhPhcB9VYq78RoJJ0qt+6lzgQ1is/R1Q9hLMY=,iv:IrDWX+466meQWtD4+qULGiBqcEymi9SfGsic5fyWsTk=,tag:g0SoC1TMBahD/4tiWPIGYA==,type:str]
 rustfs-secret-key: ENC[AES256_GCM,data:Qagmy134eP53rFP4kYdztPbcBBFzrBY2ncOBD/YBbfRAUvAJJqJ3eWIygR0Z2WzEWdHqj+q+EZkjkITMKC/ABQ==,iv:APSw1BS14+CefQ9JCn92eT7Yq/jFGdheJxnNgq4UNX4=,tag:le4e3H2OUNjmzttVrU5pow==,type:str]
+psi-restic-protected-mirror-secret-key: ENC[AES256_GCM,data:MSR+iuX4IVem8xLBdpwEveak0aouYagmGbZpT6QJhvrVi4I+p4npq9+J7ASzQnCLPuylhrp2eZ0sr4+bfhAKOA==,iv:pu+CakpinLgENWBTEgxtDQqdQqX88/HdStE0CJHy+Ho=,tag:Z8v5cRlslU8qwbLOxTCiiQ==,type:str]
 sops:
     age:
         - enc: |
@@ -29,7 +30,7 @@ sops:
             BXRqAiJKxy0c8SB0t1cjMBKb+HxHW9hE++3fdZQrdt3p37oJLuchbw==
             -----END AGE ENCRYPTED FILE-----
           recipient: age1730f3cxdyh56zw8xcvlmpa7u2x7353wu4u0e58kyx24rsefgp98sxehm6s
-    lastmodified: "2026-07-07T15:03:17Z"
-    mac: ENC[AES256_GCM,data:KFOfJQohsXXyAn2XGCcWP/1j263RH0IhQH7M3QXPRmN7LD6rpqD+wQAl0OVf2iq3kYkK1c3xfcOxAn5BqTDwAlIpouyYDjvjXdO5wVuDrst4qfGr8WZ9V73mNzOfh7Aj4h2q7nBFD6WWVacBguQ5u/S7t2+7vK2Pkuk41s8X/FQ=,iv:TWTgWOisgP00g61mCxu5s0Bbf9Y5EyKWBxTOCMNxXrc=,tag:/zhXEwpnEEvxwKLA0hcrbw==,type:str]
+    lastmodified: "2026-07-08T14:52:56Z"
+    mac: ENC[AES256_GCM,data:G7/U5trvAdDL4ixVelvcYwKNIckfqOnDWuUn2L6XOYpHaTA9Adb7+vVvyuGyxFpJB3GRmEaR6BqYKYcTlNNnqi1+D8hO1MXPsJEyy9Sv1fcxrWXWvc9DAnvg13pDdtzXsSfBEf1GbwWHK8LOi1wM26gk7VYecdzltsYi0j1PVHo=,iv:aB4PZHJZ/VXbhSrEDH83xlrG+O/RvMTaMGHgSs5zoNY=,tag:8IlLWxy8fwLvyBDJMhn07A==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.11.0

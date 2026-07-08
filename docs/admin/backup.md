@@ -59,7 +59,7 @@ RustFS root credential은 bootstrap과 break-glass 용도로만 사용합니다.
 - Loki: `rustfs.service`, `rustfs-bootstrap.service` journald logs
 - Prometheus: `/srv` filesystem freshness and free-space alerts
 
-Backup/check/prune/restore drill freshness는 psi의 `systemd_status` Loki stream에 포함됩니다. Mirror lag는 tau→rho delayed mirror 구현 시 별도 SLA로 추가합니다.
+Backup/check/prune/restore drill freshness는 psi의 `systemd_status` Loki stream에 포함됩니다. tau→rho mirror는 `backup-mirror-psi-protected.service`/timer 로그와 systemd 상태로 확인합니다.
 
 ## psi 백업 범위
 
@@ -80,6 +80,18 @@ psi 전체를 백업하지 않습니다. S3 primary에는 quota 안에 들어오
 - `/nix/store`
 - public bioinformatics database mirror
 - cache, work, temp, intermediate
+
+## tau→rho delayed mirror
+
+rho가 tau primary RustFS에서 pull 방식으로 secondary RustFS에 복사합니다.
+
+- unit: `backup-mirror-psi-protected.service`
+- timer: daily, `RandomizedDelaySec=2h`
+- source: `tau:backups/psi/protected/`
+- destination: `rho:backups/psi/protected/`
+- rclone options: `copy --immutable --min-age 24h --exclude 'locks/**' --s3-no-check-bucket`
+
+즉시 delete propagation은 하지 않습니다. tau에서 사라진 object도 rho에 남으므로 prune/delete 실수에 대한 지연 완충 역할을 합니다. source는 psi restic reader credential을 사용하고, destination은 rho-local mirror credential을 사용합니다.
 
 ## 기존 Borg 상태
 
