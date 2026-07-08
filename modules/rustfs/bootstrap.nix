@@ -90,7 +90,7 @@ let
 
       ${lib.concatMapStringsSep "\n" (user: ''
         user_secret_key=$(<${lib.escapeShellArg user.secretKeyFile})
-        mc admin user add rustfs-local ${lib.escapeShellArg user.name} "$user_secret_key" >/dev/null
+        printf '%s\n%s\n' ${lib.escapeShellArg user.name} "$user_secret_key" | mc admin user add rustfs-local >/dev/null
         ${lib.optionalString (user.policies != [ ]) ''
           mc admin policy attach rustfs-local ${lib.escapeShellArgs user.policies} --user ${lib.escapeShellArg user.name} >/dev/null
         ''}
