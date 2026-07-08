@@ -15,16 +15,91 @@ resource "github_repository" "infra" {
   allow_squash_merge     = true
   delete_branch_on_merge = true
 
-  has_discussions      = true
-  has_issues           = true
-  has_projects         = true
-  has_wiki             = false
-  vulnerability_alerts = true
+  has_discussions = true
+  has_issues      = true
+  has_projects    = true
+  has_wiki        = false
 
   visibility                  = "public"
   allow_update_branch         = true
   web_commit_signoff_required = true
 
+}
+
+resource "github_repository" "nixpkgs" {
+  name        = "nixpkgs"
+  description = "Nix Packages collection & NixOS"
+  topics = [
+    "build-with-buildbot"
+  ]
+
+  allow_auto_merge       = false
+  allow_merge_commit     = true
+  allow_rebase_merge     = true
+  allow_squash_merge     = true
+  delete_branch_on_merge = false
+
+  has_discussions = false
+  has_issues      = false
+  has_projects    = true
+  has_wiki        = false
+
+  visibility                  = "public"
+  allow_update_branch         = false
+  web_commit_signoff_required = false
+}
+
+resource "github_repository_ruleset" "nixpkgs" {
+  name        = "default branch protection"
+  repository  = github_repository.nixpkgs.name
+  target      = "branch"
+  enforcement = "active"
+
+  conditions {
+    ref_name {
+      include = ["~DEFAULT_BRANCH"]
+      exclude = []
+    }
+  }
+
+  bypass_actors {
+    actor_id    = 5 # Rpository admin role
+    actor_type  = "RepositoryRole"
+    bypass_mode = "always"
+  }
+
+  bypass_actors {
+    actor_id    = 4239835 # SBEE-Lab nixpkgs rebase app
+    actor_type  = "Integration"
+    bypass_mode = "always"
+  }
+
+  rules {
+    deletion         = true
+    non_fast_forward = true
+
+    pull_request {
+      dismiss_stale_reviews_on_push     = true
+      require_code_owner_review         = false
+      require_last_push_approval        = false
+      required_approving_review_count   = 0
+      required_review_thread_resolution = false
+    }
+
+    required_status_checks {
+      required_check {
+        context = "buildbot/nix-eval"
+      }
+
+      required_check {
+        context = "buildbot/nix-build"
+      }
+    }
+  }
+}
+
+resource "github_repository_vulnerability_alerts" "infra" {
+  repository = github_repository.infra.name
 }
 
 resource "github_repository_pages" "infra" {
