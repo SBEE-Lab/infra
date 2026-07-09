@@ -237,15 +237,25 @@ def classify_access(nginx_event: Event, nodes_by_ip: dict[str, NodeMetadata]) ->
 
 
 def event_labels(event: Event) -> dict[str, str]:
-    return {
-        "host": event_str(event, "target_host", "unknown"),
+    event_name = event_str(event, "event", "tailnet_app_access")
+    labels = {
+        "host": event_str(event, "target_host", event_str(event, "emitter_host", "unknown")),
         "log_type": "access_audit",
-        "event": "tailnet_app_access",
-        "service": event_str(event, "service", "unknown"),
-        "ingress_network": "tailnet",
-        "source_kind": event_str(event, "source_kind", "unknown"),
-        "status_class": event_str(event, "status_class", "unknown"),
+        "event": event_name,
     }
+    if event_name == "correlator_heartbeat":
+        labels["correlator"] = event_str(event, "correlator", "unknown")
+        labels["status"] = event_str(event, "status", "unknown")
+        return labels
+    labels.update(
+        {
+            "service": event_str(event, "service", "unknown"),
+            "ingress_network": "tailnet",
+            "source_kind": event_str(event, "source_kind", "unknown"),
+            "status_class": event_str(event, "status_class", "unknown"),
+        }
+    )
+    return labels
 
 
 def clean_event(event: Event) -> Event:
@@ -310,6 +320,28 @@ def dedup_key(event: Event) -> str:
     return "|".join(parts)
 
 
+def heartbeat_event(
+    *,
+    queried_nginx_events: int,
+    tailnet_nginx_events: int,
+    snapshot_events: int,
+    emitted_events: int,
+) -> Event:
+    return {
+        "emitter_host": "rho",
+        "target_host": "rho",
+        "log_type": "access_audit",
+        "event": "correlator_heartbeat",
+        "correlator": "tailnet_app_access",
+        "status": "ok",
+        "queried_nginx_events": queried_nginx_events,
+        "tailnet_nginx_events": tailnet_nginx_events,
+        "snapshot_events": snapshot_events,
+        "emitted_events": emitted_events,
+        "_timestamp_ns": time.time_ns(),
+    }
+
+
 def run(args: CliArgs) -> int:
     nginx_events = query_loki(
         args["loki_url"],
@@ -328,21 +360,30 @@ def run(args: CliArgs) -> int:
     state = load_state(args["state"], args["seen_ttl_seconds"], now)
     new_events: list[Event] = []
     new_keys: list[str] = []
+    tailnet_event_count = 0
     for nginx_event in nginx_events:
         if not is_tailnet_access(nginx_event):
             continue
+        tailnet_event_count += 1
         audit_event = classify_access(nginx_event, nodes_by_ip)
         key = dedup_key(audit_event)
         if key in state["seen"]:
             continue
         new_events.append(audit_event)
         new_keys.append(key)
+    audit_events = new_events + [
+        heartbeat_event(
+            queried_nginx_events=len(nginx_events),
+            tailnet_nginx_events=tailnet_event_count,
+            snapshot_events=len(snapshots),
+            emitted_events=len(new_events),
+        )
+    ]
     if args["dry_run"]:
-        for event in new_events:
+        for event in audit_events:
             print(json.dumps(clean_event(event), sort_keys=True))
         return 0
-    if new_events:
-        push_events(args["loki_url"], new_events)
+    push_events(args["loki_url"], audit_events)
     for key in new_keys:
         state["seen"][key] = now
     save_state(args["state"], state)
@@ -398,6 +439,20 @@ def run_self_tests() -> int:
     assert unmatched["source_kind"] == "unknown"
     assert unmatched["correlation_status"] == "unmatched"
     assert dedup_key(matched) == dedup_key(dict(matched))
+
+    heartbeat = heartbeat_event(
+        queried_nginx_events=4,
+        tailnet_nginx_events=3,
+        snapshot_events=2,
+        emitted_events=1,
+    )
+    assert event_labels(heartbeat) == {
+        "host": "rho",
+        "log_type": "access_audit",
+        "event": "correlator_heartbeat",
+        "correlator": "tailnet_app_access",
+        "status": "ok",
+    }
     print("self-tests passed")
     return 0
 

@@ -90,7 +90,7 @@ Tailnet application access audit:
 {log_type="access_audit", event="tailnet_app_access"}
 ```
 
-rho runs `tailnet-app-access-audit.timer` every 60 seconds. The correlator reads recent raw `nginx_access` events and Headscale `node_snapshot` inventory from rho Loki, enriches tailnet-origin app accesses with node/user metadata when an IP address appears in the latest snapshot, deduplicates with `/var/lib/tailnet-app-access-audit/seen.json`, and pushes normalized audit events back to rho Loki. It does not send Slack alerts.
+rho runs `tailnet-app-access-audit.timer` every 60 seconds. The correlator reads recent raw `nginx_access` events and Headscale `node_snapshot` inventory from rho Loki, enriches tailnet-origin app accesses with node/user metadata when an IP address appears in the latest snapshot, deduplicates with `/var/lib/tailnet-app-access-audit/seen.json`, and pushes normalized audit events back to rho Loki. It also emits a bounded `correlator_heartbeat` event each run so Loki ruler can alert on silent pipeline gaps. It does not send Slack alerts directly.
 
 Only tailnet-origin requests are emitted: `ingress_network="tailnet"` or `source_ip` in `100.64.0.0/10`. Public HTTP requests are never mirrored into `access_audit`. HTTP bodies are not collected. First version emits all tailnet app access events as a retention/privacy choice while volume is low; this can later narrow to sensitive services or anomalies.
 
@@ -117,6 +117,14 @@ sum by (service, source_kind, status_class) (
 
 {log_type="access_audit", event="tailnet_app_access", source_kind="unknown"}
 ```
+
+Audit pipeline health:
+
+```logql
+{log_type="access_audit", event="correlator_heartbeat"}
+```
+
+The audit pipeline is not append-only or tamper-proof against root on a source host. Loki currently trusts wg-admin producers, so these alerts detect silent gaps and correlator failures; they do not prove that a compromised peer could not forge or suppress source-side events before ingestion.
 
 ## Synthetic probes
 
@@ -180,7 +188,7 @@ SSH access audit:
 {log_type="access_audit", event="ssh_login"}
 ```
 
-rho runs `ssh-access-audit.timer` every 60 seconds. The correlator reads recent raw SSH and bastion-forwarding events from rho Loki, enriches them with Nix-generated wg-admin host and admin-peer inventory, deduplicates with `/var/lib/ssh-access-audit/seen.json`, and pushes normalized audit events back to rho Loki. It does not send Slack alerts.
+rho runs `ssh-access-audit.timer` every 60 seconds. The correlator reads recent raw SSH and bastion-forwarding events from rho Loki, enriches them with Nix-generated wg-admin host and admin-peer inventory, deduplicates with `/var/lib/ssh-access-audit/seen.json`, and pushes normalized audit events back to rho Loki. It also emits a bounded `correlator_heartbeat` event each run so Loki ruler can alert on silent pipeline gaps. It does not send Slack alerts directly.
 
 Bounded labels for this stream are:
 
@@ -287,8 +295,13 @@ Current Prometheus rule intent:
 
 Current Loki ruler rule intent:
 
-- `BackupJobFailed`: critical alert-eligible systemd job failure from `systemd_status` snapshots.
-- `BackupJobStale`: warning alert-eligible systemd job freshness breach from `stale_success` snapshots.
+- `BackupJobFailed`: critical alert-eligible backup systemd job failure from `systemd_status` snapshots.
+- `BackupJobStale`: warning alert-eligible backup systemd job freshness breach from `stale_success` snapshots.
+- `AuditJobFailed`: critical alert-eligible audit correlator systemd job failure from `systemd_status` snapshots.
+- `AuditJobStale`: warning alert-eligible audit correlator freshness breach from `stale_success` snapshots.
+- `AuditCorrelatorHeartbeatMissing`: critical when SSH or tailnet app access audit correlator heartbeats stop.
+- `NginxAccessLogsMissing`: audit warning when raw nginx access logs stop arriving.
+- `HeadscaleNodeSnapshotsMissing`: audit warning when Headscale inventory snapshots stop arriving.
 - `SshLoginFailureBurst`: audit warning for SSH login failure bursts.
 - `AuthentikLoginFailureBurst`: audit warning for Authentik login failure bursts.
 - `AuthentikForwardAuthDenyBurst`: audit warning for excessive forward-auth denials.
