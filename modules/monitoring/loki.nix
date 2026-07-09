@@ -7,7 +7,10 @@ let
   wgAdminAddr = config.networking.sbee.hosts.rho.wg-admin;
 in
 {
-  imports = [ ../gatus/check.nix ];
+  imports = [
+    ../gatus/check.nix
+    ./loki-rules.nix
+  ];
 
   gatusCheck.push = [
     {
