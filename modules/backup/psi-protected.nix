@@ -11,6 +11,7 @@ let
   resticRepository = "s3:http://${config.networking.sbee.hosts.tau.wg-admin}:9100/${psiProtected.bucket}/${psiProtected.prefix}";
   sharedBackupSecretsFile = ../../hosts/shared/psi-backup.yaml;
   resticEnvTemplateName = role: "restic-${protectedRepository}-${role}-env";
+  inherit (lib.sbee.monitoring) mkSystemdJobSpec;
 in
 {
   options.services.sbee.backups.psiProtected = {
@@ -204,11 +205,36 @@ in
     ];
 
     services.sbee.systemdStatusExporter.units = [
-      "backup-guard-${protectedRepository}.service"
-      "restic-backups-${protectedRepository}.service"
-      "restic-backups-${protectedRepository}-check.service"
-      "restic-backups-${protectedRepository}-prune.service"
-      "restic-restore-drill-${protectedRepository}.service"
+      (mkSystemdJobSpec {
+        unit = "backup-guard-${protectedRepository}.service";
+        jobClass = "backup";
+        triggerKind = "dependency";
+        maxSuccessAgeSeconds = 36 * 3600;
+      })
+      (mkSystemdJobSpec {
+        unit = "restic-backups-${protectedRepository}.service";
+        jobClass = "backup";
+        triggerKind = "timer";
+        maxSuccessAgeSeconds = 36 * 3600;
+      })
+      (mkSystemdJobSpec {
+        unit = "restic-backups-${protectedRepository}-check.service";
+        jobClass = "backup";
+        triggerKind = "timer";
+        maxSuccessAgeSeconds = 45 * 24 * 3600;
+      })
+      (mkSystemdJobSpec {
+        unit = "restic-backups-${protectedRepository}-prune.service";
+        jobClass = "backup";
+        triggerKind = "timer";
+        maxSuccessAgeSeconds = 9 * 24 * 3600;
+      })
+      (mkSystemdJobSpec {
+        unit = "restic-restore-drill-${protectedRepository}.service";
+        jobClass = "backup";
+        triggerKind = "timer";
+        maxSuccessAgeSeconds = 9 * 24 * 3600;
+      })
     ];
   };
 }

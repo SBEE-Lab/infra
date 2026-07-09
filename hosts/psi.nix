@@ -5,6 +5,8 @@
   ...
 }:
 let
+  inherit (lib.sbee.monitoring) mkSystemdJobSpec;
+
   biodbDatabases = {
     blast-nr.enable = true;
     blast-nt.enable = true;
@@ -102,7 +104,15 @@ in
 
   services.sbee.systemdStatusExporter = {
     enable = true;
-    units = map (name: "biodb-${name}.service") (builtins.attrNames biodbDatabases);
+    units = map (
+      name:
+      mkSystemdJobSpec {
+        unit = "biodb-${name}.service";
+        jobClass = "biodb";
+        triggerKind = "manual";
+        alertEnabled = false;
+      }
+    ) (builtins.attrNames biodbDatabases);
   };
 
   # Bioinformatics database sync management

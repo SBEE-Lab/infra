@@ -20,6 +20,7 @@ let
   restoreIncludeArgs = lib.concatMapStringsSep " " (
     path: "--include ${lib.escapeShellArg path}"
   ) restoreIncludes;
+  inherit (lib.sbee.monitoring) mkSystemdJobSpec;
 in
 {
   options.services.sbee.backups.postgresql = {
@@ -230,11 +231,36 @@ in
     };
 
     services.sbee.systemdStatusExporter.units = [
-      dumpService
-      "restic-backups-${contract.repository}.service"
-      "restic-backups-${contract.repository}-check.service"
-      "restic-backups-${contract.repository}-prune.service"
-      "restic-restore-drill-${contract.repository}.service"
+      (mkSystemdJobSpec {
+        unit = dumpService;
+        jobClass = "backup";
+        triggerKind = "dependency";
+        maxSuccessAgeSeconds = 36 * 3600;
+      })
+      (mkSystemdJobSpec {
+        unit = "restic-backups-${contract.repository}.service";
+        jobClass = "backup";
+        triggerKind = "timer";
+        maxSuccessAgeSeconds = 36 * 3600;
+      })
+      (mkSystemdJobSpec {
+        unit = "restic-backups-${contract.repository}-check.service";
+        jobClass = "backup";
+        triggerKind = "timer";
+        maxSuccessAgeSeconds = 45 * 24 * 3600;
+      })
+      (mkSystemdJobSpec {
+        unit = "restic-backups-${contract.repository}-prune.service";
+        jobClass = "backup";
+        triggerKind = "timer";
+        maxSuccessAgeSeconds = 9 * 24 * 3600;
+      })
+      (mkSystemdJobSpec {
+        unit = "restic-restore-drill-${contract.repository}.service";
+        jobClass = "backup";
+        triggerKind = "timer";
+        maxSuccessAgeSeconds = 9 * 24 * 3600;
+      })
     ];
   };
 }
