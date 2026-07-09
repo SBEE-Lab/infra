@@ -33,6 +33,26 @@ in
       inherit name group url;
     };
 
+  mkSystemdJobSpec =
+    {
+      unit,
+      jobClass,
+      triggerKind,
+      alertEnabled ? true,
+      maxSuccessAgeSeconds ? null,
+    }:
+    {
+      inherit
+        unit
+        jobClass
+        triggerKind
+        alertEnabled
+        ;
+    }
+    // lib.optionalAttrs (maxSuccessAgeSeconds != null) {
+      inherit maxSuccessAgeSeconds;
+    };
+
   mkJournaldLokiPipeline =
     {
       name,

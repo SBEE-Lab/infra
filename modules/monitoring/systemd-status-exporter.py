@@ -3,6 +3,7 @@ import argparse
 import json
 import subprocess
 import time
+from typing import Any
 
 SERVICE_PROPERTIES = [
     "Description",
@@ -71,11 +72,12 @@ def health(
 def unit_snapshot(
     *,
     host: str,
-    unit: str,
+    unit_spec: dict[str, Any],
     now: int,
-    max_success_age: int,
     systemctl: str,
 ) -> dict[str, object]:
+    unit = str(unit_spec["unit"])
+    max_success_age = int(unit_spec["max_success_age_seconds"])
     service = systemctl_show(systemctl, unit, SERVICE_PROPERTIES)
     timer = systemctl_show(systemctl, unit.replace(".service", ".timer"), TIMER_PROPERTIES)
     result = service.get("Result", "")
@@ -90,6 +92,9 @@ def unit_snapshot(
         "event": "job_snapshot",
         "unit": unit,
         "description": service.get("Description", ""),
+        "job_class": str(unit_spec.get("job_class", "unknown")),
+        "trigger_kind": str(unit_spec.get("trigger_kind", "unknown")),
+        "alert_enabled": bool(unit_spec.get("alert_enabled", False)),
         "load_state": service.get("LoadState", ""),
         "active_state": service.get("ActiveState", ""),
         "sub_state": service.get("SubState", ""),
@@ -121,19 +126,25 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", required=True)
     parser.add_argument("--units-json", required=True)
-    parser.add_argument("--max-success-age-seconds", type=int, required=True)
     parser.add_argument("--systemctl", required=True)
     args = parser.parse_args()
 
     now = int(time.time())
-    for unit in json.loads(args.units_json):
+    for unit_spec in json.loads(args.units_json):
+        if isinstance(unit_spec, str):
+            unit_spec = {
+                "unit": unit_spec,
+                "job_class": "unknown",
+                "trigger_kind": "unknown",
+                "alert_enabled": False,
+                "max_success_age_seconds": 45 * 24 * 3600,
+            }
         print(
             json.dumps(
                 unit_snapshot(
                     host=args.host,
-                    unit=unit,
+                    unit_spec=unit_spec,
                     now=now,
-                    max_success_age=args.max_success_age_seconds,
                     systemctl=args.systemctl,
                 ),
                 sort_keys=True,

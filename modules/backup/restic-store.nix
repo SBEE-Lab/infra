@@ -10,6 +10,7 @@ let
   rcloneEnvPrefix = contract: lib.toUpper (safeName contract.repository);
   tauRemote = contract: "${safeName contract.repository}_tau";
   rhoRemote = contract: "${safeName contract.repository}_rho";
+  inherit (lib.sbee.monitoring) mkSystemdJobSpec;
 in
 {
   mkPrimary =
@@ -174,7 +175,13 @@ in
       );
 
       services.sbee.systemdStatusExporter.units = map (
-        contract: "backup-mirror-${contract.repository}.service"
+        contract:
+        mkSystemdJobSpec {
+          unit = "backup-mirror-${contract.repository}.service";
+          jobClass = "backup";
+          triggerKind = "timer";
+          maxSuccessAgeSeconds = 36 * 3600;
+        }
       ) contracts;
     };
 }
