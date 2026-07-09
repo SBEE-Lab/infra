@@ -7,6 +7,19 @@
 let
   inherit (config.networking.sbee) hosts;
   domain = "cloud.sjanglab.org";
+  upstream = "https://${hosts.tau.wg-admin}";
+  proxyHeaders = ''
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-Ssl on;
+
+    proxy_request_buffering off;
+    proxy_read_timeout 3600s;
+    proxy_send_timeout 3600s;
+  '';
 in
 {
   imports = [
@@ -22,6 +35,10 @@ in
     }
   ];
 
+  services.nginx.commonHttpConfig = ''
+    limit_req_zone $binary_remote_addr zone=nextcloud_login:10m rate=10r/m;
+  '';
+
   services.nginx.virtualHosts.${domain} = {
     forceSSL = true;
     useACMEHost = domain;
@@ -32,23 +49,26 @@ in
       # Nextcloud handles large uploads through chunking, but direct uploads and
       # WebDAV clients still need a generous edge limit.
       client_max_body_size 10G;
+
+      client_body_timeout 300s;
+      client_header_timeout 60s;
+      keepalive_timeout 75s;
     '';
 
-    locations."/" = {
-      proxyPass = "https://${hosts.tau.wg-admin}";
-      proxyWebsockets = true;
-      extraConfig = ''
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header X-Forwarded-Host $host;
-        proxy_set_header X-Forwarded-Ssl on;
+    locations = {
+      "/" = {
+        proxyPass = upstream;
+        proxyWebsockets = true;
+        extraConfig = proxyHeaders;
+      };
 
-        proxy_request_buffering off;
-        proxy_read_timeout 3600s;
-        proxy_send_timeout 3600s;
-      '';
+      "~ ^/(login|index\\.php/login)$" = {
+        proxyPass = upstream;
+        proxyWebsockets = true;
+        extraConfig = proxyHeaders + ''
+          limit_req zone=nextcloud_login burst=20 nodelay;
+        '';
+      };
     };
   };
 }
