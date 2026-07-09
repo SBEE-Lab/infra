@@ -39,7 +39,7 @@ in
     mode = "0400";
   };
 
-  networking.firewall.allowedTCPPorts = [
+  networking.firewall.interfaces.wg-admin.allowedTCPPorts = [
     80
     443
   ];
