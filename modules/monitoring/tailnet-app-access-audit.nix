@@ -1,11 +1,9 @@
 {
-  config,
   lib,
   pkgs,
   ...
 }:
 let
-  wgAdminAddr = config.networking.sbee.hosts.rho.wg-admin;
   python = pkgs.python313;
 in
 {
@@ -32,7 +30,7 @@ in
         "${python}/bin/python3"
         ./tailnet-app-access-audit.py
         "--loki-url"
-        "http://${wgAdminAddr}:3100"
+        "http://127.0.0.1:3100"
         "--state"
         "/var/lib/tailnet-app-access-audit/seen.json"
       ];

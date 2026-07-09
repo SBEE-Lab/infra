@@ -1,16 +1,14 @@
 # Grafana dashboard server (deployed on rho)
-# - Connects to Loki/Prometheus on wg-admin (internal)
 # - Listens on localhost only; all access goes through the
 #   Authentik-protected reverse proxy (logging.sjanglab.org)
 # - Break-glass: ssh -L 3000:127.0.0.1:3000 rho, then log in as the
 #   local admin account (no auth-proxy header on tunneled requests)
+# - Connects to Loki/Prometheus over localhost; they bind 127.0.0.1 and the
+#   wg-admin ports are ingest-only (see modules/monitoring/ingest-proxy.nix)
 { config, ... }:
 let
-  inherit (config.networking.sbee) currentHost;
-  wgAdminAddr = currentHost.wg-admin;
-
-  lokiUrl = "http://${wgAdminAddr}:3100";
-  prometheusUrl = "http://${wgAdminAddr}:9090";
+  lokiUrl = "http://127.0.0.1:3100";
+  prometheusUrl = "http://127.0.0.1:9090";
 in
 {
   imports = [

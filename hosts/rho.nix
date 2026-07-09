@@ -64,7 +64,10 @@
     mirror.postgresql.enable = true;
   };
 
-  services.sbee.systemdStatusExporter.enable = true;
+  services.sbee.systemdStatusExporter = {
+    enable = true;
+    lokiEndpoint = "http://127.0.0.1:3100";
+  };
 
   system.stateVersion = "25.05";
 }

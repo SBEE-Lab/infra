@@ -3,9 +3,6 @@
   lib,
   ...
 }:
-let
-  wgAdminAddr = config.networking.sbee.hosts.rho.wg-admin;
-in
 {
   imports = [
     ../gatus/check.nix
@@ -16,7 +13,7 @@ in
     {
       name = "Loki";
       group = "monitoring";
-      url = "http://${wgAdminAddr}:3100/ready";
+      url = "http://127.0.0.1:3100/ready";
     }
   ];
 
@@ -26,7 +23,9 @@ in
       auth_enabled = false;
 
       server = {
-        http_listen_address = wgAdminAddr;
+        # Query API is rho-local only; ingest is re-exposed on wg-admin by
+        # modules/monitoring/ingest-proxy.nix, which path-filters to push.
+        http_listen_address = "127.0.0.1";
         http_listen_port = 3100;
       };
 
@@ -93,7 +92,4 @@ in
     };
   };
 
-  networking.firewall.interfaces."wg-admin".allowedTCPPorts = [
-    3100 # Loki
-  ];
 }

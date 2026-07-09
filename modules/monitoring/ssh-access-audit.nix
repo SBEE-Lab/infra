@@ -5,8 +5,6 @@
   ...
 }:
 let
-  wgAdminAddr = config.networking.sbee.hosts.rho.wg-admin;
-
   hosts = lib.mapAttrs (_name: host: host.wg-admin) (
     lib.filterAttrs (_name: host: host ? wg-admin && host.wg-admin != null) config.networking.sbee.hosts
   );
@@ -57,7 +55,7 @@ in
         "--inventory"
         inventory
         "--loki-url"
-        "http://${wgAdminAddr}:3100"
+        "http://127.0.0.1:3100"
         "--state"
         "/var/lib/ssh-access-audit/seen.json"
       ];

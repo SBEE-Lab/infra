@@ -8,8 +8,18 @@ This directory contains the Nix-owned monitoring stack for rho/eta/psi/tau.
 - **eta** runs Gatus and blackbox exporter.
 - **all hosts** run Vector for host metrics and logs.
 - **psi** exports biodb job freshness snapshots and NVIDIA GPU metrics.
-- **Grafana** is tailnet/wg-admin only at `https://logging.sjanglab.org/` with anonymous Viewer access.
+- **Grafana** is reachable only through `https://logging.sjanglab.org/` behind Authentik forward auth; identity comes from the `X-authentik-email` header and users auto-provision as Viewer. It binds `127.0.0.1` and has no direct wg-admin/tailnet port.
 - **Gatus** is tailnet-only at `https://status.sjanglab.org/` and remains the user-facing status page.
+
+## Network exposure and trust planes
+
+rho separates the ingest plane from the query/UI plane so that a compromised fleet host can push telemetry but cannot read audit data or mutate alerting state:
+
+- **Ingest (wg-admin, all peers):** Loki `/loki/api/v1/push` and Prometheus `/api/v1/write` are re-exposed on the wg-admin address by `ingest-proxy.nix`, an nginx listener that path-filters to the push endpoints (plus Loki `/ready`) and returns 403 for every query path. Loki and Prometheus themselves bind `127.0.0.1`.
+- **Query/UI (rho-local + SSO):** Grafana, Prometheus query API, Alertmanager, and the Vector exporter bind `127.0.0.1`. Human access is via the Authentik-protected reverse proxy (`/`, `/prometheus/`, `/alertmanager/`). Grafana-admin break-glass is `ssh -L 3000:127.0.0.1:3000 rho` then the local admin account (tunneled requests carry no auth-proxy header, so the normal login form is served).
+- Remote agents are unchanged: they still push to `http://<rho-wg-admin>:3100` and `:9090/api/v1/write`.
+
+This closes peer-reachable LogQL/PromQL query and, notably, unauthenticated Alertmanager silence creation. It does not authenticate the push path: Loki still trusts wg-admin producers, so a compromised peer can still forge or flood ingested events (see the audit-pipeline caveat below).
 
 ## Dashboards
 
@@ -124,7 +134,7 @@ Audit pipeline health:
 {log_type="access_audit", event="correlator_heartbeat"}
 ```
 
-The audit pipeline is not append-only or tamper-proof against root on a source host. Loki currently trusts wg-admin producers, so these alerts detect silent gaps and correlator failures; they do not prove that a compromised peer could not forge or suppress source-side events before ingestion.
+The audit pipeline is not append-only or tamper-proof against root on a source host. The query and alerting planes are now rho-local (see "Network exposure and trust planes"), but the ingest path still trusts any wg-admin producer, so these alerts detect silent gaps and correlator failures; they do not prove that a compromised peer could not forge or suppress source-side events before ingestion. Per-producer authentication (mTLS + Loki tenants) is the tracked next step if that threat becomes in scope.
 
 ## Synthetic probes
 
@@ -350,11 +360,11 @@ Loki smoke queries:
 {host="psi", log_type="systemd_status", event="job_snapshot"}
 ```
 
-Label check should be time-bounded because old streams can retain old labels until they expire:
+Label check should be time-bounded because old streams can retain old labels until they expire. The Loki query API is rho-local, so run this on rho (or over an SSH tunnel); from a wg-admin peer the query path returns 403:
 
 ```bash
-start=$(date -u -v-10M +%s)000000000
-curl -fsS -G http://10.100.0.3:3100/loki/api/v1/series \
+start=$(date -u -d '10 minutes ago' +%s)000000000
+curl -fsS -G http://127.0.0.1:3100/loki/api/v1/series \
   --data-urlencode 'match[]={log_type=~"ssh|ssh_bastion|access_audit|audit|authentik|headscale|headscale_nodes|nginx_access"}' \
   --data-urlencode "start=$start" \
   | jq '.data[]'

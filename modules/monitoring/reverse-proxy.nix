@@ -3,7 +3,7 @@
   ...
 }:
 let
-  inherit (config.networking.sbee) currentHost hosts;
+  inherit (config.networking.sbee) hosts;
   authentikAuth = import ../authentik/nginx-locations.nix { inherit hosts; };
   loggingDomain = "logging.sjanglab.org";
   certDir = "/var/lib/acme/${loggingDomain}";
@@ -53,7 +53,7 @@ in
           return = "301 /alertmanager/";
         };
         "/alertmanager/" = {
-          proxyPass = "http://${currentHost.wg-admin}:9093";
+          proxyPass = "http://127.0.0.1:9093";
           extraConfig = authentikAuth.protectLocation + ''
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
@@ -65,7 +65,7 @@ in
           return = "301 /prometheus/";
         };
         "/prometheus/" = {
-          proxyPass = "http://${currentHost.wg-admin}:9090/";
+          proxyPass = "http://127.0.0.1:9090/";
           extraConfig = authentikAuth.protectLocation + ''
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
