@@ -177,6 +177,19 @@ in
       };
     };
 
+    nginx_access_logs_local = {
+      type = "loki";
+      inputs = [ "parse_nginx_access" ];
+      endpoint = "http://${wgAdminAddr}:3100";
+      encoding.codec = "json";
+      labels = {
+        host = "{{ host }}";
+        log_type = "{{ log_type }}";
+        service = "{{ service }}";
+        ingress_network = "{{ ingress_network }}";
+      };
+    };
+
     system_metrics_local = {
       type = "prometheus_exporter";
       inputs = [ "tag_metrics" ];
