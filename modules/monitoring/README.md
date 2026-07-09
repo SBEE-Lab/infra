@@ -34,11 +34,18 @@ Loki label cardinality stays bounded. Use only these stream labels:
 - `host`
 - `log_type`
 - `event`
+- `service`
+- `ingress_network`
 
 Keep high-cardinality values in JSON fields only:
 
 - `user`
 - `source_ip`
+- `request_path`
+- `user_agent`
+- `request_id`
+- `status`
+- `http_method`
 - `app`
 - `node`
 - `unit`
@@ -52,6 +59,23 @@ Audit streams keep 90 days:
 ```
 
 `headscale_nodes` remains on default retention because it is repeated state data.
+
+Raw nginx access logs use default Loki retention, currently 7 days:
+
+```logql
+{log_type="nginx_access"}
+```
+
+These raw streams use bounded labels only:
+
+- `host`: service vhost, such as `logging.sjanglab.org`
+- `log_type=nginx_access`
+- `service`: bounded service name, such as `grafana`, `gatus`, or `nextcloud`
+- `ingress_network`: `tailnet`, `wg-admin`, `public`, or `unknown`
+
+Vector classifies `ingress_network` from `source_ip`: `100.64.0.0/10` is tailnet, `10.100.0.0/24` is wg-admin, all other valid source IPs are public. High-cardinality request fields stay in JSON, not labels. Query strings and referers are omitted from the structured access log to avoid retaining capability tokens in Loki.
+
+Tailnet application audit enrichment is future work. Later `tailnet_app_access` events will use these raw logs plus Headscale node snapshots; this raw stream does not emit `access_audit` events.
 
 ## Synthetic probes
 
@@ -148,6 +172,15 @@ Headscale inventory snapshots:
 
 These are control-plane and inventory signals only, not WireGuard data-plane traffic.
 
+Raw nginx/app access:
+
+```logql
+{log_type="nginx_access"}
+sum by (host, service, ingress_network) (count_over_time({log_type="nginx_access"}[1h]))
+```
+
+Selected tailnet-relevant reverse-proxied apps currently emit this raw stream: Grafana/logging, Gatus/status, n8n, Nextcloud, Vaultwarden, Docling, and MULTI-evolve.
+
 ## Alerting state
 
 Prometheus sends alerts to Alertmanager on rho. Alertmanager routes operational alerts to Slack `#infra-alerts`, audit/security alerts to `#infra-audit`, and the always-firing `Watchdog` alert to healthchecks.io as a dead-man switch. healthchecks.io is attached to its Slack `infra-alerts` integration so rho alerting-path failures notify outside rho.
@@ -213,6 +246,7 @@ Loki smoke queries:
 {log_type="authentik"}
 {log_type="headscale"}
 {log_type="headscale_nodes"}
+{log_type="nginx_access"}
 {host="psi", log_type="systemd_status", event="job_snapshot"}
 ```
 
@@ -221,9 +255,9 @@ Label check should be time-bounded because old streams can retain old labels unt
 ```bash
 start=$(date -u -v-10M +%s)000000000
 curl -fsS -G http://10.100.0.3:3100/loki/api/v1/series \
-  --data-urlencode 'match[]={log_type=~"ssh|audit|authentik|headscale|headscale_nodes"}' \
+  --data-urlencode 'match[]={log_type=~"ssh|audit|authentik|headscale|headscale_nodes|nginx_access"}' \
   --data-urlencode "start=$start" \
   | jq '.data[]'
 ```
 
-No current series should contain indexed labels such as `user`, `source_ip`, `node`, or `app`.
+No current series should contain indexed labels such as `user`, `source_ip`, `request_path`, `user_agent`, `request_id`, `status`, `http_method`, `node`, or `app`.

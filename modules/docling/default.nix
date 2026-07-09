@@ -42,6 +42,9 @@ in
       forceSSL = true;
       sslCertificate = "${certDir}/fullchain.pem";
       sslCertificateKey = "${certDir}/key.pem";
+      extraConfig = ''
+        access_log /var/log/nginx/access-audit/docling.log nginx_access_json;
+      '';
 
       # Access control: Headscale ACL (network-level, no forward auth)
       locations."/" = {

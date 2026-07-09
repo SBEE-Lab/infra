@@ -32,6 +32,9 @@ in
       forceSSL = true;
       sslCertificate = "${certDir}/fullchain.pem";
       sslCertificateKey = "${certDir}/key.pem";
+      extraConfig = ''
+        access_log /var/log/nginx/access-audit/vaultwarden.log nginx_access_json;
+      '';
 
       locations."/" = {
         proxyPass = "http://${hosts.eta.wg-admin}:8000";

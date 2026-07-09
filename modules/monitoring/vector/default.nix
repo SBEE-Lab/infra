@@ -27,6 +27,7 @@ in
 {
   imports = [
     ../auditd.nix
+    ../nginx-access-logs.nix
   ];
 
   services.vector = {
@@ -74,6 +75,12 @@ in
           mode = "scheduled";
           scheduled.exec_interval_secs = 60;
           decoding.codec = "json";
+        };
+
+        nginx_access_logs = {
+          type = "file";
+          include = [ "/var/log/nginx/access-audit/*.log" ];
+          read_from = "end";
         };
       };
 
@@ -214,6 +221,41 @@ in
             .host = "${hostName}"
           '';
         };
+
+        parse_nginx_access = {
+          type = "remap";
+          inputs = [ "nginx_access_logs" ];
+          source = ''
+            parsed = parse_json(to_string(.message) ?? "{}") ?? {}
+
+            .log_type = "nginx_access"
+            .system_host = "${hostName}"
+
+            .time = to_string(parsed.time) ?? ""
+            .host = to_string(parsed.host) ?? "unknown"
+            .service = to_string(parsed.service) ?? "unknown"
+            .source_ip = to_string(parsed.source_ip) ?? "unknown"
+            .status = to_int(parsed.status) ?? 0
+            .http_method = to_string(parsed.http_method) ?? "unknown"
+            .request_path = to_string(parsed.request_path) ?? ""
+            .user_agent = to_string(parsed.user_agent) ?? ""
+            .request_id = to_string(parsed.request_id) ?? ""
+            .bytes_sent = to_int(parsed.bytes_sent) ?? 0
+            .request_time = to_float(parsed.request_time) ?? 0.0
+            .protocol = to_string(parsed.protocol) ?? ""
+
+            .ingress_network = "unknown"
+            if .source_ip != "unknown" && .source_ip != "" {
+              if (ip_cidr_contains("100.64.0.0/10", .source_ip) ?? false) {
+                .ingress_network = "tailnet"
+              } else if (ip_cidr_contains("10.100.0.0/24", .source_ip) ?? false) {
+                .ingress_network = "wg-admin"
+              } else {
+                .ingress_network = "public"
+              }
+            }
+          '';
+        };
       };
 
       sinks = lib.mkMerge [
@@ -252,6 +294,23 @@ in
             };
           };
 
+          nginx_access_logs_remote = {
+            type = "loki";
+            inputs = [ "parse_nginx_access" ];
+            endpoint = "http://${systemCollector}:3100";
+            encoding.codec = "json";
+            labels = {
+              host = "{{ host }}";
+              log_type = "{{ log_type }}";
+              service = "{{ service }}";
+              ingress_network = "{{ ingress_network }}";
+            };
+            batch = {
+              max_bytes = 1048576;
+              timeout_secs = 10;
+            };
+          };
+
           # Metrics to Prometheus
           system_metrics_remote = {
             type = "prometheus_remote_write";
@@ -270,7 +329,10 @@ in
   ];
   # Vector permissions
   systemd.services.vector.serviceConfig = {
-    SupplementaryGroups = [ "systemd-journal" ];
+    SupplementaryGroups = [
+      "systemd-journal"
+    ]
+    ++ lib.optional config.services.nginx.enable config.services.nginx.group;
     MemoryMax = "256M";
     CPUQuota = "30%";
   };

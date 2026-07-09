@@ -67,6 +67,9 @@ in
       forceSSL = true;
       sslCertificate = "${certDir}/fullchain.pem";
       sslCertificateKey = "${certDir}/key.pem";
+      extraConfig = ''
+        access_log /var/log/nginx/access-audit/multievolve.log nginx_access_json;
+      '';
 
       locations = authentikAuth.locations // {
         "/" = {

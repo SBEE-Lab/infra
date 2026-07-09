@@ -129,6 +129,9 @@ in
       forceSSL = true;
       sslCertificate = "/var/lib/acme/${n8nDomain}/fullchain.pem";
       sslCertificateKey = "/var/lib/acme/${n8nDomain}/key.pem";
+      extraConfig = ''
+        access_log /var/log/nginx/access-audit/n8n.log nginx_access_json;
+      '';
 
       locations = authentikAuth.locations // {
         # Webhook endpoints - no auth required
