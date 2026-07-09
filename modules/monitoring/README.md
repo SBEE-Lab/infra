@@ -84,7 +84,39 @@ These raw streams use bounded labels only:
 
 Vector classifies `ingress_network` from `source_ip`: `100.64.0.0/10` is tailnet, `10.100.0.0/24` is wg-admin, all other valid source IPs are public. High-cardinality request fields stay in JSON, not labels. Query strings and referers are omitted from the structured access log to avoid retaining capability tokens in Loki.
 
-Tailnet application audit enrichment is future work. Later `tailnet_app_access` events will use these raw logs plus Headscale node snapshots; this raw stream does not emit `access_audit` events.
+Tailnet application access audit:
+
+```logql
+{log_type="access_audit", event="tailnet_app_access"}
+```
+
+rho runs `tailnet-app-access-audit.timer` every 60 seconds. The correlator reads recent raw `nginx_access` events and Headscale `node_snapshot` inventory from rho Loki, enriches tailnet-origin app accesses with node/user metadata when an IP address appears in the latest snapshot, deduplicates with `/var/lib/tailnet-app-access-audit/seen.json`, and pushes normalized audit events back to rho Loki. It does not send Slack alerts.
+
+Only tailnet-origin requests are emitted: `ingress_network="tailnet"` or `source_ip` in `100.64.0.0/10`. Public HTTP requests are never mirrored into `access_audit`. HTTP bodies are not collected. First version emits all tailnet app access events as a retention/privacy choice while volume is low; this can later narrow to sensitive services or anomalies.
+
+Bounded labels for this stream are:
+
+- `host`: target vhost from nginx `host`
+- `log_type=access_audit`
+- `event=tailnet_app_access`
+- `service`: bounded service name from nginx metadata
+- `ingress_network=tailnet`
+- `source_kind`: `headscale_node` or `unknown`
+- `status_class`: `2xx`, `3xx`, `4xx`, `5xx`, or `unknown`
+
+High-cardinality values stay in JSON only, including source IP, source node, Headscale user/tags, request path, request ID, user agent, HTTP method, status, and correlation timing.
+
+Smoke queries:
+
+```logql
+{log_type="access_audit", event="tailnet_app_access"}
+
+sum by (service, source_kind, status_class) (
+  count_over_time({log_type="access_audit", event="tailnet_app_access"}[24h])
+)
+
+{log_type="access_audit", event="tailnet_app_access", source_kind="unknown"}
+```
 
 ## Synthetic probes
 

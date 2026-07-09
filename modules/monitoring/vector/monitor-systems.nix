@@ -138,6 +138,7 @@ in
     ./default.nix
     ../loki.nix
     ../ssh-access-audit.nix
+    ../tailnet-app-access-audit.nix
     ../grafana
     ../prometheus
     ../../gatus/check.nix
