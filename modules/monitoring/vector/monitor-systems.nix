@@ -66,6 +66,16 @@ let
       target = "https://${hosts.psi.wg-admin}/";
       hostname = "multievolve.sjanglab.org";
     }
+    {
+      service = "tei-embed";
+      target = "https://${hosts.psi.wg-admin}/health/embed";
+      hostname = "tei.sjanglab.org";
+    }
+    {
+      service = "tei-rerank";
+      target = "https://${hosts.psi.wg-admin}/health/rerank";
+      hostname = "tei.sjanglab.org";
+    }
   ];
 
   blackboxTcpTargets = [
@@ -291,6 +301,28 @@ in
           {
             targets = [ "${hosts.psi.wg-admin}:9835" ];
             labels.host = "psi";
+          }
+        ];
+      }
+      {
+        job_name = "tei";
+        scrape_interval = "30s";
+        static_configs = [
+          {
+            targets = [ "${hosts.psi.wg-admin}:9201" ];
+            labels = {
+              host = "psi";
+              service = "tei-embed";
+              model = "Qwen/Qwen3-Embedding-0.6B";
+            };
+          }
+          {
+            targets = [ "${hosts.psi.wg-admin}:9202" ];
+            labels = {
+              host = "psi";
+              service = "tei-rerank";
+              model = "BAAI/bge-reranker-v2-m3";
+            };
           }
         ];
       }

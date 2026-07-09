@@ -81,7 +81,7 @@ in
         {
           refId = "A";
           datasource = prometheus;
-          expr = ''last_over_time(gatus_results_endpoint_success{name=~"Ollama|Docling|vLLM"}[5m])'';
+          expr = ''last_over_time(gatus_results_endpoint_success{name=~"Ollama|Docling|TEI|vLLM"}[5m])'';
           instant = true;
           format = "table";
         }
@@ -154,7 +154,7 @@ in
         {
           refId = "A";
           datasource = prometheus;
-          expr = ''avg by (name) (gatus_results_endpoint_success{name=~"Ollama|Docling|vLLM"})'';
+          expr = ''avg by (name) (gatus_results_endpoint_success{name=~"Ollama|Docling|TEI|vLLM"})'';
           legendFormat = "{{name}}";
         }
       ];

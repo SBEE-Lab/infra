@@ -9,6 +9,7 @@ _: {
       cloud.sjanglab.org nextcloud;
       vault.sjanglab.org vaultwarden;
       docling.sjanglab.org docling;
+      tei.sjanglab.org tei;
       multievolve.sjanglab.org multievolve;
     }
 

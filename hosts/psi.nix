@@ -42,6 +42,7 @@ in
     ../modules/biodb
     ../modules/biodb/databases.nix
     ../modules/docling
+    ../modules/tei
   ];
 
   disko.rootDisk = "/dev/disk/by-id/nvme-Samsung_SSD_990_PRO_4TB_S7DPNU0Y404280K";
@@ -124,6 +125,36 @@ in
     databases = biodbDatabases;
   };
 
+  services.tei = {
+    enable = true;
+    listenAddress = "127.0.0.1";
+    openFirewall = false;
+    models = {
+      embed = {
+        model = "Qwen/Qwen3-Embedding-0.6B";
+        port = 8201;
+        extraArgs = [
+          "--pooling"
+          "last-token"
+          "--max-batch-tokens"
+          "16384"
+          "--max-concurrent-requests"
+          "512"
+        ];
+      };
+      rerank = {
+        model = "BAAI/bge-reranker-v2-m3";
+        port = 8202;
+        extraArgs = [
+          "--max-batch-tokens"
+          "16384"
+          "--max-concurrent-requests"
+          "512"
+        ];
+      };
+    };
+  };
+
   services.prometheus.exporters.nvidia-gpu = {
     enable = true;
     listenAddress = config.networking.sbee.currentHost.wg-admin;
@@ -132,6 +163,8 @@ in
   };
 
   networking.firewall.interfaces."wg-admin".allowedTCPPorts = [
+    9201 # TEI embed Prometheus metrics
+    9202 # TEI rerank Prometheus metrics
     9835 # nvidia-gpu exporter
   ];
 

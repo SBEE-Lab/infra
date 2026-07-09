@@ -54,6 +54,11 @@
             value = "100.64.0.1"; # psi headscale IP
           }
           {
+            name = "tei.sjanglab.org";
+            type = "A";
+            value = "100.64.0.1"; # psi headscale IP
+          }
+          {
             name = "status.sjanglab.org";
             type = "A";
             value = "100.64.0.2"; # rho headscale IP
