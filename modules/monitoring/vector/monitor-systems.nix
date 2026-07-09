@@ -137,6 +137,7 @@ in
   imports = [
     ./default.nix
     ../loki.nix
+    ../ssh-access-audit.nix
     ../grafana
     ../prometheus
     ../../gatus/check.nix
