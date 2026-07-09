@@ -35,8 +35,8 @@ let
         remote=$(printf '%s' ${lib.escapeShellArg repoUrl} \
           | sed "s#https://#https://x-access-token:$token@#")
 
-        git config --global user.email "nixbot@users.noreply.github.com"
-        git config --global user.name "nixbot"
+        git config --global user.email "254842320+sbee-flake-updater[bot]@users.noreply.github.com"
+        git config --global user.name "sbee-flake-updater[bot]"
         git config --global safe.directory '*'
 
         git clone --recurse-submodules "$remote" repo
@@ -69,8 +69,8 @@ in
           remote=$(printf '%s' ${lib.escapeShellArg repoUrl} \
             | sed "s#https://#https://x-access-token:$token@#")
 
-          git config --global user.email "nixbot@users.noreply.github.com"
-          git config --global user.name "nixbot"
+          git config --global user.email "254842320+sbee-flake-updater[bot]@users.noreply.github.com"
+          git config --global user.name "sbee-flake-updater[bot]"
 
           work=$(mktemp -d)
           cp -r --no-preserve=mode,ownership ${docs}/. "$work/"
