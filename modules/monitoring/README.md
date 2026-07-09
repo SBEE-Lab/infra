@@ -36,11 +36,15 @@ Loki label cardinality stays bounded. Use only these stream labels:
 - `event`
 - `service`
 - `ingress_network`
+- `path`
+- `source_kind`
 
 Keep high-cardinality values in JSON fields only:
 
 - `user`
 - `source_ip`
+- `source_port`
+- `ssh_user`
 - `request_path`
 - `user_agent`
 - `request_id`
@@ -51,11 +55,16 @@ Keep high-cardinality values in JSON fields only:
 - `unit`
 - `key_type`
 - `key_fingerprint`
+- `external_source_ip`
+- `external_source_port`
+- `source_device`
+- `source_owner`
+- `bastion_user`
 
 Audit streams keep 90 days:
 
 ```logql
-{log_type=~"ssh|ssh_bastion|audit|authentik|headscale"}
+{log_type=~"ssh|ssh_bastion|access_audit|audit|authentik|headscale"}
 ```
 
 `headscale_nodes` remains on default retention because it is repeated state data.
@@ -131,6 +140,51 @@ Post-deploy fingerprint smoke query:
 
 ```logql
 {log_type="ssh", event="login_success"} | json | key_fingerprint != ""
+```
+
+SSH access audit:
+
+```logql
+{log_type="access_audit", event="ssh_login"}
+```
+
+rho runs `ssh-access-audit.timer` every 60 seconds. The correlator reads recent raw SSH and bastion-forwarding events from rho Loki, enriches them with Nix-generated wg-admin host and admin-peer inventory, deduplicates with `/var/lib/ssh-access-audit/seen.json`, and pushes normalized audit events back to rho Loki. It does not send Slack alerts.
+
+Bounded labels for this stream are:
+
+- `host`: SSH target host
+- `log_type=access_audit`
+- `event=ssh_login`
+- `path`: `direct`, `machine_to_machine`, `bastion`, `public_bastion_login`, or `unknown`
+- `ingress_network`: `wg-admin`, `wg-admin_to_bastion_then_wg-admin`, `public_to_bastion_then_wg-admin`, `public`, `local_lan`, `local_lan_to_bastion_then_wg-admin`, or `unknown`
+- `source_kind`: `admin_peer`, `managed_host`, `public_ip`, or `unknown`
+
+High-cardinality values stay in JSON only, including SSH user, source IP/port, external bastion source IP/port, key fingerprint, source device/owner, and bastion user.
+
+Classification paths:
+
+- `direct`: source IP is a Nix-declared admin WireGuard peer.
+- `machine_to_machine`: source IP is a managed host wg-admin address.
+- `bastion`: target login came from eta wg-admin and matched an eta bastion forwarding event by target host, local source port, and ±2 minute timestamp window. The original bastion-leg source is classified separately, so an admin peer using eta as a jump host gets `source_kind=admin_peer` and `ingress_network=wg-admin_to_bastion_then_wg-admin` rather than `public_ip`.
+- `public_bastion_login`: eta SSH login from a non-internal source without a target jump classification.
+- `unknown`: source is not in inventory. Emergency LAN source IPs stay `path=unknown` but use `ingress_network=local_lan`.
+
+Smoke queries:
+
+```logql
+{log_type="access_audit", event="ssh_login"}
+
+sum by (path, ingress_network, source_kind) (
+  count_over_time({log_type="access_audit", event="ssh_login"}[24h])
+)
+```
+
+Service checks:
+
+```bash
+systemctl status ssh-access-audit.timer
+systemctl status ssh-access-audit.service
+journalctl -u ssh-access-audit --since "10 min ago"
 ```
 
 Authentik:
@@ -243,6 +297,7 @@ Loki smoke queries:
 ```logql
 {log_type="ssh"}
 {log_type="ssh_bastion", event="bastion_forward"}
+{log_type="access_audit", event="ssh_login"}
 {log_type="authentik"}
 {log_type="headscale"}
 {log_type="headscale_nodes"}
@@ -255,9 +310,9 @@ Label check should be time-bounded because old streams can retain old labels unt
 ```bash
 start=$(date -u -v-10M +%s)000000000
 curl -fsS -G http://10.100.0.3:3100/loki/api/v1/series \
-  --data-urlencode 'match[]={log_type=~"ssh|audit|authentik|headscale|headscale_nodes|nginx_access"}' \
+  --data-urlencode 'match[]={log_type=~"ssh|ssh_bastion|access_audit|audit|authentik|headscale|headscale_nodes|nginx_access"}' \
   --data-urlencode "start=$start" \
   | jq '.data[]'
 ```
 
-No current series should contain indexed labels such as `user`, `source_ip`, `request_path`, `user_agent`, `request_id`, `status`, `http_method`, `node`, or `app`.
+No current series should contain indexed labels such as `user`, `source_ip`, `external_source_ip`, `request_path`, `user_agent`, `request_id`, `status`, `http_method`, `node`, or `app`.
