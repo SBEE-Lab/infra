@@ -5,8 +5,6 @@
   ...
 }:
 let
-  wgAdminAddr = config.networking.sbee.hosts.rho.wg-admin;
-
   opsCritical = {
     severity = "critical";
     alert_category = "ops";
@@ -279,7 +277,7 @@ in
 {
   services.loki.configuration.ruler = {
     enable_api = true;
-    alertmanager_url = "http://${wgAdminAddr}:9093/alertmanager";
+    alertmanager_url = "http://127.0.0.1:9093/alertmanager";
     enable_alertmanager_v2 = true;
     rule_path = "/var/lib/loki/rules-tmp";
     storage = {

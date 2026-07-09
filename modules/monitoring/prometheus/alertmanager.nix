@@ -4,7 +4,6 @@
   ...
 }:
 let
-  wgAdminAddr = config.networking.sbee.currentHost.wg-admin;
   secretsFile = ../secrets.yaml;
   secretsText = builtins.readFile secretsFile;
   requiredSecrets = [
@@ -51,7 +50,7 @@ in
         {
           name = "Alertmanager";
           group = "monitoring";
-          url = "http://${wgAdminAddr}:9093/alertmanager/-/healthy";
+          url = "http://127.0.0.1:9093/alertmanager/-/healthy";
         }
       ];
 
@@ -60,14 +59,17 @@ in
           {
             path_prefix = "/alertmanager";
             static_configs = [
-              { targets = [ "${wgAdminAddr}:9093" ]; }
+              { targets = [ "127.0.0.1:9093" ]; }
             ];
           }
         ];
 
         alertmanager = {
           enable = true;
-          listenAddress = wgAdminAddr;
+          # rho-local only: no remote consumer, and closing the direct
+          # wg-admin port removes the unauthenticated silence-creation surface.
+          # Admin access is via the Authentik-protected /alertmanager/ proxy.
+          listenAddress = "127.0.0.1";
           port = 9093;
           webExternalUrl = "https://logging.sjanglab.org/alertmanager";
           checkConfig = false;
@@ -165,7 +167,6 @@ in
         };
       };
 
-      networking.firewall.interfaces."wg-admin".allowedTCPPorts = [ 9093 ];
     })
   ];
 }

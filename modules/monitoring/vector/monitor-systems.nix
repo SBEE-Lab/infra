@@ -4,7 +4,6 @@
 # - Vector exporter for local metrics
 { config, lib, ... }:
 let
-  wgAdminAddr = config.networking.sbee.currentHost.wg-admin;
   hosts = config.networking.sbee.hosts;
   monitoringSecretsText = builtins.readFile ../secrets.yaml;
   hasAlertmanagerSecrets = lib.all (name: lib.hasInfix "${name}:" monitoringSecretsText) [
@@ -137,6 +136,7 @@ in
   imports = [
     ./default.nix
     ../loki.nix
+    ../ingest-proxy.nix
     ../ssh-access-audit.nix
     ../tailnet-app-access-audit.nix
     ../grafana
@@ -148,7 +148,7 @@ in
     {
       name = "Prometheus";
       group = "monitoring";
-      url = "http://${wgAdminAddr}:9090/-/healthy";
+      url = "http://127.0.0.1:9090/-/healthy";
     }
   ];
 
@@ -157,7 +157,7 @@ in
     ssh_logs_local = {
       type = "loki";
       inputs = [ "filter_ssh" ];
-      endpoint = "http://${wgAdminAddr}:3100";
+      endpoint = "http://127.0.0.1:3100";
       encoding.codec = "json";
       labels = {
         host = "{{ host }}";
@@ -170,7 +170,7 @@ in
     audit_logs_local = {
       type = "loki";
       inputs = [ "filter_audit" ];
-      endpoint = "http://${wgAdminAddr}:3100";
+      endpoint = "http://127.0.0.1:3100";
       encoding.codec = "json";
       labels = {
         host = "{{ host }}";
@@ -182,7 +182,7 @@ in
     nginx_access_logs_local = {
       type = "loki";
       inputs = [ "parse_nginx_access" ];
-      endpoint = "http://${wgAdminAddr}:3100";
+      endpoint = "http://127.0.0.1:3100";
       encoding.codec = "json";
       labels = {
         host = "{{ host }}";
@@ -195,14 +195,16 @@ in
     system_metrics_local = {
       type = "prometheus_exporter";
       inputs = [ "tag_metrics" ];
-      address = "${wgAdminAddr}:9598";
+      address = "127.0.0.1:9598";
     };
   };
 
   # Prometheus server
   services.prometheus = {
     enable = true;
-    listenAddress = wgAdminAddr;
+    # Query API is rho-local; remote-write ingest is re-exposed on wg-admin
+    # by modules/monitoring/ingest-proxy.nix.
+    listenAddress = "127.0.0.1";
 
     # Alertmanager generator URLs must be reachable from browsers, so point
     # them at the authenticated reverse proxy instead of the wg-admin address.
@@ -223,7 +225,7 @@ in
         scrape_interval = "60s";
         static_configs = [
           {
-            targets = [ "${wgAdminAddr}:9598" ];
+            targets = [ "127.0.0.1:9598" ];
           }
         ];
       }
@@ -244,7 +246,7 @@ in
       scrape_interval = "60s";
       static_configs = [
         {
-          targets = [ "${wgAdminAddr}:9093" ];
+          targets = [ "127.0.0.1:9093" ];
           labels.host = "rho";
         }
       ];
@@ -308,10 +310,9 @@ in
     ];
   };
 
-  networking.firewall.interfaces."wg-admin".allowedTCPPorts = [
-    9090 # Prometheus
-    9598 # Vector exporter
-  ];
+  # Prometheus (9090) is re-exposed for remote-write only by
+  # modules/monitoring/ingest-proxy.nix; the vector exporter (9598) has no
+  # remote consumer and stays bound to localhost.
 
   systemd.tmpfiles.rules = [
     "d /var/lib/prometheus2 0700 prometheus prometheus - -"
