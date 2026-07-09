@@ -61,6 +61,16 @@ in
     };
   };
 
+  services.sbee.systemdStatusExporter.units = [
+    {
+      unit = "tailnet-app-access-audit.service";
+      jobClass = "audit";
+      triggerKind = "timer";
+      alertEnabled = true;
+      maxSuccessAgeSeconds = 5 * 60;
+    }
+  ];
+
   systemd.tmpfiles.rules = [
     "d /var/lib/tailnet-app-access-audit 0700 tailnet-app-access-audit tailnet-app-access-audit - -"
   ];

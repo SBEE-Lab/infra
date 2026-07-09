@@ -22,6 +22,10 @@ let
     alert_category = "audit";
   };
 
+  auditCritical = auditWarning // {
+    severity = "critical";
+  };
+
   mkAlert =
     {
       alert,
@@ -57,6 +61,7 @@ let
                   {log_type="systemd_status", event="job_snapshot"}
                   | json
                   | alert_enabled = "true"
+                  | job_class = "backup"
                   | health = "FAIL"
                 [10m])
               ) > 0
@@ -74,6 +79,7 @@ let
                   {log_type="systemd_status", event="job_snapshot"}
                   | json
                   | alert_enabled = "true"
+                  | job_class = "backup"
                   | health = "WARN"
                   | health_reason = "stale_success"
                 [30m])
@@ -84,12 +90,121 @@ let
             summary = "Backup job stale";
             description = "{{ $labels.host }} {{ $labels.unit }} has exceeded its success freshness window";
           })
+          (mkAlert {
+            alert = "AuditJobFailed";
+            expr = ''
+              (
+                sum by (host, unit, job_class) (
+                  count_over_time(
+                    {log_type="systemd_status", event="job_snapshot"}
+                    | json
+                    | alert_enabled = "true"
+                    | job_class = "audit"
+                    | health = "FAIL"
+                  [10m])
+                ) > 0
+              )
+              unless
+              (
+                sum by (host, unit, job_class) (
+                  count_over_time(
+                    {log_type="systemd_status", event="job_snapshot"}
+                    | json
+                    | alert_enabled = "true"
+                    | job_class = "audit"
+                    | health = "OK"
+                  [2m])
+                ) > 0
+              )
+            '';
+            for = "5m";
+            labels = auditCritical;
+            summary = "Audit job failed";
+            description = "{{ $labels.host }} {{ $labels.unit }} has a failed systemd snapshot";
+          })
+          (mkAlert {
+            alert = "AuditJobStale";
+            expr = ''
+              (
+                sum by (host, unit, job_class) (
+                  count_over_time(
+                    {log_type="systemd_status", event="job_snapshot"}
+                    | json
+                    | alert_enabled = "true"
+                    | job_class = "audit"
+                    | health = "WARN"
+                    | health_reason = "stale_success"
+                  [10m])
+                ) > 0
+              )
+              unless
+              (
+                sum by (host, unit, job_class) (
+                  count_over_time(
+                    {log_type="systemd_status", event="job_snapshot"}
+                    | json
+                    | alert_enabled = "true"
+                    | job_class = "audit"
+                    | health = "OK"
+                  [2m])
+                ) > 0
+              )
+            '';
+            for = "5m";
+            labels = auditWarning;
+            summary = "Audit job stale";
+            description = "{{ $labels.host }} {{ $labels.unit }} has exceeded its success freshness window";
+          })
         ];
       }
       {
         name = "audit_log_alerts";
         interval = "60s";
         rules = [
+          (mkAlert {
+            alert = "AuditCorrelatorHeartbeatMissing";
+            expr = ''
+              absent_over_time({log_type="access_audit", event="correlator_heartbeat", correlator="ssh_access"}[5m])
+            '';
+            for = "2m";
+            labels = auditCritical // {
+              correlator = "ssh_access";
+            };
+            summary = "SSH access audit correlator heartbeat missing";
+            description = "rho has not received a heartbeat from the SSH access audit correlator";
+          })
+          (mkAlert {
+            alert = "AuditCorrelatorHeartbeatMissing";
+            expr = ''
+              absent_over_time({log_type="access_audit", event="correlator_heartbeat", correlator="tailnet_app_access"}[5m])
+            '';
+            for = "2m";
+            labels = auditCritical // {
+              correlator = "tailnet_app_access";
+            };
+            summary = "Tailnet app access audit correlator heartbeat missing";
+            description = "rho has not received a heartbeat from the tailnet app access audit correlator";
+          })
+          (mkAlert {
+            alert = "NginxAccessLogsMissing";
+            expr = ''
+              absent_over_time({log_type="nginx_access"}[15m])
+            '';
+            for = "5m";
+            labels = auditWarning;
+            summary = "nginx access logs missing";
+            description = "rho Loki has not received nginx access logs for 15 minutes";
+          })
+          (mkAlert {
+            alert = "HeadscaleNodeSnapshotsMissing";
+            expr = ''
+              absent_over_time({log_type="headscale_nodes", event="node_snapshot"}[15m])
+            '';
+            for = "5m";
+            labels = auditWarning;
+            summary = "Headscale node snapshots missing";
+            description = "rho Loki has not received Headscale node snapshots for 15 minutes";
+          })
           (mkAlert {
             alert = "SshLoginFailureBurst";
             expr = ''

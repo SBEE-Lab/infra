@@ -86,6 +86,16 @@ in
     };
   };
 
+  services.sbee.systemdStatusExporter.units = [
+    {
+      unit = "ssh-access-audit.service";
+      jobClass = "audit";
+      triggerKind = "timer";
+      alertEnabled = true;
+      maxSuccessAgeSeconds = 5 * 60;
+    }
+  ];
+
   systemd.tmpfiles.rules = [
     "d /var/lib/ssh-access-audit 0700 ssh-access-audit ssh-access-audit - -"
   ];

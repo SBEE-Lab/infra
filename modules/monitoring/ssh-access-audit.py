@@ -400,14 +400,24 @@ def query_loki(loki_url: str, query: str, window_seconds: int, limit: int) -> li
 
 
 def event_labels(event: Event) -> dict[str, str]:
-    return {
-        "host": event_str(event, "target_host", "unknown"),
+    event_name = event_str(event, "event", "ssh_login")
+    labels = {
+        "host": event_str(event, "target_host", event_str(event, "emitter_host", "unknown")),
         "log_type": "access_audit",
-        "event": "ssh_login",
-        "path": event_str(event, "path", "unknown"),
-        "ingress_network": event_str(event, "ingress_network", "unknown"),
-        "source_kind": event_str(event, "source_kind", "unknown"),
+        "event": event_name,
     }
+    if event_name == "correlator_heartbeat":
+        labels["correlator"] = event_str(event, "correlator", "unknown")
+        labels["status"] = event_str(event, "status", "unknown")
+        return labels
+    labels.update(
+        {
+            "path": event_str(event, "path", "unknown"),
+            "ingress_network": event_str(event, "ingress_network", "unknown"),
+            "source_kind": event_str(event, "source_kind", "unknown"),
+        }
+    )
+    return labels
 
 
 def clean_event(event: Event) -> Event:
@@ -469,6 +479,23 @@ def dedup_key(event: Event) -> str:
     return "|".join(parts)
 
 
+def heartbeat_event(
+    *, queried_ssh_events: int, queried_bastion_events: int, emitted_events: int
+) -> Event:
+    return {
+        "emitter_host": "rho",
+        "target_host": "rho",
+        "log_type": "access_audit",
+        "event": "correlator_heartbeat",
+        "correlator": "ssh_access",
+        "status": "ok",
+        "queried_ssh_events": queried_ssh_events,
+        "queried_bastion_events": queried_bastion_events,
+        "emitted_events": emitted_events,
+        "_timestamp_ns": time.time_ns(),
+    }
+
+
 def classify_events(
     ssh_events: Sequence[Event], bastion_events: Sequence[Event], inventory: Inventory
 ) -> list[Event]:
@@ -509,13 +536,20 @@ def run(args: CliArgs) -> int:
         new_events.append(event)
         new_keys.append(key)
 
+    audit_events = new_events + [
+        heartbeat_event(
+            queried_ssh_events=len(ssh_events),
+            queried_bastion_events=len(bastion_events),
+            emitted_events=len(new_events),
+        )
+    ]
+
     if args["dry_run"]:
-        for event in new_events:
+        for event in audit_events:
             print(json.dumps(clean_event(event), sort_keys=True))
         return 0
 
-    if new_events:
-        push_events(args["loki_url"], new_events)
+    push_events(args["loki_url"], audit_events)
 
     for key in new_keys:
         state["seen"][key] = now
@@ -660,6 +694,15 @@ def run_self_tests() -> int:
     emergency = classify_login(ssh_sample(host="rho", source_ip="10.80.169.39"), [], [], inventory)
     assert emergency["path"] == "unknown"
     assert emergency["ingress_network"] == "local_lan"
+
+    heartbeat = heartbeat_event(queried_ssh_events=3, queried_bastion_events=2, emitted_events=1)
+    assert event_labels(heartbeat) == {
+        "host": "rho",
+        "log_type": "access_audit",
+        "event": "correlator_heartbeat",
+        "correlator": "ssh_access",
+        "status": "ok",
+    }
 
     print("self-tests passed")
     return 0
