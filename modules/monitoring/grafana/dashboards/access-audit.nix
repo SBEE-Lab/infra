@@ -4,11 +4,12 @@ let
   inherit (datasources) loki;
 
   accessAuditSelector = ''{log_type="access_audit", event="ssh_login", host=~"$host", path=~"$path", ingress_network=~"$ingress_network", source_kind=~"$source_kind"}'';
+  tailnetAppSelector = ''{log_type="access_audit", event="tailnet_app_access", host=~"$host", service=~"$service", source_kind=~"$source_kind", status_class=~"$status_class"}'';
 
-  labelVar =
-    name:
+  labelVarFor =
+    selector: name:
     let
-      query = ''label_values({log_type="access_audit", event="ssh_login"}, ${name})'';
+      query = "label_values(${selector}, ${name})";
     in
     {
       inherit name query;
@@ -121,10 +122,12 @@ in
     to = "now";
   };
   templating.list = [
-    (labelVar "host")
-    (labelVar "path")
-    (labelVar "ingress_network")
-    (labelVar "source_kind")
+    (labelVarFor ''{log_type="access_audit", event=~"ssh_login|tailnet_app_access"}'' "host")
+    (labelVarFor ''{log_type="access_audit", event="ssh_login"}'' "path")
+    (labelVarFor ''{log_type="access_audit", event="ssh_login"}'' "ingress_network")
+    (labelVarFor ''{log_type="access_audit", event=~"ssh_login|tailnet_app_access"}'' "source_kind")
+    (labelVarFor ''{log_type="access_audit", event="tailnet_app_access"}'' "service")
+    (labelVarFor ''{log_type="access_audit", event="tailnet_app_access"}'' "status_class")
   ];
   annotations.list = [ ];
   panels = [
@@ -490,8 +493,175 @@ in
     })
     (row {
       id = 11;
-      title = "Authentik";
+      title = "Tailnet app access";
       y = 50;
+    })
+    {
+      id = 19;
+      title = "Tailnet app access by service";
+      type = "timeseries";
+      datasource = loki;
+      gridPos = {
+        h = 8;
+        w = 8;
+        x = 0;
+        y = 51;
+      };
+      fieldConfig.defaults = {
+        custom.drawStyle = "bars";
+        custom.fillOpacity = 60;
+        min = 0;
+      };
+      targets = [
+        {
+          refId = "A";
+          datasource = loki;
+          expr = "sum by (service) (count_over_time(${tailnetAppSelector}[$__auto]))";
+          legendFormat = "{{service}}";
+        }
+      ];
+    }
+    {
+      id = 20;
+      title = "Tailnet app status classes";
+      type = "timeseries";
+      datasource = loki;
+      gridPos = {
+        h = 8;
+        w = 8;
+        x = 8;
+        y = 51;
+      };
+      fieldConfig.defaults = {
+        custom.drawStyle = "bars";
+        custom.fillOpacity = 60;
+        min = 0;
+      };
+      targets = [
+        {
+          refId = "A";
+          datasource = loki;
+          expr = "sum by (status_class) (count_over_time(${tailnetAppSelector}[$__auto]))";
+          legendFormat = "{{status_class}}";
+        }
+      ];
+    }
+    {
+      id = 21;
+      title = "Tailnet app access by source kind";
+      type = "timeseries";
+      datasource = loki;
+      gridPos = {
+        h = 8;
+        w = 8;
+        x = 16;
+        y = 51;
+      };
+      fieldConfig.defaults = {
+        custom.drawStyle = "bars";
+        custom.fillOpacity = 60;
+        min = 0;
+      };
+      targets = [
+        {
+          refId = "A";
+          datasource = loki;
+          expr = "sum by (source_kind) (count_over_time(${tailnetAppSelector}[$__auto]))";
+          legendFormat = "{{source_kind}}";
+        }
+      ];
+    }
+    (jsonTable {
+      id = 22;
+      title = "Recent tailnet app access";
+      gridPos = {
+        h = 10;
+        w = 24;
+        x = 0;
+        y = 59;
+      };
+      expr = tailnetAppSelector;
+      exclude = {
+        emitter_host = true;
+        event = true;
+        host = true;
+        ingress_network = true;
+        log_type = true;
+        message = true;
+        request_id = true;
+        source_tags = true;
+        user_agent = true;
+      };
+      index = {
+        Time = 0;
+        target_host = 1;
+        service = 2;
+        source_headscale_user = 3;
+        source_node = 4;
+        source_ip = 5;
+        http_method = 6;
+        request_path = 7;
+        status = 8;
+        status_class = 9;
+        correlation_status = 10;
+      };
+      rename = {
+        target_host = "target host";
+        source_headscale_user = "headscale user";
+        source_node = "source node";
+        source_ip = "source IP";
+        http_method = "method";
+        request_path = "path";
+        status_class = "status class";
+        correlation_status = "correlation";
+      };
+    })
+    (jsonTable {
+      id = 23;
+      title = "Unknown tailnet app sources";
+      gridPos = {
+        h = 6;
+        w = 24;
+        x = 0;
+        y = 69;
+      };
+      expr = ''{log_type="access_audit", event="tailnet_app_access", source_kind="unknown", host=~"$host", service=~"$service", status_class=~"$status_class"}'';
+      exclude = {
+        emitter_host = true;
+        event = true;
+        host = true;
+        ingress_network = true;
+        log_type = true;
+        message = true;
+        request_id = true;
+        source_kind = true;
+        source_tags = true;
+        user_agent = true;
+      };
+      index = {
+        Time = 0;
+        target_host = 1;
+        service = 2;
+        source_ip = 3;
+        http_method = 4;
+        request_path = 5;
+        status = 6;
+        status_class = 7;
+        correlation_status = 8;
+      };
+      rename = {
+        target_host = "target host";
+        source_ip = "source IP";
+        http_method = "method";
+        request_path = "path";
+        status_class = "status class";
+        correlation_status = "correlation";
+      };
+    })
+    (row {
+      id = 24;
+      title = "Authentik";
+      y = 75;
     })
     {
       id = 12;
@@ -502,7 +672,7 @@ in
         h = 8;
         w = 12;
         x = 0;
-        y = 51;
+        y = 76;
       };
       fieldConfig.defaults = {
         custom.drawStyle = "bars";
@@ -525,7 +695,7 @@ in
         h = 8;
         w = 12;
         x = 12;
-        y = 51;
+        y = 76;
       };
       expr = ''{log_type="authentik", event="login_failed"}'';
       exclude = {
@@ -553,7 +723,7 @@ in
         h = 8;
         w = 12;
         x = 0;
-        y = 59;
+        y = 84;
       };
       expr = ''{log_type="authentik", event="app_authorize"}'';
       exclude = {
@@ -583,7 +753,7 @@ in
         h = 8;
         w = 12;
         x = 12;
-        y = 59;
+        y = 84;
       };
       options = {
         showTime = true;
@@ -603,7 +773,7 @@ in
     (row {
       id = 16;
       title = "Headscale";
-      y = 67;
+      y = 92;
     })
     (jsonTable {
       id = 17;
@@ -612,7 +782,7 @@ in
         h = 8;
         w = 24;
         x = 0;
-        y = 68;
+        y = 93;
       };
       timeFrom = "10m";
       expr = ''{log_type="headscale_nodes", event="node_snapshot"}'';
@@ -651,7 +821,7 @@ in
         h = 9;
         w = 24;
         x = 0;
-        y = 76;
+        y = 101;
       };
       options = {
         showTime = true;
