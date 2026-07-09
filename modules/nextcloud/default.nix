@@ -57,7 +57,11 @@ in
     };
 
     settings = {
-      trusted_proxies = [ "127.0.0.1" ];
+      trusted_proxies = [
+        "127.0.0.1"
+        hosts.eta.wg-admin
+      ];
+      overwritehost = domain;
       overwriteprotocol = "https";
       allow_local_remote_servers = true; # authentik is on local network
       default_phone_region = "KR";

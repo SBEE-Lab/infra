@@ -61,6 +61,7 @@ in
     ../modules/gatus
     ../modules/monitoring/vector
     ../modules/n8n/reverse-proxy.nix
+    ../modules/nextcloud/reverse-proxy.nix
     ../modules/acme/sync.nix
   ];
 
