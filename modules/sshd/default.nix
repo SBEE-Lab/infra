@@ -352,6 +352,11 @@ in
       PubkeyAuthentication = true;
       PermitEmptyPasswords = false;
 
+      # VERBOSE records public-key fingerprints but can make fail2ban count
+      # every rejected offered key, so keep eta on INFO even though fail2ban
+      # would otherwise raise sshd logging to VERBOSE.
+      LogLevel = if isBastion then lib.mkForce "INFO" else "VERBOSE";
+
       MaxAuthTries = ssh.maxAuthTries;
       LoginGraceTime = ssh.loginGraceTime;
 
