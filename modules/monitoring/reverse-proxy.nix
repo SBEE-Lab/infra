@@ -31,7 +31,7 @@ in
 
       locations = authentikAuth.locations // {
         "/" = {
-          proxyPass = "http://${currentHost.wg-admin}:3000";
+          proxyPass = "http://127.0.0.1:3000";
           extraConfig = authentikAuth.protectLocation + ''
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
@@ -40,7 +40,7 @@ in
           '';
         };
         "/api/live/" = {
-          proxyPass = "http://${currentHost.wg-admin}:3000";
+          proxyPass = "http://127.0.0.1:3000";
           proxyWebsockets = true;
           extraConfig = authentikAuth.protectLocation + ''
             proxy_set_header Host $host;

@@ -1,6 +1,9 @@
 # Grafana dashboard server (deployed on rho)
-# - Listens on wg-admin for access
 # - Connects to Loki/Prometheus on wg-admin (internal)
+# - Listens on localhost only; all access goes through the
+#   Authentik-protected reverse proxy (logging.sjanglab.org)
+# - Break-glass: ssh -L 3000:127.0.0.1:3000 rho, then log in as the
+#   local admin account (no auth-proxy header on tunneled requests)
 { config, ... }:
 let
   inherit (config.networking.sbee) currentHost;
@@ -20,7 +23,7 @@ in
       name = "Grafana";
       group = "monitoring";
       checks = [
-        { url = "http://${wgAdminAddr}:3000/api/health"; }
+        { url = "http://127.0.0.1:3000/api/health"; }
         {
           url = "https://logging.sjanglab.org/";
           expectedStatus = 302;
@@ -34,7 +37,7 @@ in
 
     settings = {
       server = {
-        http_addr = wgAdminAddr;
+        http_addr = "127.0.0.1";
         http_port = 3000;
         domain = "logging.sjanglab.org";
         root_url = "https://logging.sjanglab.org";
@@ -50,15 +53,20 @@ in
 
       users = {
         allow_sign_up = false;
+        auto_assign_org_role = "Viewer";
         default_theme = "system";
       };
 
-      # Anonymous read-only access: intentional for wg-admin peers.
-      # Grafana only listens on wg-admin, so only WG-authenticated hosts can reach it.
-      "auth.anonymous" = {
+      # Identity comes from Authentik forward auth via the local nginx
+      # reverse proxy only. The localhost bind plus whitelist below are
+      # load-bearing: without both, any peer able to reach Grafana could
+      # spoof X-authentik-email and impersonate users.
+      "auth.proxy" = {
         enabled = true;
-        org_name = "Main Org.";
-        org_role = "Viewer";
+        header_name = "X-authentik-email";
+        header_property = "email";
+        auto_sign_up = true;
+        whitelist = "127.0.0.1";
       };
     };
 
@@ -85,6 +93,24 @@ in
     };
   };
 
+  assertions = [
+    {
+      assertion =
+        let
+          settings = config.services.grafana.settings;
+          authProxy = settings."auth.proxy" or { };
+        in
+        !(authProxy.enabled or false)
+        || (settings.server.http_addr == "127.0.0.1" && (authProxy.whitelist or "") == "127.0.0.1");
+      message = ''
+        Grafana auth.proxy trusts the X-authentik-email header unconditionally.
+        It must only be enabled with server.http_addr = "127.0.0.1" and
+        auth.proxy.whitelist = "127.0.0.1", otherwise wg-admin peers can spoof
+        the header and impersonate any user.
+      '';
+    }
+  ];
+
   sops.secrets.grafana-admin-password = {
     sopsFile = ../secrets.yaml;
     owner = "grafana";
@@ -97,5 +123,4 @@ in
     group = "grafana";
   };
 
-  networking.firewall.interfaces."wg-admin".allowedTCPPorts = [ 3000 ];
 }
