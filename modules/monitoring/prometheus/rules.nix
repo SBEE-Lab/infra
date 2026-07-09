@@ -182,6 +182,28 @@ in
               }
 
               {
+                alert = "TlsCertificateExpiringSoon";
+                expr = ''(probe_ssl_earliest_cert_expiry{job=~"blackbox_.*"} - time()) / 86400 < 14'';
+                for = "30m";
+                labels = opsWarning;
+                annotations = {
+                  summary = "TLS certificate expires soon";
+                  description = "{{ $labels.service }} certificate for {{ $labels.instance }} expires in {{ $value | humanize }} days";
+                };
+              }
+
+              {
+                alert = "TlsCertificateExpiringSoon";
+                expr = ''(probe_ssl_earliest_cert_expiry{job=~"blackbox_.*"} - time()) / 86400 < 7'';
+                for = "10m";
+                labels = opsCritical;
+                annotations = {
+                  summary = "TLS certificate expires very soon";
+                  description = "{{ $labels.service }} certificate for {{ $labels.instance }} expires in {{ $value | humanize }} days";
+                };
+              }
+
+              {
                 alert = "NvidiaGpuExporterDown";
                 expr = ''up{job="nvidia-gpu"} == 0'';
                 for = "3m";

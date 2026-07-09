@@ -95,6 +95,23 @@ in
           }
         ) cfg.mkSender
       );
+
+      systemd.timers = builtins.listToAttrs (
+        map (
+          s:
+          lib.nameValuePair s.serviceName {
+            description = "Periodically sync ${s.domain} certificate to ${s.remoteHost}";
+            wantedBy = [ "timers.target" ];
+            timerConfig = {
+              OnBootSec = "5min";
+              OnUnitActiveSec = "12h";
+              RandomizedDelaySec = "30min";
+              Persistent = true;
+              Unit = "${s.serviceName}.service";
+            };
+          }
+        ) cfg.mkSender
+      );
     }
 
     # Shared SSH key (only when senders exist)
@@ -134,7 +151,12 @@ in
         "d /var/lib/acme/${r.domain} 0750 ${r.user} ${r.user} - -"
       ]) cfg.mkReceiver;
 
-      systemd.services = builtins.listToAttrs (
+      systemd.services = {
+        nginx.serviceConfig.SupplementaryGroups = lib.mkIf config.services.nginx.enable (
+          builtins.map (r: r.user) (builtins.filter (r: r.reloadService == "nginx") cfg.mkReceiver)
+        );
+      }
+      // builtins.listToAttrs (
         map (
           r:
           lib.nameValuePair "${r.user}-reload-${r.reloadService}" {
