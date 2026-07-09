@@ -65,7 +65,7 @@ Internal eta probes validate the internal/tailnet view. Public endpoints still n
 
 ## Job freshness
 
-psi writes biodb systemd job snapshots to Loki every 60 seconds:
+psi and rho write allowlisted systemd job snapshots to Loki every 60 seconds. These are job status summaries, not all-systemd scrapes:
 
 ```logql
 {host="psi", log_type="systemd_status", event="job_snapshot"}
@@ -81,10 +81,13 @@ Each row includes:
 - `last_exit_age_seconds`
 - `next_due_seconds`
 - `max_success_age_seconds`
+- `job_class`
+- `trigger_kind`
+- `alert_enabled`
 
-S3 backup jobs should be added to this snapshot stream after the backup store migration.
+Backup, PostgreSQL dump, restore-drill, and mirror jobs set `alert_enabled=true` with per-unit freshness thresholds. Manual `biodb-*` oneshot services are still logged with `job_class="biodb"` and `alert_enabled=false`, because they are operator-triggered rather than scheduled unattended jobs.
 
-Prometheus cannot evaluate these LogQL streams directly. Job freshness alerts need Loki ruler or a metric exporter.
+Prometheus cannot evaluate these LogQL streams directly. Loki ruler evaluates job freshness and audit LogQL alerts, then sends them to Alertmanager.
 
 ## Access and audit streams
 
@@ -145,7 +148,17 @@ Current Prometheus rule intent:
 - `NvidiaGpuExporterDown`: warning GPU exporter failure.
 - `Watchdog`: present only when Alertmanager secrets exist; always firing and routed only to healthchecks.io, never to Slack.
 
-Gatus does not send alerts directly. Prometheus evaluates Gatus metrics and Alertmanager handles Slack delivery.
+Current Loki ruler rule intent:
+
+- `BackupJobFailed`: critical alert-eligible systemd job failure from `systemd_status` snapshots.
+- `BackupJobStale`: warning alert-eligible systemd job freshness breach from `stale_success` snapshots.
+- `SshLoginFailureBurst`: audit warning for SSH login failure bursts.
+- `AuthentikLoginFailureBurst`: audit warning for Authentik login failure bursts.
+- `AuthentikForwardAuthDenyBurst`: audit warning for excessive forward-auth denials.
+- `HeadscaleOidcDenied`: audit warning for denied Headscale OIDC attempts.
+- `HeadscaleNodeExpired`: audit warning when headscale node summary reports expired nodes.
+
+Gatus does not send alerts directly. Prometheus and Loki evaluate rules, and Alertmanager handles Slack delivery.
 
 ## Remaining alerting work
 
