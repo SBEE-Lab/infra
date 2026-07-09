@@ -67,7 +67,6 @@ in
         "- *"
       ];
       postSync = blastPostSync;
-      schedule = lib.mkDefault "weekly";
       timeout = lib.mkDefault "7d";
     };
 
@@ -84,7 +83,6 @@ in
         "- *"
       ];
       postSync = blastPostSync;
-      schedule = lib.mkDefault "weekly";
       timeout = lib.mkDefault "7d";
     };
 
@@ -101,7 +99,6 @@ in
         "- *"
       ];
       postSync = blastPostSync;
-      schedule = lib.mkDefault "weekly";
     };
 
     blast-swissprot = {
@@ -119,7 +116,6 @@ in
         "- *"
       ];
       postSync = blastPostSync;
-      schedule = lib.mkDefault "weekly";
     };
 
     # UniProt Reference Clusters (EBI mirror)
@@ -135,7 +131,6 @@ in
         "--filter"
         "- *"
       ];
-      schedule = lib.mkDefault "monthly";
     };
 
     uniref100 = {
@@ -149,7 +144,6 @@ in
         "--filter"
         "- *"
       ];
-      schedule = lib.mkDefault "monthly";
     };
 
     # Protein Data Bank — PDBj Japan mirror (closest to KREN)
@@ -157,14 +151,12 @@ in
     pdb = {
       enable = lib.mkDefault false;
       syncUrl = "pdbj:pub/pdb/data/structures/divided/pdb/";
-      schedule = lib.mkDefault "weekly";
     };
 
     # PDB in mmCIF format
     pdb-mmcif = {
       enable = lib.mkDefault false;
       syncUrl = "pdbj:pub/pdb/data/structures/divided/mmCIF/";
-      schedule = lib.mkDefault "weekly";
     };
 
     # RNAcentral
@@ -172,7 +164,6 @@ in
     rnacentral = {
       enable = lib.mkDefault false;
       syncUrl = "ebi:pub/databases/RNAcentral/current_release/";
-      schedule = lib.mkDefault "monthly";
     };
 
     # AlphaFold Database (GCS public bucket)
@@ -184,7 +175,6 @@ in
         "--transfers=8"
         "--checkers=8"
       ];
-      schedule = lib.mkDefault "quarterly";
     };
 
     # Pfam
@@ -192,7 +182,6 @@ in
     pfam = {
       enable = lib.mkDefault false;
       syncUrl = "ebi:pub/databases/Pfam/current_release/";
-      schedule = lib.mkDefault "monthly";
     };
 
     # Rfam (RNA families)
@@ -200,7 +189,6 @@ in
     rfam = {
       enable = lib.mkDefault false;
       syncUrl = "ebi:pub/databases/Rfam/CURRENT/";
-      schedule = lib.mkDefault "monthly";
     };
 
     # InterPro
@@ -208,7 +196,6 @@ in
     interpro = {
       enable = lib.mkDefault false;
       syncUrl = "ebi:pub/databases/interpro/current_release/";
-      schedule = lib.mkDefault "monthly";
     };
   };
 }

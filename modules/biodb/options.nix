@@ -15,12 +15,6 @@ let
         description = "Additional rclone arguments (--include, --exclude, --transfers, etc.)";
       };
 
-      schedule = lib.mkOption {
-        type = lib.types.str;
-        default = "monthly";
-        description = "Systemd calendar schedule (weekly, monthly, *-*-01, etc.)";
-      };
-
       timeout = lib.mkOption {
         type = lib.types.str;
         default = "24h";

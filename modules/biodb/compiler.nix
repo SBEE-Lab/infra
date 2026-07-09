@@ -76,25 +76,11 @@ let
       };
     }
   ) enabledDatabases;
-
-  timers = lib.mapAttrs' (
-    name: db:
-    lib.nameValuePair "biodb-${name}" {
-      description = "Timer for ${name} database sync";
-      wantedBy = [ "timers.target" ];
-
-      timerConfig = {
-        OnCalendar = db.schedule;
-        Persistent = true;
-        RandomizedDelaySec = "1h";
-      };
-    }
-  ) enabledDatabases;
 in
 {
   inherit enabledDatabases;
 
   systemPackages = [ helper ];
 
-  inherit services timers;
+  inherit services;
 }

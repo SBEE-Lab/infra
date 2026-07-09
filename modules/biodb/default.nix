@@ -33,6 +33,5 @@ in
     ) compiled.enabledDatabases;
 
     systemd.services = compiled.services;
-    systemd.timers = compiled.timers;
   };
 }
