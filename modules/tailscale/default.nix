@@ -26,13 +26,12 @@
 
   # Explicit port allowlist for Headscale users (no trustedInterfaces)
   # - 80, 443: Web services (Nextcloud on tau)
-  # - 3000: Grafana (rho)
   # - 8010: Nixbot (psi, disabled when nginx uses unix socket)
-  # SSH and internal services remain wg-admin only
+  # SSH and internal services remain wg-admin only; Grafana is reachable
+  # solely through the Authentik-protected reverse proxy on 443.
   networking.firewall.interfaces.tailscale0.allowedTCPPorts = [
     80
     443
-    3000
     8010
   ];
 }
