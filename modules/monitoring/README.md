@@ -42,6 +42,8 @@ Keep high-cardinality values in JSON fields only:
 - `app`
 - `node`
 - `unit`
+- `key_type`
+- `key_fingerprint`
 
 Audit streams keep 90 days:
 
@@ -90,6 +92,22 @@ Backup, PostgreSQL dump, restore-drill, and mirror jobs set `alert_enabled=true`
 Prometheus cannot evaluate these LogQL streams directly. Loki ruler evaluates job freshness and audit LogQL alerts, then sends them to Alertmanager.
 
 ## Access and audit streams
+
+SSH:
+
+```logql
+{log_type="ssh"}
+```
+
+Parsed SSH events include `login_success`, `login_failed`, `session_opened`, `session_closed`, and `disconnected`. Managed non-bastion hosts run OpenSSH `LogLevel VERBOSE` so successful public-key logins include `key_type` and `key_fingerprint` JSON fields. These fields are not Loki labels.
+
+eta keeps OpenSSH `LogLevel INFO` in this staged rollout because it is the public bastion and fail2ban can count `Failed publickey` lines for every rejected offered key. Enable VERBOSE there only after fail2ban behavior is explicitly handled and tested.
+
+Post-deploy fingerprint smoke query:
+
+```logql
+{log_type="ssh", event="login_success"} | json | key_fingerprint != ""
+```
 
 Authentik:
 

@@ -78,7 +78,7 @@ in
       };
 
       transforms = {
-        # Parse SSH logs - extract user, IP, port, auth method
+        # Parse SSH logs - extract user, IP, port, auth method, and key metadata
         parse_ssh = {
           type = "remap";
           inputs = [ "sshd_logs" ];
@@ -89,16 +89,23 @@ in
             message = string!(.message)
             .event = "other"
 
-            # Accepted publickey for alice from 203.0.113.50 port 52431 ssh2
-            # Failed password for bob from 192.168.1.100 port 22 ssh2
+            # Accepted publickey for alice from 203.0.113.50 port 52431 ssh2: ED25519 SHA256:abc
+            # Failed password for invalid user bob from 2001:db8::1 port 22 ssh2
             if match(message, r'(Accepted|Failed)') {
-              parsed = parse_regex(message, r'(?P<status>Accepted|Failed) (?P<method>\w+) for (?P<user>\S+) from (?P<ip>[\d.]+) port (?P<port>\d+)') ?? {}
+              parsed = parse_regex(message, r'(?P<status>Accepted|Failed) (?P<method>\w+) for (?:invalid user )?(?P<user>\S+) from (?P<ip>\S+) port (?P<port>\d+)(?: ssh2(?:: (?P<key_type>\S+) (?P<key_fingerprint>SHA256:\S+))?)?') ?? {}
 
               if exists(parsed.status) {
                 .user = parsed.user
                 .source_ip = parsed.ip
                 .source_port = parsed.port
                 .auth_method = parsed.method
+
+                if exists(parsed.key_type) {
+                  .key_type = parsed.key_type
+                }
+                if exists(parsed.key_fingerprint) {
+                  .key_fingerprint = parsed.key_fingerprint
+                }
 
                 if parsed.status == "Accepted" {
                   .event = "login_success"
