@@ -20,7 +20,7 @@ let
       alert_category = "ops";
       inherit host;
     };
-    annotations = {
+    annotations = hostAlertAnnotations // {
       summary = "Host metrics missing";
       description = "${host}: no host metrics received for 5 minutes";
     };
@@ -30,6 +30,24 @@ let
     "rho"
     "tau"
   ];
+
+  grafanaDashboardURL = uid: "https://logging.sjanglab.org/d/${uid}/${uid}?orgId=1";
+  monitoringRunbookURL = "https://github.com/SBEE-Lab/infra/blob/main/docs/admin/monitoring.md#prometheus-rho";
+
+  hostAlertAnnotations = {
+    dashboard_url = grafanaDashboardURL "sjanglab-hosts";
+    runbook_url = monitoringRunbookURL;
+  };
+
+  appAlertAnnotations = {
+    dashboard_url = grafanaDashboardURL "sjanglab-apps";
+    runbook_url = monitoringRunbookURL;
+  };
+
+  aiAlertAnnotations = {
+    dashboard_url = grafanaDashboardURL "sjanglab-ai-resources";
+    runbook_url = monitoringRunbookURL;
+  };
 
   opsWarning = {
     severity = "warning";
@@ -59,6 +77,7 @@ in
               warningLabels = opsWarning;
               criticalLabels = opsCritical;
               summaryPrefix = "RustFS store";
+              annotations = hostAlertAnnotations;
             })
             ++ [
               {
@@ -71,7 +90,7 @@ in
                 '';
                 for = "5m";
                 labels = opsWarning;
-                annotations = {
+                annotations = hostAlertAnnotations // {
                   summary = "Low disk space";
                   description = "{{ $labels.host }}: {{ $value | humanize }}% free on /";
                 };
@@ -87,7 +106,7 @@ in
                 '';
                 for = "5m";
                 labels = opsCritical;
-                annotations = {
+                annotations = hostAlertAnnotations // {
                   summary = "Critically low disk space";
                   description = "{{ $labels.host }}: {{ $value | humanize }}% free on /";
                 };
@@ -103,7 +122,7 @@ in
                 '';
                 for = "5m";
                 labels = opsWarning;
-                annotations = {
+                annotations = hostAlertAnnotations // {
                   summary = "Low memory";
                   description = "{{ $labels.host }}: {{ $value | humanize }}% available";
                 };
@@ -120,7 +139,7 @@ in
                 '';
                 for = "10m";
                 labels = opsWarning;
-                annotations = {
+                annotations = hostAlertAnnotations // {
                   summary = "High CPU load";
                   description = "{{ $labels.host }}: {{ $value | humanize }}% CPU usage";
                 };
@@ -131,7 +150,7 @@ in
                 expr = ''up{job!~"blackbox_.*|blackbox_exporter|nvidia-gpu"} == 0'';
                 for = "2m";
                 labels = opsCritical;
-                annotations = {
+                annotations = hostAlertAnnotations // {
                   summary = "Prometheus target down";
                   description = "{{ $labels.job }} target {{ $labels.instance }} is down";
                 };
@@ -142,7 +161,7 @@ in
                 expr = ''gatus_results_endpoint_success{group!="apps"} == 0'';
                 for = "5m";
                 labels = opsWarning;
-                annotations = {
+                annotations = appAlertAnnotations // {
                   summary = "Gatus endpoint down";
                   description = "{{ $labels.group }}/{{ $labels.name }} is failing";
                 };
@@ -153,7 +172,7 @@ in
                 expr = ''up{job="blackbox_exporter"} == 0'';
                 for = "2m";
                 labels = opsCritical;
-                annotations = {
+                annotations = appAlertAnnotations // {
                   summary = "Blackbox exporter down";
                   description = "{{ $labels.host }} blackbox exporter is unavailable";
                 };
@@ -164,7 +183,7 @@ in
                 expr = ''probe_success{job=~"blackbox_.*", probe_scope=~"public|wg-admin"} == 0'';
                 for = "3m";
                 labels = opsCritical;
-                annotations = {
+                annotations = appAlertAnnotations // {
                   summary = "Synthetic probe failed";
                   description = "{{ $labels.probe_scope }}/{{ $labels.service }} probe {{ $labels.instance }} is failing";
                 };
@@ -175,7 +194,7 @@ in
                 expr = ''probe_success{job=~"blackbox_.*", probe_scope="tailnet"} == 0'';
                 for = "5m";
                 labels = opsWarning;
-                annotations = {
+                annotations = appAlertAnnotations // {
                   summary = "Tailnet synthetic probe failed";
                   description = "{{ $labels.service }} probe {{ $labels.instance }} is failing";
                 };
@@ -186,7 +205,7 @@ in
                 expr = ''(probe_ssl_earliest_cert_expiry{job=~"blackbox_.*"} - time()) / 86400 < 14'';
                 for = "30m";
                 labels = opsWarning;
-                annotations = {
+                annotations = appAlertAnnotations // {
                   summary = "TLS certificate expires soon";
                   description = "{{ $labels.service }} certificate for {{ $labels.instance }} expires in {{ $value | humanize }} days";
                 };
@@ -197,7 +216,7 @@ in
                 expr = ''(probe_ssl_earliest_cert_expiry{job=~"blackbox_.*"} - time()) / 86400 < 7'';
                 for = "10m";
                 labels = opsCritical;
-                annotations = {
+                annotations = appAlertAnnotations // {
                   summary = "TLS certificate expires very soon";
                   description = "{{ $labels.service }} certificate for {{ $labels.instance }} expires in {{ $value | humanize }} days";
                 };
@@ -208,7 +227,7 @@ in
                 expr = ''up{job="nvidia-gpu"} == 0'';
                 for = "3m";
                 labels = opsWarning;
-                annotations = {
+                annotations = aiAlertAnnotations // {
                   summary = "GPU exporter down";
                   description = "{{ $labels.host }} nvidia-gpu exporter is unavailable";
                 };
@@ -222,7 +241,7 @@ in
                 severity = "none";
                 alert_category = "deadman";
               };
-              annotations = {
+              annotations = hostAlertAnnotations // {
                 summary = "Alerting watchdog";
                 description = "Always-firing alert used by Alertmanager to ping the dead-man switch";
               };
