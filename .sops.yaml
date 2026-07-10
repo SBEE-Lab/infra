@@ -118,6 +118,10 @@ creation_rules:
     path_regex: modules/vaultwarden/secrets.yaml
   - key_groups:
       - age:
+          - age1730f3cxdyh56zw8xcvlmpa7u2x7353wu4u0e58kyx24rsefgp98sxehm6s
+    path_regex: terraform/alert-bridge/secrets.yaml
+  - key_groups:
+      - age:
           - age1zdhqm6ptcnuu3tf2lzcngqmf6eud7jfah7v8falfy5mdksmnfuzq35sq54
           - age13v0djuhkmnd06zvct0zc6sddykqpk3j9k8ev5sfgd6gtj82s0avs68psvj
           - age1730f3cxdyh56zw8xcvlmpa7u2x7353wu4u0e58kyx24rsefgp98sxehm6s

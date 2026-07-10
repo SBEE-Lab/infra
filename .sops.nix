@@ -73,6 +73,7 @@ let
         "tau"
       ];
       "terraform/authentik/users.yaml" = [ ];
+      "terraform/alert-bridge/secrets.yaml" = [ ];
       "terraform/cloudflare/secrets.yaml" = [ ];
       "terraform/github/secrets.yaml" = [ ];
       "terraform/headscale/secrets.yaml" = [ ];

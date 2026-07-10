@@ -21,3 +21,23 @@ resource "healthchecksio_check" "rho_alertmanager_watchdog" {
     data.healthchecksio_channel.slack.id,
   ]
 }
+
+resource "healthchecksio_check" "infra_alert_bridge_heartbeat" {
+  name = "infra-alert-bridge-heartbeat"
+  desc = "Dead-man switch for the Cloudflare Worker alert bridge cron"
+
+  timeout = 15 * 60
+  grace   = 10 * 60
+
+  tags = [
+    "infra",
+    "monitoring",
+    "cloudflare",
+    "alert-bridge",
+    "watchdog",
+  ]
+
+  channels = [
+    data.healthchecksio_channel.slack.id,
+  ]
+}
