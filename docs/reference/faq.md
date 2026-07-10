@@ -39,9 +39,9 @@ Rate limiting은 NEW 연결만 카운트하므로, `ControlMaster` 없이 ProxyJ
 
 A: `https://cloud.sjanglab.org` 도메인으로 접속해야 합니다. 직접 IP 접근은 지원하지 않습니다. VPN 연결이 필요합니다.
 
-**Q: Ollama 요청이 느립니다.**
+**Q: AI API 요청이 느립니다.**
 
-A: 첫 요청 시 모델을 VRAM에 로딩하는 시간이 필요합니다. 모델은 5분간 메모리에 유지됩니다.
+A: 첫 요청 시 모델을 VRAM에 로딩하거나 컨테이너가 워밍업되는 시간이 필요합니다. Docling/TEI/MULTI-evolve는 psi GPU를 공유하므로 동시에 큰 작업이 돌면 느려질 수 있습니다.
 
 **Q: n8n에서 외부 웹훅이 작동하지 않습니다.**
 

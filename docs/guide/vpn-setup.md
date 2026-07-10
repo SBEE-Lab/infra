@@ -122,8 +122,8 @@ VPN 연결 후 Magic DNS로 서비스에 접근할 수 있습니다.
 ```mermaid
 flowchart LR
   user["사용자<br/>Tailscale VPN"] --> hs["Headscale<br/>hs.sjanglab.org"]
-  hs --> psi["psi (100.64.0.1)<br/>Ollama · Docling"]
-  hs --> tau["tau (100.64.0.3)<br/>Nextcloud · n8n"]
+  hs --> psi["psi (100.64.0.1)<br/>Docling · TEI · MULTI-evolve"]
+  hs --> tau["tau (100.64.0.3)<br/>Nextcloud · n8n · Vaultwarden"]
   hs --> eta_pub["eta public (141.164.53.203)<br/>Upterm"]
 ```
 
@@ -131,8 +131,9 @@ flowchart LR
 |--------|---------|--------|--------|
 | `cloud.sjanglab.org` | 100.64.0.3 | tau | Nextcloud |
 | `n8n.sjanglab.org` | 100.64.0.3 | tau | n8n |
-| `ollama.sjanglab.org` | 100.64.0.1 | psi | Ollama |
 | `docling.sjanglab.org` | 100.64.0.1 | psi | Docling |
+| `tei.sjanglab.org` | 100.64.0.1 | psi | TEI |
+| `multievolve.sjanglab.org` | 100.64.0.1 | psi | MULTI-evolve |
 | `upterm.sjanglab.org` | 141.164.53.203 | eta | Upterm relay |
 
 ## 접근 권한 (ACL)

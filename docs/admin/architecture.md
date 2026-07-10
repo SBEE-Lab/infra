@@ -5,7 +5,7 @@
 - **NixOS** + **Flakes** + **flake-parts** — 선언적 시스템 구성
 - **sops-nix** (age 암호화) — 시크릿 관리
 - **disko** — 선언적 디스크 관리
-- **Terraform** — 외부 리소스 관리 (Cloudflare DNS, GitHub)
+- **Terraform/Terragrunt** — 외부 리소스 관리 (Cloudflare, GitHub, healthchecks.io, Authentik, Headscale)
 - **invoke** (`tasks.py`) — 관리 작업 자동화
 
 ## 호스트별 서비스 배치
@@ -13,7 +13,7 @@
 ```mermaid
 graph LR
   eta["<b>eta</b><br/>게이트웨이 · 인증<br/>nginx · Authentik · Headscale · Upterm"]
-  psi["<b>psi</b><br/>GPU · CI/CD<br/>Nixbot · Nixbot DB · Ollama · Docling"]
+  psi["<b>psi</b><br/>GPU · CI/CD<br/>Nixbot · Nixbot DB · Docling · TEI · MULTI-evolve"]
   rho["<b>rho</b><br/>DB · 모니터링 · S3 미러<br/>PostgreSQL · Grafana · Loki · RustFS"]
   tau["<b>tau</b><br/>앱 · 백업<br/>Nextcloud · n8n · RustFS"]
 
@@ -25,10 +25,10 @@ graph LR
 
 | 호스트 | 위치 | 주요 서비스 |
 |--------|------|------------|
-| **eta** | Vultr VPS | nginx 리버스 프록시, Authentik SSO, Headscale VPN, Vaultwarden, Gatus, Upterm relay, Harmonia, ACME 인증서 |
-| **psi** | KREN 베어메탈 | Nixbot+PostgreSQL+nginx/TLS, Ollama, Docling (GPU), Apptainer, db-sync, 16TB NVMe + 60TB HDD |
+| **eta** | Vultr VPS | nginx 리버스 프록시, Authentik SSO, Headscale VPN, Vaultwarden, Gatus, Upterm relay, ACME 인증서 |
+| **psi** | KREN 베어메탈 | Nixbot+PostgreSQL+nginx/TLS, Docling (GPU), TEI, MULTI-evolve, Apptainer, db-sync, Harmonia, 16TB NVMe + 60TB HDD |
 | **rho** | 랩 내부 베어메탈 | PostgreSQL (프라이머리), Grafana, Prometheus, Loki, Vector, S3 백업 미러 |
-| **tau** | 랩 내부 베어메탈 | Nextcloud, Collabora, n8n, PostgreSQL (레플리카), S3 primary 백업 저장소 |
+| **tau** | 랩 내부 베어메탈 | Nextcloud, Collabora, n8n, Vaultwarden tailnet proxy, PostgreSQL (레플리카), S3 primary 백업 저장소 |
 
 호스트별 IP, 네트워크 위치, 방화벽 정책은 [네트워크](network.md)를 참조하세요.
 
@@ -57,6 +57,6 @@ modules/               # 서비스 모듈
 ├── users/             # 사용자 관리
 ├── <service>/         # 서비스별 모듈 + secrets.yaml
 └── ...
-terraform/             # Cloudflare DNS, GitHub 리소스
+terraform/             # Cloudflare, GitHub, Authentik, Headscale, healthchecks.io 리소스
 tasks.py               # invoke 관리 명령어
 ```

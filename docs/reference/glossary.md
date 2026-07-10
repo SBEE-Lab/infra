@@ -24,14 +24,16 @@
 | **invoke** | Python 태스크 러너 (`tasks.py`) |
 | **Magic DNS** | Tailscale/Headscale의 자동 DNS 해석 기능 |
 | **MCP** | Model Context Protocol. AI 도구가 외부 서비스와 통신하는 프로토콜 |
+| **MULTI-evolve** | 연구자용 GPU 기반 Streamlit 애플리케이션 |
 | **n8n** | 노코드 워크플로우 자동화 플랫폼 |
 | **Nextcloud** | 자체 호스팅 파일 동기화, 캘린더, 문서 협업 플랫폼 |
 | **NixOS** | 선언적 Linux 배포판 |
 | **nix-ld** | NixOS에서 동적 링크 라이브러리를 제공하는 호환성 레이어 |
 | **OIDC** | OpenID Connect. OAuth 2.0 기반 인증 프로토콜 |
-| **Ollama** | 로컬 LLM 추론 서버. OpenAI 호환 API 제공 |
+| **Ollama** | 로컬 LLM 추론 서버. 현재 운영 배포에서는 비활성 |
 | **sops-nix** | NixOS에서 sops 암호화 시크릿을 관리하는 도구 |
 | **Tailscale** | WireGuard 기반 메시 VPN 클라이언트 |
+| **TEI** | Text Embeddings Inference. 임베딩/리랭킹 모델 서빙 API |
 | **treefmt-nix** | Nix 기반 다중 언어 코드 포매터 통합 도구 |
 | **Vaultwarden** | Bitwarden 호환 자체 호스팅 비밀번호 관리자 |
 | **Vector** | 로그/메트릭 수집 및 전송 에이전트 |

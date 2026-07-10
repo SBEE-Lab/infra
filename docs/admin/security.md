@@ -144,11 +144,10 @@ root의 `authorized_keys`에는 관리자 키만 등록됩니다 (`modules/users
 | 비밀 파일 | 접근 가능 키 | 내용 |
 |----------|------------|------|
 | `hosts/<host>.yaml` | 해당 호스트 + admin | root 비밀번호 해시, WireGuard 키 |
+| `hosts/rho.yaml`, `hosts/tau.yaml` | 해당 호스트 | RustFS root credential, host-local backup passwords, PostgreSQL 사용자/복제 암호 |
 | `modules/acme/secrets.yaml` | eta, psi, tau | Cloudflare API 인증 |
-| `hosts/rho.yaml`, `hosts/tau.yaml` | 해당 호스트 | RustFS root access key/secret key (bootstrap, break-glass 전용), host-local backup passwords |
 | `modules/buildbot/secrets.yaml` | psi | Nixbot GitHub App/OAuth 시크릿 |
 | `modules/authentik/secrets.yaml` | eta | OIDC 클라이언트 시크릿 |
-| `modules/postgresql/secrets.yaml` | rho, tau | DB 사용자 암호 |
 
 ### 비밀 편집
 
@@ -173,8 +172,9 @@ sops updatekeys hosts/psi.yaml
 | `hs.sjanglab.org` | eta | eta |
 | `cloud.sjanglab.org` | eta | tau (동기화) |
 | `n8n.sjanglab.org` | eta | tau (동기화) |
-| `ollama.sjanglab.org` | eta | psi (동기화) |
 | `docling.sjanglab.org` | eta | psi (동기화) |
+| `tei.sjanglab.org` | eta | psi (동기화) |
+| `multievolve.sjanglab.org` | eta | psi (동기화) |
 | `buildbot.sjanglab.org` | eta, psi | eta (public edge), psi (service stack) |
 | `upterm.sjanglab.org` | eta | eta |
 

@@ -130,7 +130,7 @@ Authentik은 웹 서비스(Nextcloud, Vaultwarden, n8n)의 SSO 인증과 Headsca
 | Authentik 그룹 | Headscale ACL 접근 | 서비스 |
 |----------------|-------------------|--------|
 | `sjanglab-admins` | `tag:ai` + `tag:apps` + `tag:monitoring` | 전체 |
-| `sjanglab-researchers` | `tag:ai` + `tag:apps` | Nextcloud, Vaultwarden, Ollama, Docling |
+| `sjanglab-researchers` | `tag:ai` + `tag:apps` | Nextcloud, Vaultwarden, n8n, Docling, TEI, MULTI-evolve |
 | `sjanglab-students` | `tag:apps` | Nextcloud, Vaultwarden |
 
 > Vaultwarden은 공개 서비스(VPN 불필요)이므로 Headscale ACL과 무관하게 Authentik 계정만으로 접근 가능합니다.

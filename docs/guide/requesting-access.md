@@ -15,7 +15,7 @@
 | 역할 | 사용 가능한 서비스 |
 |------|-------------------|
 | **관리자** | 전체 서비스 |
-| **연구원** | Nextcloud, Vaultwarden, Ollama, Docling |
+| **연구원** | Nextcloud, Vaultwarden, n8n, Docling, TEI, MULTI-evolve |
 | **학생** | Nextcloud, Vaultwarden |
 
 ## 계정 생성 후
