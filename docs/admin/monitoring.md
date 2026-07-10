@@ -105,10 +105,10 @@ eta의 Vector가 journald에서 수집해 이벤트를 분류합니다 (`modules
 
 ### Alert delivery bootstrap
 
-Slack 앱 설정은 `modules/monitoring/alerts/slack-app-manifest.json`이 source of truth입니다. `modules/monitoring/alerts` 디렉터리에서 direnv를 허용하면 Slack CLI가 포함된 `slack-deploy` shell에 들어갑니다:
+Slack 앱 설정은 `modules/monitoring/alerts/slack-app/slack-app-manifest.json`이 source of truth입니다. `modules/monitoring/alerts/slack-app` 디렉터리에서 direnv를 허용하면 Slack CLI가 포함된 `slack-deploy` shell에 들어갑니다:
 
 ```bash
-cd modules/monitoring/alerts
+cd modules/monitoring/alerts/slack-app
 direnv allow
 ```
 
@@ -117,8 +117,9 @@ direnv allow
 - Slack app/bot/scope: manifest JSON으로 선언하고 Slack CLI가 `.slack/hooks.json`을 통해 app을 생성/업데이트합니다.
 - Slack app install: Slack CLI로 app을 install하고, 필요하면 admin OAuth 승인을 완료합니다.
 - Slack channel: workspace resource라 수동으로 준비합니다 (`#infra-alerts`, `#infra-audit`).
-- Slack webhook URL: channel-bound secret이라 Slack admin이 생성하고 SOPS에 저장합니다.
-- healthchecks.io Watchdog check: `terraform/healthchecksio`에서 관리하고, sensitive `ping_url` output을 SOPS에 수동 저장합니다. healthchecks.io Slack integration은 UI에서 1회 생성하고 Terraform이 check에 연결합니다.
+- Slack bot token: external alert bridge가 `chat:write`로 메시지를 생성/수정할 때 사용합니다. CI에 넣지 않습니다.
+- Slack webhook URL: bridge migration 동안만 유지되는 channel-bound secret입니다.
+- healthchecks.io Watchdog check: `terraform/healthchecksio`에서 관리하고, sensitive `ping_url` output을 SOPS에 수동 저장합니다. healthchecks.io Slack integration은 bridge migration 동안 유지합니다.
 - CI: manifest JSON syntax 검증만 합니다. Slack token이나 webhook URL을 CI에 넣지 않습니다.
 
 필요한 SOPS keys:
@@ -129,7 +130,7 @@ alertmanager-slack-infra-audit-webhook: ENC[...]
 alertmanager-healthchecks-ping-url: ENC[...]
 ```
 
-자세한 Slack bootstrap/drift check 절차는 `modules/monitoring/alerts/README.md`를 봅니다.
+자세한 Slack bootstrap/drift check 절차는 `modules/monitoring/alerts/slack-app/README.md`를 봅니다.
 
 ### Loki (rho)
 
