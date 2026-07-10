@@ -9,6 +9,7 @@ __pycache__/
 .terraform*
 *.tfstate*
 terraform.tf
+terraform/alert-bridge/worker.auto.tfvars.json
 
 .DS_Store
 
