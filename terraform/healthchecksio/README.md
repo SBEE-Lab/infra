@@ -9,7 +9,7 @@ Managed checks:
 
 ## Secrets
 
-Replace the placeholder `HEALTHCHECKSIO_API_KEY` in `secrets.yaml` before running Terragrunt:
+Set `HEALTHCHECKSIO_API_KEY` in `secrets.yaml` before running Terragrunt:
 
 ```bash
 sops secrets.yaml
