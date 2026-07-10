@@ -103,8 +103,6 @@ def docs(c: Any, port: int = 8000) -> None:
 
     print(f"\nStarting HTTP server on port {port}...")
     print(f"Documentation available at: http://localhost:{port}/")
-    print(f"  - Korean (default): http://localhost:{port}/")
-    print(f"  - English: http://localhost:{port}/en/")
     print("\nPress Ctrl+C to stop the server\n")
 
     c.run(f"python3 -m http.server {port} --directory result")
@@ -116,14 +114,13 @@ def docs_linkcheck(c: Any, online: bool = False) -> None:
     Run documentation link checker
     Use --online flag to check external links (default: local only)
     """
+    current_system = "$(nix eval --raw --impure --expr builtins.currentSystem)"
     if online:
-        print("Running online link checker (checks external links)...")
-        c.run("nix run .#docs-linkcheck.online")
+        print("Running online link checker (checks internal and external links)...")
+        c.run(f"nix run .#checks.{current_system}.docs-linkcheck.online")
     else:
-        print("Running local link checker...")
-        print("Note: Some errors about absolute paths (/infra/) are expected")
-        print("      These will work when deployed to GitHub Pages")
-        c.run("nix run .#docs-linkcheck")
+        print("Running local link checker (offline, internal links only)...")
+        c.run(f"nix build .#checks.{current_system}.docs-linkcheck --no-link")
 
 
 @task
