@@ -104,6 +104,30 @@ eta의 Vector가 journald에서 수집해 이벤트를 분류합니다 (`modules
 - Alert delivery: Alertmanager routes operational alerts to Slack `#infra-alerts`, audit alerts to `#infra-audit`, and the always-firing `Watchdog` to healthchecks.io. healthchecks.io then notifies Slack `#infra-alerts` through its integration if the Watchdog stops pinging.
 - Alert bridge: Cloudflare Worker/D1 bridge is deployed separately and has its own healthchecks.io heartbeat. Alertmanager/healthchecks.io traffic still uses legacy Slack paths until explicit cutover.
 
+### Alert response runbook
+
+공통 절차:
+
+1. Slack alert의 `host`, `service`, `alert_category`, `dashboard_url`, `runbook_url`를 확인합니다.
+1. Grafana dashboard에서 같은 시간대의 metrics/logs를 확인합니다.
+1. 서비스 단위 장애면 `systemctl status <unit>`와 `journalctl -u <unit> -e`를 먼저 확인합니다.
+1. 사용자 영향이 있으면 `#infra-alerts`에 조사 시작/완료 시간을 남깁니다.
+1. 원인을 모르면 silence하지 않습니다. 노이즈성 반복일 때만 만료 시간이 있는 silence를 설정합니다.
+
+대표 alert별 1차 확인:
+
+| Alert | 1차 확인 | 다음 조치 |
+|-------|----------|----------|
+| `HostMetricsMissing` | `systemctl status vector`, 네트워크, rho Prometheus target | Vector 재시작 또는 wg-admin 연결 복구 |
+| `DiskSpaceLow` / `DiskSpaceCritical` | `df -h`, `du -xhd1 <mount>` | GC, 오래된 workspace 정리, 백업 저장소 용량 증설 |
+| `GatusEndpointDown` | Gatus endpoint와 해당 push unit journal | 서비스 health push unit 재시작 |
+| `BlackboxProbeFailed` | eta blackbox exporter, DNS, nginx 인증서 | ACME/프록시/방화벽 확인 |
+| `BackupJobFailed` / `BackupJobStale` | `log_type="systemd_status"`, 대상 timer/service | 백업 unit 수정 후 수동 실행 |
+| `AuditJobFailed` | `log_type="systemd_status"`, 대상 audit timer/service | 감사 수집 unit 복구 후 누락 구간 확인 |
+| `Watchdog` 미수신 | Alertmanager, healthchecks.io ping URL, 네트워크 | Alertmanager 복구. bridge 장애와 분리 확인 |
+
+감사 alert는 `#infra-audit`에 도착합니다. 사용자명, source IP, app/node 정보를 기록하고 계정 탈취 가능성이 있으면 Authentik 계정 비활성화와 Headscale ACL apply를 우선합니다.
+
 ### Alert delivery bootstrap
 
 Slack 앱 설정은 `modules/monitoring/alerts/slack-app/slack-app-manifest.json`이 source of truth입니다. `modules/monitoring/alerts/slack-app` 디렉터리에서 direnv를 허용하면 Slack CLI가 포함된 `slack-deploy` shell에 들어갑니다:
