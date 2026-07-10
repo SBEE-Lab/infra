@@ -112,6 +112,7 @@ in
       warningFor ? "10m",
       criticalFor ? "5m",
       summaryPrefix ? alertPrefix,
+      annotations ? { },
     }:
     let
       hostsRe = hostRegex hosts;
@@ -122,7 +123,7 @@ in
         labels = freshnessLabels // {
           inherit host;
         };
-        annotations = {
+        annotations = annotations // {
           summary = "${summaryPrefix} metrics missing";
           description = "${host}: no ${mountpoint} filesystem metrics received for ${freshnessWindow}";
         };
@@ -140,7 +141,7 @@ in
         '';
         for = warningFor;
         labels = warningLabels;
-        annotations = {
+        annotations = annotations // {
           summary = "${summaryPrefix} low on space";
           description = "{{ $labels.host }}: {{ $value | humanize }}% free on ${mountpoint}";
         };
@@ -156,7 +157,7 @@ in
         '';
         for = criticalFor;
         labels = criticalLabels;
-        annotations = {
+        annotations = annotations // {
           summary = "${summaryPrefix} critically low on space";
           description = "{{ $labels.host }}: {{ $value | humanize }}% free on ${mountpoint}";
         };
