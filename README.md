@@ -1,31 +1,31 @@
 # SBEE Laboratory Infrastructure
 
-NixOS-based infrastructure for bioinformatics research with 3-server setup optimized for GPU computation, development, and data management.
+NixOS-based infrastructure for bioinformatics research with four servers optimized for GPU computation, development, service hosting, and data management.
 
 ## Infrastructure Overview
 
 ### Server Roles
 
-| Server  | Role                         | Key Services                                    | Hardware                                                                     |
-| ------- | ---------------------------- | ----------------------------------------------- | ---------------------------------------------------------------------------- |
-| **PSI** | GPU/CPU Research Computation | CUDA workloads, Bioinformatics DBs, Nix Builder | Ryzen Threadripper PRO 5965WX (24 Core), RTX A6000 48GB, 128GB RAM, 4TB NVMe |
-| **RHO** | Storage/Build                | RustFS S3 backup mirror, CI/CD                  | Ryzen 9600X (6 Core), 32GB RAM, 2TB NVMe + 4TB HDD                           |
-| **TAU** | Storage/Backup               | RustFS S3 primary backup store, Backups         | Ryzen 9600X (6 Core), 32GB RAM, 2TB NVMe + 4TB HDD                           |
-| **ETA** | VPS/Hosting                  | Gateway, Auth, Upterm relay                     | EPYC-Rome (2 Core), 4GB RAM, 100Gb NVMe, 5TB Bandwidth                        |
+| Server  | Role                         | Key Services                                             | Hardware                                                                     |
+| ------- | ---------------------------- | -------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| **PSI** | GPU/CPU Research Computation | Nixbot CI, CUDA workloads, Docling, TEI, Bioinformatics DBs | Ryzen Threadripper PRO 5965WX (24 Core), RTX A6000 48GB, 128GB RAM, 4TB NVMe root + 16TB NVMe workspace + 60TB HDD data |
+| **RHO** | DB/Monitoring/Backup Mirror  | PostgreSQL primary, Grafana, Prometheus, Loki, RustFS S3 mirror | Ryzen 9600X (6 Core), 32GB RAM, 2TB NVMe + 4TB HDD RAID0                     |
+| **TAU** | Apps/Backup Primary          | Nextcloud, n8n, Vaultwarden reverse proxy, RustFS S3 primary | Ryzen 9600X (6 Core), 32GB RAM, 2TB NVMe + 4TB HDD RAID0                     |
+| **ETA** | VPS/Gateway                  | Public edge, Authentik, Headscale, Vaultwarden, Gatus, Upterm relay | EPYC-Rome (2 Core), 4GB RAM, 100GB NVMe, 5TB Bandwidth                       |
 
 ### User Groups
 
 - **admin**: Full system administration access (e.g., infra manager, currently @mulatta)
 - **researcher**: GPU access, bioinformatics tools, data analysis (e.g., graduates)
-- **student**: Basi development environments (e.g., undergraduate)
+- **student**: Basic app access and limited development environments (e.g., undergraduate)
 
 ## Quick Start
 
 ### Prerequisites
 
-- NixOS 24.11+ with flakes enabled
+- Nix with flakes enabled on the administrator workstation
 
-### Deployment
+### Development shell
 
 ```bash
 # Clone the repository
@@ -39,12 +39,12 @@ nix develop
 direnv allow
 ```
 
-### Deployment
+### Operations
 
-use `invoke`
+Use `invoke`
 
-```python
-❯ inv -l
+```text
+$ inv -l
 Available tasks:
 
   add-server                       Generate new server keys and configurations for a given hostname and hardware config

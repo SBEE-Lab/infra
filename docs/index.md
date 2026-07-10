@@ -15,8 +15,9 @@ SBEE Lab의 NixOS 기반 연구 인프라 문서입니다.
 | Nextcloud | [cloud.sjanglab.org](https://cloud.sjanglab.org) | 파일, 캘린더, 문서 협업 | VPN 필수 |
 | Vaultwarden | [vault.sjanglab.org](https://vault.sjanglab.org) | 비밀번호 관리 | 공개 |
 | n8n | [n8n.sjanglab.org](https://n8n.sjanglab.org) | 워크플로우 자동화 | VPN 필수 |
-| Ollama | [ollama.sjanglab.org](https://ollama.sjanglab.org) | LLM API | VPN 필수 |
 | Docling | [docling.sjanglab.org](https://docling.sjanglab.org) | 문서 변환 | VPN 필수 |
+| TEI | [tei.sjanglab.org](https://tei.sjanglab.org) | 임베딩/리랭킹 API | VPN 필수 |
+| MULTI-evolve | [multievolve.sjanglab.org](https://multievolve.sjanglab.org) | 연구자용 Streamlit UI | VPN 필수 |
 | Upterm | [upterm.sjanglab.org](https://upterm.sjanglab.org) | 임시 터미널 공유 | 공개 relay |
 
 ## 어떤 가이드를 봐야 하나요?
@@ -24,7 +25,7 @@ SBEE Lab의 NixOS 기반 연구 인프라 문서입니다.
 | 역할 | 가이드 | 설명 |
 |------|--------|------|
 | **일반 사용자** | [사용자 가이드](guide/index.md) | VPN 설정, 웹 서비스 사용법 |
-| **개발자/연구원** | [개발자 가이드](dev/index.md) | SSH 접속, GPU 컴퓨팅, 컨테이너, 생물정보 DB |
+| **개발자/연구원** | [개발자 가이드](dev/index.md) | SSH 접속, GPU 컴퓨팅, 컨테이너, 생물정보 DB, AI API |
 | **관리자** | [관리자 가이드](admin/index.md) | 배포, 모니터링, 사용자 관리, 네트워크 |
 
 ## 문서 구조

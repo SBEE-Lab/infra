@@ -35,4 +35,4 @@ docker run --rm --gpus all -it \
 
 - GPU 자원은 공유됩니다. 장시간 점유 시 다른 사용자와 조율하세요.
 - 대용량 데이터는 `/workspace/<username>/`에 저장합니다 (SSD RAID0, 고속).
-- Ollama 서비스도 GPU를 사용하므로 VRAM 사용량에 주의하세요.
+- Docling, TEI, MULTI-evolve 서비스도 GPU를 사용하므로 VRAM 사용량에 주의하세요.
