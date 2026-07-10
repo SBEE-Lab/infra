@@ -1,7 +1,11 @@
 # healthchecks.io
 
-This Terraform module owns the `rho-alertmanager-watchdog` check used by the
-Alertmanager dead-man route and attaches the project Slack notification channel.
+This Terraform module owns infra dead-man checks and attaches the project Slack notification channel.
+
+Managed checks:
+
+- `rho-alertmanager-watchdog`: Prometheus → Alertmanager watchdog ping.
+- `infra-alert-bridge-heartbeat`: Cloudflare Worker bridge cron heartbeat.
 
 ## Secrets
 
@@ -33,18 +37,24 @@ terragrunt plan
 terragrunt apply
 ```
 
-After apply, copy the ping URL into the monitoring SOPS file:
+After apply, copy ping URLs into the matching SOPS files:
 
 ```bash
 terragrunt output -raw rho_alertmanager_watchdog_ping_url
-sops modules/monitoring/secrets.yaml
+sops ../../modules/monitoring/secrets.yaml
+
+terragrunt output -raw infra_alert_bridge_heartbeat_ping_url
+sops ../alert-bridge/secrets.yaml
 ```
 
-Store it as:
+Store them as:
 
 ```yaml
+# modules/monitoring/secrets.yaml
 alertmanager-healthchecks-ping-url: ENC[...]
+
+# terraform/alert-bridge/secrets.yaml
+BRIDGE_HEARTBEAT_PING_URL: ENC[...]
 ```
 
-Do not automate Terraform-to-SOPS writes from this module. The ping URL is a
-secret: anyone who has it can send false healthy pings.
+Do not automate Terraform-to-SOPS writes from this module. Ping URLs are secrets: anyone who has one can send false healthy pings.

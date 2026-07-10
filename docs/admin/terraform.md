@@ -1,6 +1,6 @@
 # Terraform
 
-외부 리소스(Cloudflare DNS, GitHub, healthchecks.io), Authentik 애플리케이션 정책, Headscale ACL policy를 코드로 관리합니다.
+외부 리소스(Cloudflare DNS/Workers/D1, GitHub, healthchecks.io), Authentik 애플리케이션 정책, Headscale ACL policy를 코드로 관리합니다.
 
 ## 백엔드
 
@@ -9,9 +9,10 @@ PostgreSQL을 Terraform state 백엔드로 사용합니다. SSH 터널을 통해
 ```bash
 # 터널은 자동 생성됨 (terraform/tunnel.sh)
 cd terraform/<module>
-terraform init
-terraform plan
-terraform apply
+direnv allow ..
+terragrunt init
+terragrunt plan
+terragrunt apply
 ```
 
 ## 관리 리소스
@@ -62,7 +63,12 @@ terragrunt apply
 
 ### healthchecks.io
 
-`terraform/healthchecksio`는 rho Alertmanager dead-man switch용 `rho-alertmanager-watchdog` check를 관리하고 healthchecks.io Slack integration을 check에 연결합니다. healthchecks.io API key는 `terraform/healthchecksio/secrets.yaml`의 `HEALTHCHECKSIO_API_KEY`로 전달합니다. Slack integration 자체는 healthchecks.io UI에서 `#infra-alerts`로 먼저 생성합니다.
+`terraform/healthchecksio`는 dead-man switch check를 관리하고 healthchecks.io Slack integration을 check에 연결합니다. healthchecks.io API key는 `terraform/healthchecksio/secrets.yaml`의 `HEALTHCHECKSIO_API_KEY`로 전달합니다. Slack integration 자체는 healthchecks.io UI에서 `#infra-alerts`로 먼저 생성합니다.
+
+| Check | 용도 | Ping URL 저장 위치 |
+|-------|------|-------------------|
+| `rho-alertmanager-watchdog` | Alertmanager Watchdog alert 수신 확인 | `modules/monitoring/secrets.yaml`의 `alertmanager-healthchecks-ping-url` |
+| `infra-alert-bridge-heartbeat` | Cloudflare Worker bridge cron heartbeat | `terraform/alert-bridge/secrets.yaml`의 `BRIDGE_HEARTBEAT_PING_URL` |
 
 ```bash
 cd terraform/healthchecksio
@@ -71,9 +77,24 @@ terragrunt init
 terragrunt plan
 terragrunt apply
 terragrunt output -raw rho_alertmanager_watchdog_ping_url
+terragrunt output -raw infra_alert_bridge_heartbeat_ping_url
 ```
 
-`ping_url`은 secret입니다. Terraform output을 확인한 뒤 `modules/monitoring/secrets.yaml`의 `alertmanager-healthchecks-ping-url`에 수동으로 저장합니다. Terraform apply가 SOPS 파일을 수정하지 않습니다.
+`ping_url`은 secret입니다. Terraform output을 확인한 뒤 대상 SOPS 파일에 수동으로 저장합니다. Terraform apply가 SOPS 파일을 수정하지 않습니다.
+
+### Alert bridge (Cloudflare Worker/D1)
+
+`terraform/alert-bridge`는 Slack alert bridge Cloudflare Worker, D1 database, Worker secrets, cron trigger를 관리합니다. Worker bundle은 Terragrunt hook이 `.#infra-alert-bridge` Nix package로 빌드한 결과를 업로드합니다.
+
+```bash
+cd terraform/alert-bridge
+direnv allow ..
+terragrunt init
+terragrunt plan
+terragrunt apply
+```
+
+Terraform provider는 D1 database를 생성하지만 SQL migration은 적용하지 않습니다. apply 후 `packages/infra-alert-bridge`에서 D1 migration을 실행한 뒤 Alertmanager/healthchecks.io webhook을 bridge endpoint로 전환합니다.
 
 ### GitHub
 
