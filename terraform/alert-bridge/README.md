@@ -12,10 +12,9 @@ This module manages:
 
 ## Secrets
 
-Create `secrets.yaml` from `secrets.example.yaml` and encrypt it with SOPS:
+Create or edit `secrets.yaml` with SOPS:
 
 ```bash
-cp secrets.example.yaml secrets.yaml
 sops secrets.yaml
 ```
 
@@ -59,7 +58,16 @@ The Terraform provider creates the D1 database but does not apply SQL migrations
 
 ```bash
 cd ../../packages/infra-alert-bridge
+nix shell nixpkgs#nodejs -c npm ci
 nix shell nixpkgs#nodejs -c npx wrangler d1 migrations apply infra-alert-bridge
 ```
 
 Run migrations before routing Alertmanager or healthchecks.io traffic to the Worker.
+
+## Cutover
+
+1. Verify `GET /healthz` on the Worker URL.
+2. Point Alertmanager to `POST /alertmanager` and send `Authorization: Bearer $ALERTMANAGER_WEBHOOK_TOKEN`.
+3. Point healthchecks.io webhooks to `POST /healthchecks` and send `Authorization: Bearer $HEALTHCHECKS_WEBHOOK_TOKEN`.
+4. Keep legacy Slack incoming webhooks configured until bridge posts and updates messages successfully.
+5. Remove legacy webhook secrets and Slack `incoming-webhook` scope after the rollback window.

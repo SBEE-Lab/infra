@@ -102,6 +102,7 @@ eta의 Vector가 journald에서 수집해 이벤트를 분류합니다 (`modules
   - `nvidia-gpu`: psi GPU exporter
 - Alert rules: 호스트 메트릭 freshness, 디스크 부족/심각 부족, 메모리 부족, 높은 CPU, generic scrape target down, Gatus non-app heartbeat down, blackbox exporter down, blackbox probe failed, GPU exporter down, Watchdog dead-man
 - Alert delivery: Alertmanager routes operational alerts to Slack `#infra-alerts`, audit alerts to `#infra-audit`, and the always-firing `Watchdog` to healthchecks.io. healthchecks.io then notifies Slack `#infra-alerts` through its integration if the Watchdog stops pinging.
+- Alert bridge: Cloudflare Worker/D1 bridge is deployed separately and has its own healthchecks.io heartbeat. Alertmanager/healthchecks.io traffic still uses legacy Slack paths until explicit cutover.
 
 ### Alert delivery bootstrap
 
@@ -119,7 +120,8 @@ direnv allow
 - Slack channel: workspace resource라 수동으로 준비합니다 (`#infra-alerts`, `#infra-audit`).
 - Slack bot token: external alert bridge가 `chat:write`로 메시지를 생성/수정할 때 사용합니다. CI에 넣지 않습니다.
 - Slack webhook URL: bridge migration 동안만 유지되는 channel-bound secret입니다.
-- healthchecks.io Watchdog check: `terraform/healthchecksio`에서 관리하고, sensitive `ping_url` output을 SOPS에 수동 저장합니다. healthchecks.io Slack integration은 bridge migration 동안 유지합니다.
+- healthchecks.io checks: `terraform/healthchecksio`에서 `rho-alertmanager-watchdog`와 `infra-alert-bridge-heartbeat`를 관리하고, sensitive `ping_url` output을 SOPS에 수동 저장합니다. healthchecks.io Slack integration은 bridge migration 동안 유지합니다.
+- Alert bridge: `terraform/alert-bridge`가 Cloudflare Worker/D1/secret binding/cron을 관리합니다. D1 migration은 Worker 배포 후 수동으로 실행합니다.
 - CI: manifest JSON syntax 검증만 합니다. Slack token이나 webhook URL을 CI에 넣지 않습니다.
 
 필요한 SOPS keys:
@@ -131,6 +133,21 @@ alertmanager-healthchecks-ping-url: ENC[...]
 ```
 
 자세한 Slack bootstrap/drift check 절차는 `modules/monitoring/alerts/slack-app/README.md`를 봅니다.
+
+### Alert bridge cutover
+
+현재 운영 경로는 legacy Slack incoming webhook입니다. Bridge로 전환할 때만 아래 절차를 진행합니다.
+
+1. `terraform/alert-bridge` apply 완료 확인
+1. `packages/infra-alert-bridge`에서 D1 migration 실행
+1. Worker `GET /healthz`와 cron heartbeat 확인
+1. Alertmanager receiver를 bridge `POST /alertmanager`로 변경하고 bearer token 설정
+1. healthchecks.io webhook integration을 bridge `POST /healthchecks`로 변경하고 bearer token 설정
+1. `#infra-alerts`, `#infra-audit`에 firing/resolved/update 메시지가 정상 생성되는지 확인
+1. rollback window 동안 legacy Slack webhook secret 유지
+1. 안정화 후 `incoming-webhook` Slack scope와 webhook SOPS key 제거
+
+Rollback은 Alertmanager receiver와 healthchecks.io integration을 legacy Slack 경로로 되돌리는 방식으로 수행합니다. Worker 장애가 Watchdog ping 자체를 막지 않도록 `rho-alertmanager-watchdog`은 healthchecks.io로 직접 ping합니다.
 
 ### Loki (rho)
 
