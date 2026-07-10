@@ -1,5 +1,6 @@
 {
   config,
+  inputs,
   lib,
   pkgs,
   ...
@@ -10,6 +11,7 @@ let
   collaboraPort = 9980;
   whiteboardPort = 3002;
   certDir = "/var/lib/acme/${domain}";
+  rhwp-viewer = inputs.rhwp-nextcloud.packages.${pkgs.stdenv.hostPlatform.system}.rhwp-viewer;
   oidcProvider = {
     identifier = "authentik";
     clientId = "4GdFUqIaLHa3Hx5VnMul6RU8iaJG8GqtUHXHjfqo";
@@ -82,6 +84,8 @@ in
         richdocuments
         groupfolders
         ;
+
+      rhwpviewer = rhwp-viewer;
     };
 
     phpOptions = {

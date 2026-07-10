@@ -77,6 +77,13 @@
       url = "github:rustfs/rustfs";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    rhwp-nextcloud = {
+      url = "github:mulatta/rhwp-nextcloud";
+      inputs.flake-parts.follows = "flake-parts";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.treefmt-nix.follows = "treefmt-nix";
+    };
   };
 
   outputs =
