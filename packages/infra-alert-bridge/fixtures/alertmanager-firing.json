@@ -1,0 +1,27 @@
+{
+  "receiver": "infra-alerts",
+  "status": "firing",
+  "externalURL": "https://logging.sjanglab.org/alertmanager",
+  "alerts": [
+    {
+      "status": "firing",
+      "labels": {
+        "alertname": "PrometheusTargetDown",
+        "severity": "critical",
+        "job": "restic",
+        "instance": "10.100.0.2:9753",
+        "host": "rho"
+      },
+      "annotations": {
+        "summary": "Prometheus target down",
+        "description": "restic target 10.100.0.2:9753 is down",
+        "dashboard_url": "https://logging.sjanglab.org/d/sjanglab-hosts/sjanglab-hosts?orgId=1",
+        "runbook_url": "https://github.com/SBEE-Lab/infra/blob/main/docs/admin/monitoring.md#prometheus-rho"
+      },
+      "startsAt": "2026-07-09T00:45:00Z",
+      "endsAt": "0001-01-01T00:00:00Z",
+      "generatorURL": "https://prometheus.sjanglab.org/graph?g0.expr=up%7Bjob%3D%22restic%22%7D%20%3D%3D%200",
+      "fingerprint": "prometheus-target-down-restic"
+    }
+  ]
+}

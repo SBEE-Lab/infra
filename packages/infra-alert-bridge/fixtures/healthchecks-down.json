@@ -1,0 +1,6 @@
+{
+  "uuid": "rho-alertmanager-watchdog",
+  "name": "rho-alertmanager-watchdog",
+  "status": "down",
+  "desc": "Dead-man switch for rho Prometheus -> Alertmanager -> healthchecks.io"
+}
