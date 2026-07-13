@@ -27,9 +27,6 @@ in
     mode = "0400";
   };
 
-  # Allow nix-daemon to read store for harmonia
-  nix.settings.allowed-users = [ "harmonia" ];
-
   # Open firewall on wireguard interface
   networking.firewall.interfaces.wg-admin.allowedTCPPorts = [ port ];
 }
