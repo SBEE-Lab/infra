@@ -1,12 +1,68 @@
 # Nix 개발 환경
 
-SBEE Lab 서버에는 Nix와 flakes가 미리 활성화되어 있으므로 SSH 사용자가 별도로 설치할 필요가 없습니다. 모든 로컬 계정은 Nix daemon을 통해 `nix shell`, `nix run`, `nix develop`을 사용할 수 있으며, privileged daemon 기능은 관리자에게만 허용됩니다.
+Nix는 프로젝트에 필요한 도구와 라이브러리를 선언하고 같은 환경을 다시 만드는 패키지 관리자입니다. SBEE Lab 서버와 개인 머신에서 모두 사용할 수 있지만 목적이 다릅니다.
+
+## 실행 위치 선택
+
+| 환경 | 적합한 작업 | 준비 |
+|------|-------------|------|
+| SBEE Lab 서버 | GPU, 대용량 데이터, 생물정보 DB를 사용하는 작업 | SSH 접속. Nix 설치 불필요 |
+| 개인 Linux/macOS | 로컬 편집, 테스트, 재현 가능한 개발 환경 | Nix 설치 |
+| Windows | WSL2 안에서 로컬 개발 | WSL2에 Nix 설치 |
+
+개인 머신의 Nix는 SSH를 대체하지 않습니다. 서버 자원이 필요한 작업은 SSH로 실행하고, 같은 프로젝트의 가벼운 편집과 테스트는 로컬 devShell에서 수행할 수 있습니다.
+
+## 개인 머신에 Nix 설치 { #local-nix-install }
+
+Linux와 macOS에서는 [Nix 공식 다운로드 페이지](https://nixos.org/download/)의 multi-user 설치 절차를 사용합니다. Windows에서는 먼저 WSL2를 설치한 뒤 Linux용 절차를 WSL2 안에서 실행합니다.
+
+설치 확인:
+
+```bash
+nix --version
+```
+
+`nix run`이나 `nix develop`에서 experimental feature 오류가 나오면 사용자 설정을 만듭니다:
+
+```bash
+mkdir -p ~/.config/nix
+$EDITOR ~/.config/nix/nix.conf
+```
+
+```ini
+experimental-features = nix-command flakes
+```
+
+기본 실행 확인:
+
+```bash
+nix run nixpkgs#hello
+```
+
+인프라 저장소에 기여하려면 이 설치가 필수입니다. 서버만 사용하는 연구원에게는 개인 머신 설치가 선택 사항입니다.
+
+## SBEE Lab 서버에서 사용
+
+서버에는 Nix와 flakes가 활성화되어 있습니다. SSH 로그인 후 바로 사용할 수 있습니다:
+
+```bash
+nix --version
+nix run nixpkgs#hello
+```
+
+모든 로컬 계정은 Nix daemon을 통해 일반 build와 `nix shell`, `nix run`, `nix develop`을 실행할 수 있습니다. 임의 substituter나 서명되지 않은 store path를 허용하는 trusted 권한은 관리자에게만 있습니다. Nix 권한은 SSH 로그인이나 다른 호스트 접근 권한을 추가하지 않습니다.
 
 ## 패키지 사용
 
-### 임시 사용 (nix shell)
+### 프로그램 즉시 실행
 
-설치 없이 일시적으로 패키지를 사용합니다. 셸을 종료하면 사라집니다.
+```bash
+nix run nixpkgs#cowsay -- "hello"
+```
+
+`nix run`은 flake가 제공하는 프로그램을 실행합니다.
+
+### 임시 shell
 
 ```bash
 # 단일 패키지
@@ -16,11 +72,7 @@ nix shell nixpkgs#ripgrep
 nix shell nixpkgs#ripgrep nixpkgs#fd nixpkgs#jq
 ```
 
-### 프로그램 즉시 실행 (nix run)
-
-```bash
-nix run nixpkgs#cowsay -- "hello"
-```
+shell을 종료하면 패키지가 `PATH`에서 빠집니다. 다운로드된 store path는 즉시 삭제되지 않고 garbage collection 전까지 `/nix/store`에 남을 수 있습니다. 반복해서 필요한 개인 패키지와 dotfile은 [Home Manager](home-manager.md)로 관리합니다.
 
 ### 패키지 검색
 
@@ -30,156 +82,108 @@ nix search nixpkgs <keyword>
 
 또는 [search.nixos.org](https://search.nixos.org/packages)에서 검색합니다.
 
-## 프로젝트별 개발 환경
+## 프로젝트별 devShell
 
-### nix develop
-
-프로젝트 디렉토리에 `flake.nix`를 만들어 재현 가능한 개발 환경을 구성합니다.
+프로젝트의 `flake.nix`에 도구를 선언하면 지원하는 머신에서 같은 개발 환경을 만들 수 있습니다. 다음 예시는 Linux와 macOS의 x86_64/aarch64를 모두 정의합니다:
 
 ```nix
-# flake.nix 예시
 {
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
 
-  outputs = { nixpkgs, ... }:
+  outputs =
+    { nixpkgs, ... }:
     let
-      pkgs = nixpkgs.legacyPackages.x86_64-linux;
-    in {
-      devShells.x86_64-linux.default = pkgs.mkShell {
-        packages = with pkgs; [
-          python3
-          python3Packages.numpy
-          python3Packages.pandas
-        ];
-      };
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+        "x86_64-darwin"
+        "aarch64-darwin"
+      ];
+      forAllSystems = nixpkgs.lib.genAttrs systems;
+    in
+    {
+      devShells = forAllSystems (
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+        in
+        {
+          default = pkgs.mkShellNoCC {
+            packages = with pkgs; [
+              python3
+              python3Packages.numpy
+              python3Packages.pandas
+            ];
+          };
+        }
+      );
     };
 }
 ```
 
+환경 진입:
+
 ```bash
-nix develop    # 환경 진입
+nix develop
 ```
 
-[direnv](https://direnv.net/)와 함께 사용하면 디렉토리 진입 시 자동으로 환경이 활성화됩니다.
+처음 평가할 때 생성되는 `flake.lock`을 프로젝트에 commit해야 이후에도 같은 입력 revision을 사용합니다.
+
+[direnv](https://direnv.net/)와 함께 사용하면 디렉터리 진입 시 devShell을 자동으로 활성화할 수 있습니다:
+
+`.envrc`에 devShell을 선언합니다:
 
 ```bash
-# .envrc
 use flake
 ```
 
-## Home Manager
-
-사용자별 도구와 셸 설정을 선언적으로 관리할 수 있습니다. 인프라 저장소에 템플릿이 제공됩니다.
-
-### 초기 설정
+한 번 승인합니다:
 
 ```bash
-# 템플릿 복사
-nix flake init -t github:SBEE-Lab/infra#home-manager
-
-# username 수정 (flake.nix 내 username 변수)
-$EDITOR flake.nix
+direnv allow
 ```
 
-### 설정 예시 (home.nix)
-
-```nix
-{ pkgs, username, ... }:
-{
-  config = {
-    home.packages = with pkgs; [
-      htop
-      ripgrep
-      fd
-      tmux
-    ];
-
-    home.stateVersion = "23.11";
-    home.username = username;
-    home.homeDirectory = "/home/${username}";
-
-    # cache/state를 scratch에 저장 (SSD)
-    xdg.cacheHome = "/scratch/${username}/.cache";
-    xdg.stateHome = "/scratch/${username}/.local/share";
-  };
-}
-```
-
-### 적용
-
-```bash
-nix run .#homeConfigurations.<username>.activationPackage
-```
-
-옵션 목록: [Home Manager Options](https://nix-community.github.io/home-manager/options.html)
+Home Manager template은 direnv와 nix-direnv를 함께 활성화합니다.
 
 ## Python 프로젝트
 
-### 권장: nix develop
+Nix 패키지로 제공되는 Python 라이브러리는 devShell의 `packages`에 추가합니다. 프로젝트가 PyPI 의존성이나 lock file을 중심으로 관리된다면 Nix에는 Python과 시스템 라이브러리만 넣고 uv 또는 pixi를 함께 사용할 수 있습니다.
 
-Nix로 Python 환경을 구성하면 시스템 라이브러리 의존성 문제가 없습니다.
+NixOS는 일반적인 Linux와 달리 `/lib`, `/usr/lib`에 공유 라이브러리를 두지 않습니다. PyPI binary wheel이 시스템 라이브러리를 찾지 못하면 `ImportError`가 발생할 수 있습니다.
 
-```nix
-# flake.nix
-{
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+서버의 `nix-ld`는 다음 공통 라이브러리를 제공합니다:
 
-  outputs = { nixpkgs, ... }:
-    let
-      pkgs = nixpkgs.legacyPackages.x86_64-linux;
-    in {
-      devShells.x86_64-linux.default = pkgs.mkShell {
-        packages = with pkgs; [
-          python3
-          python3Packages.torch
-          python3Packages.numpy
-          python3Packages.scipy
-        ];
-      };
-    };
-}
-```
-
-### uv / pixi 사용 시 주의
-
-uv, pixi 등 Nix 외부 패키지 매니저도 사용 가능하지만, **동적 링크 문제**가 발생할 수 있습니다.
-
-NixOS는 일반적인 Linux와 달리 `/lib`, `/usr/lib` 경로에 공유 라이브러리를 두지 않습니다. PyPI 바이너리 휠(`.so` 파일 포함)이 시스템 라이브러리를 찾지 못해 `ImportError`가 발생합니다.
-
-서버에는 `nix-ld`가 활성화되어 있어 일부 라이브러리가 자동으로 해결됩니다:
-
-| 제공되는 라이브러리 | 용도 |
-|--------------------|------|
-| `stdenv.cc.cc.lib` | libstdc++ (C++ 표준 라이브러리) |
+| 제공 라이브러리 | 용도 |
+|-----------------|------|
+| `stdenv.cc.cc.lib` | libstdc++ |
 | `openssl` | SSL/TLS |
 | `zlib` | 압축 |
 | `curl` | HTTP |
 | `libGL` | OpenGL |
-| `nvidiaPackages` | NVIDIA 드라이버 (GPU 호스트) |
-| `cuda_cudart`, `cudnn`, `cudatoolkit` | CUDA (GPU 호스트) |
+| NVIDIA/CUDA 라이브러리 | GPU 호스트의 driver, CUDA, cuDNN |
 
-위 목록에 없는 라이브러리가 필요하면 `nix-ld`로 해결되지 않으므로 `nix develop`나 Docker를 사용하세요.
+목록에 없는 라이브러리가 필요하면 devShell에 명시하거나 Docker/Apptainer를 사용합니다.
 
-## Docker
+## Docker와 GPU
 
-패키지 의존성이 복잡하거나, Nix로 환경 구성이 어려운 경우 Docker를 사용합니다. 모든 사용자는 `docker` 그룹에 포함되어 있습니다.
+복잡한 binary 의존성이나 GPU container가 필요하면 Docker를 사용합니다:
 
 ```bash
-# GPU + 작업 디렉토리 마운트
 docker run --rm --gpus all -it \
   -v /workspace/$USER:/workspace \
   pytorch/pytorch:latest \
   bash
 ```
 
-Docker 이미지는 표준 Linux 환경이므로 동적 링크 문제가 없습니다. GPU 사용이 필요하면 `--gpus all` 플래그를 추가합니다. 상세: [GPU 컴퓨팅](gpu-computing.md)
+개인 macOS devShell은 Linux CUDA 환경을 재현하지 않습니다. GPU 작업은 psi에서 Docker 또는 Apptainer로 실행합니다. 상세 절차는 [GPU 컴퓨팅](gpu-computing.md)과 [Apptainer](apptainer.md)를 참조하세요.
 
-## 환경 선택 가이드
+## 선택 가이드
 
 | 상황 | 권장 방법 |
 |------|----------|
-| Nix 패키지로 충분한 경우 | `nix develop` + `flake.nix` |
-| 셸 설정, 도구 관리 | Home Manager |
-| PyPI 패키지가 필요하나 단순한 경우 | uv/pixi + nix-ld |
-| 복잡한 의존성, 비표준 라이브러리 | Docker |
-| GPU + 비표준 라이브러리 | Docker + `--gpus all` |
+| 명령 하나를 실행 | `nix run` |
+| 패키지 몇 개를 임시 사용 | `nix shell` |
+| 프로젝트 환경을 재현 | `nix develop` + `flake.lock` |
+| 개인 패키지와 dotfile을 지속 관리 | Home Manager |
+| PyPI 중심 프로젝트 | devShell + uv/pixi |
+| GPU 또는 복잡한 Linux binary | psi + Docker/Apptainer |

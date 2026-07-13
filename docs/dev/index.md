@@ -1,6 +1,6 @@
-# 개발자 가이드
+# 연구·개발 환경
 
-SSH로 서버에 접속하여 사용하는 연구 컴퓨팅 환경입니다.
+SSH 기반 연구 컴퓨팅과 개인 머신의 재현 가능한 개발 환경을 안내합니다.
 
 ## 서버 자원
 
@@ -55,7 +55,8 @@ du -sh /project/$USER
 - [GPU 컴퓨팅](gpu-computing.md) — CUDA, Docker, 컨테이너
 - [Apptainer](apptainer.md) — HPC 컨테이너 환경
 - [생물정보 DB](bioinformatics-db.md) — BLAST, UniProt, PDB 등
-- [Nix 개발 환경](nix-environment.md) — 패키지, Home Manager, Python, Docker
+- [Nix 개발 환경](nix-environment.md) — 서버·개인 머신의 패키지와 프로젝트 devShell
+- [Home Manager](home-manager.md) — 개인 패키지와 dotfile 관리
 - [Upterm](../guide/upterm.md) — 임시 터미널 공유 relay
 - [학생 가이드](students/best-practices.md) — 모범 사례, 계정 만료
 

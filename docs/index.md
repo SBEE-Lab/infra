@@ -25,12 +25,12 @@ SBEE Lab의 NixOS 기반 연구 인프라 문서입니다.
 | 역할 | 가이드 | 설명 |
 |------|--------|------|
 | **일반 사용자** | [사용자 가이드](guide/index.md) | VPN 설정, 웹 서비스 사용법 |
-| **개발자/연구원** | [개발자 가이드](dev/index.md) | SSH 접속, GPU 컴퓨팅, 컨테이너, 생물정보 DB, AI API |
+| **연구원/개발자** | [연구·개발 환경](dev/index.md) | SSH, GPU, 컨테이너, Nix, 개인 개발 환경 |
 | **관리자** | [관리자 가이드](admin/index.md) | 배포, 모니터링, 사용자 관리, 네트워크 |
 
 ## 문서 구조
 
 - **[사용자 가이드](guide/index.md)** — VPN 설정, SSO 로그인, 웹 서비스 사용법
-- **[개발자 가이드](dev/index.md)** — SSH, GPU, 컨테이너, 생물정보 DB
+- **[연구·개발 환경](dev/index.md)** — SSH, GPU, 컨테이너, 생물정보 DB, Nix
 - **[관리자 가이드](admin/index.md)** — 배포, 모니터링, CI/CD, 네트워크, 보안
 - **[참조](reference/faq.md)** — FAQ, 용어집, 서버 스펙

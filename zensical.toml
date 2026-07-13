@@ -25,13 +25,16 @@ nav = [
     { "n8n" = "guide/n8n.md" },
     { "Upterm" = "guide/upterm.md" },
   ] },
-  { "개발자 가이드" = [
+  { "연구·개발 환경" = [
     { "개요" = "dev/index.md" },
     { "SSH 접속" = "dev/ssh-access.md" },
     { "GPU 컴퓨팅" = "dev/gpu-computing.md" },
     { "Apptainer" = "dev/apptainer.md" },
     { "생물정보 DB" = "dev/bioinformatics-db.md" },
-    { "Nix 개발 환경" = "dev/nix-environment.md" },
+    { "Nix" = [
+      { "개발 환경" = "dev/nix-environment.md" },
+      { "Home Manager" = "dev/home-manager.md" },
+    ] },
     { "학생" = [
       { "모범 사례" = "dev/students/best-practices.md" },
       { "계정 만료" = "dev/students/account-expiration.md" },
