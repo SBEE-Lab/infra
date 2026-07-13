@@ -6,9 +6,9 @@ SSH로 서버에 접속하여 사용하는 연구 컴퓨팅 환경입니다.
 
 | 호스트 | 역할 | 주요 자원 |
 |--------|------|----------|
-| **psi** | GPU 연산 | NVIDIA GPU, 16TB NVMe RAID0, 60TB HDD RAID0 |
-| **rho** | 스토리지/빌드 | 대용량 스토리지, Nix 빌드 |
-| **tau** | 보조 연산/백업 | 스토리지, PostgreSQL 레플리카 |
+| **psi** | GPU 연산/CI | RTX A6000 48GB, 16TB NVMe RAID0, 60TB HDD RAID0 |
+| **rho** | DB/모니터링/백업 미러 | PostgreSQL primary, Grafana/Prometheus/Loki, 4TB HDD RAID0 |
+| **tau** | 앱/백업 primary | Nextcloud, n8n, PostgreSQL replica, 4TB HDD RAID0 |
 
 ## 스토리지 구조 (psi 기준)
 
