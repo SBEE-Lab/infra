@@ -151,27 +151,32 @@ direnv allow
 필요한 SOPS keys:
 
 ```yaml
+alertmanager-bridge-token: ENC[...]
+alertmanager-healthchecks-ping-url: ENC[...]
+```
+
+Rollback window 동안만 legacy Slack incoming webhook secrets를 유지합니다:
+
+```yaml
 alertmanager-slack-infra-alerts-webhook: ENC[...]
 alertmanager-slack-infra-audit-webhook: ENC[...]
-alertmanager-healthchecks-ping-url: ENC[...]
 ```
 
 자세한 Slack bootstrap/drift check 절차는 `modules/monitoring/alerts/slack-app/README.md`를 봅니다.
 
 ### Alert bridge cutover
 
-현재 운영 경로는 legacy Slack incoming webhook입니다. Bridge로 전환할 때만 아래 절차를 진행합니다.
+현재 Alertmanager 운영 경로는 Cloudflare Worker bridge입니다.
 
 1. `terraform/alert-bridge` apply 완료 확인
 1. `packages/infra-alert-bridge`에서 D1 migration 실행
 1. Worker `GET /healthz`와 cron heartbeat 확인
-1. Alertmanager receiver를 bridge `POST /alertmanager`로 변경하고 bearer token 설정
-1. healthchecks.io webhook integration을 bridge `POST /healthchecks`로 변경하고 bearer token 설정
-1. `#infra-alerts`, `#infra-audit`에 firing/resolved/update 메시지가 정상 생성되는지 확인
+1. Alertmanager receiver가 bridge `POST /alertmanager`와 bearer token을 사용하는지 확인
+1. `#infra-alerts`, `#infra-audit`에 firing/resolved/update 메시지가 같은 thread로 정상 생성되는지 확인
 1. rollback window 동안 legacy Slack webhook secret 유지
 1. 안정화 후 `incoming-webhook` Slack scope와 webhook SOPS key 제거
 
-Rollback은 Alertmanager receiver와 healthchecks.io integration을 legacy Slack 경로로 되돌리는 방식으로 수행합니다. Worker 장애가 Watchdog ping 자체를 막지 않도록 `rho-alertmanager-watchdog`은 healthchecks.io로 직접 ping합니다.
+healthchecks.io webhook integration은 아직 legacy Slack integration을 유지합니다. 이후 bridge `POST /healthchecks`와 bearer token으로 전환합니다. Worker 장애가 Watchdog ping 자체를 막지 않도록 `rho-alertmanager-watchdog`은 healthchecks.io로 직접 ping합니다.
 
 ### Loki (rho)
 

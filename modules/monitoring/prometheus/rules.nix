@@ -6,8 +6,7 @@ let
   );
   monitoringSecretsText = builtins.readFile ../secrets.yaml;
   hasAlertmanagerSecrets = lib.all (name: lib.hasInfix "${name}:" monitoringSecretsText) [
-    "alertmanager-slack-infra-alerts-webhook"
-    "alertmanager-slack-infra-audit-webhook"
+    "alertmanager-bridge-token"
     "alertmanager-healthchecks-ping-url"
   ];
 

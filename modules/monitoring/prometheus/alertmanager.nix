@@ -6,12 +6,26 @@
 let
   secretsFile = ../secrets.yaml;
   secretsText = builtins.readFile secretsFile;
+  alertBridgeUrl = "https://infra-alert-bridge.sjang-bioe.workers.dev/alertmanager";
   requiredSecrets = [
-    "alertmanager-slack-infra-alerts-webhook"
-    "alertmanager-slack-infra-audit-webhook"
+    "alertmanager-bridge-token"
     "alertmanager-healthchecks-ping-url"
   ];
   hasRequiredSecrets = lib.all (name: lib.hasInfix "${name}:" secretsText) requiredSecrets;
+
+  mkBridgeReceiver = name: {
+    inherit name;
+    webhook_configs = [
+      {
+        url = alertBridgeUrl;
+        send_resolved = true;
+        http_config.authorization = {
+          type = "Bearer";
+          credentials = "$ALERTMANAGER_WEBHOOK_TOKEN";
+        };
+      }
+    ];
+  };
 in
 {
   imports = [ ../../gatus/check.nix ];
@@ -19,31 +33,25 @@ in
   config = lib.mkMerge [
     {
       warnings = lib.optional (!hasRequiredSecrets) (
-        "Alertmanager Slack delivery is disabled until modules/monitoring/secrets.yaml contains "
+        "Alertmanager bridge delivery is disabled until modules/monitoring/secrets.yaml contains "
         + lib.concatStringsSep ", " requiredSecrets
       );
     }
 
     (lib.mkIf hasRequiredSecrets {
-      sops.secrets.alertmanager-slack-infra-alerts-webhook = {
-        sopsFile = secretsFile;
-      };
+      sops = {
+        secrets = {
+          alertmanager-bridge-token.sopsFile = secretsFile;
+          alertmanager-healthchecks-ping-url.sopsFile = secretsFile;
+        };
 
-      sops.secrets.alertmanager-slack-infra-audit-webhook = {
-        sopsFile = secretsFile;
-      };
-
-      sops.secrets.alertmanager-healthchecks-ping-url = {
-        sopsFile = secretsFile;
-      };
-
-      sops.templates.alertmanager-env = {
-        mode = "0400";
-        content = ''
-          SLACK_INFRA_ALERTS_WEBHOOK=${config.sops.placeholder."alertmanager-slack-infra-alerts-webhook"}
-          SLACK_INFRA_AUDIT_WEBHOOK=${config.sops.placeholder."alertmanager-slack-infra-audit-webhook"}
-          HEALTHCHECKS_PING_URL=${config.sops.placeholder."alertmanager-healthchecks-ping-url"}
-        '';
+        templates.alertmanager-env = {
+          mode = "0400";
+          content = ''
+            ALERTMANAGER_WEBHOOK_TOKEN=${config.sops.placeholder."alertmanager-bridge-token"}
+            HEALTHCHECKS_PING_URL=${config.sops.placeholder."alertmanager-healthchecks-ping-url"}
+          '';
+        };
       };
 
       gatusCheck.push = [
@@ -125,34 +133,8 @@ in
             ];
 
             receivers = [
-              {
-                name = "infra-alerts";
-                slack_configs = [
-                  {
-                    api_url = "$SLACK_INFRA_ALERTS_WEBHOOK";
-                    send_resolved = true;
-                    title = "[{{ .Status | toUpper }}] {{ .CommonLabels.alertname }}";
-                    text = ''
-                      {{ range .Alerts }}*{{ .Labels.severity }}* {{ .Annotations.summary }}
-                      {{ .Annotations.description }}
-                      {{ end }}'';
-                  }
-                ];
-              }
-              {
-                name = "infra-audit";
-                slack_configs = [
-                  {
-                    api_url = "$SLACK_INFRA_AUDIT_WEBHOOK";
-                    send_resolved = true;
-                    title = "[{{ .Status | toUpper }}] audit: {{ .CommonLabels.alertname }}";
-                    text = ''
-                      {{ range .Alerts }}*{{ .Labels.severity }}* {{ .Annotations.summary }}
-                      {{ .Annotations.description }}
-                      {{ end }}'';
-                  }
-                ];
-              }
+              (mkBridgeReceiver "infra-alerts")
+              (mkBridgeReceiver "infra-audit")
               {
                 name = "healthchecks-deadman";
                 webhook_configs = [

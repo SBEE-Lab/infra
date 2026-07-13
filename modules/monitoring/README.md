@@ -287,7 +287,7 @@ Selected tailnet-relevant reverse-proxied apps currently emit this raw stream: G
 
 ## Alerting state
 
-Prometheus sends alerts to Alertmanager on rho. Alertmanager routes operational alerts to Slack `#infra-alerts`, audit/security alerts to `#infra-audit`, and the always-firing `Watchdog` alert to healthchecks.io as a dead-man switch. healthchecks.io is attached to its Slack `infra-alerts` integration so rho alerting-path failures notify outside rho.
+Prometheus sends alerts to Alertmanager on rho. Alertmanager routes operational alerts to the alert bridge for Slack `#infra-alerts`, audit/security alerts to the alert bridge for `#infra-audit`, and the always-firing `Watchdog` alert to healthchecks.io as a dead-man switch. healthchecks.io is attached to its Slack `infra-alerts` integration so rho alerting-path failures notify outside rho.
 
 Current Prometheus rule intent:
 

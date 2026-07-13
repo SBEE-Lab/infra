@@ -94,7 +94,7 @@ terragrunt plan
 terragrunt apply
 ```
 
-Terraform provider는 D1 database를 생성하지만 SQL migration은 적용하지 않습니다. apply 후 `packages/infra-alert-bridge`에서 D1 migration을 실행한 뒤 Alertmanager/healthchecks.io webhook을 bridge endpoint로 전환합니다.
+Terraform provider는 D1 database를 생성하지만 SQL migration은 적용하지 않습니다. apply 후 `packages/infra-alert-bridge`에서 D1 migration을 실행합니다. Alertmanager는 bridge endpoint를 사용하고, healthchecks.io webhook은 별도 cutover 전까지 Slack integration을 유지합니다.
 
 ### GitHub
 
