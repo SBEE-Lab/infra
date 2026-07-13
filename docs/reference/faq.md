@@ -37,7 +37,7 @@ Rate limiting은 NEW 연결만 카운트하므로, `ControlMaster` 없이 ProxyJ
 
 **Q: Nextcloud에서 "Authentik으로 로그인" 버튼이 안 보입니다.**
 
-A: `https://cloud.sjanglab.org` 도메인으로 접속해야 합니다. 직접 IP 접근은 지원하지 않습니다. VPN 연결이 필요합니다.
+A: `https://cloud.sjanglab.org` 도메인으로 접속해야 합니다. 직접 IP 접근은 지원하지 않습니다. VPN 연결 여부와 관계없이 같은 URL을 사용합니다.
 
 **Q: AI API 요청이 느립니다.**
 
