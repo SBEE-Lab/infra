@@ -43,10 +43,16 @@
             "https://buildbot\\.sjanglab\\.org/(auth/github/callback|webhooks/github)$"
             "https://docling\\.sjanglab\\.org(/.*)?$"
             "https://tei\\.sjanglab\\.org/(embed|rerank)/.*$"
+            # Generated source links for new pages do not exist on main until
+            # the documentation PR is merged.
+            "https://github\\.com/sbee-lab/infra/(raw|edit)/main/docs/.*$"
           ];
           root_dir = "${site}";
         };
         remap = {
+          # Check canonical documentation links against this build so pages
+          # added by the current branch need not already be published.
+          "https://sbee-lab.github.io/infra" = site;
           "https://sjanglab.org" = site;
           "file://(.+)/infra$" = "file://$1";
           "file://(.+)/infra/(.*)" = "file://$1/$2";
