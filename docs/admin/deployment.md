@@ -17,10 +17,10 @@ inv deploy --hosts psi,rho,tau,eta
 모든 호스트에 자동 업그레이드가 설정되어 있습니다:
 
 - **소스**: `github:SBEE-lab/infra`
-- **업그레이드 체크**: `system.autoUpgrade`가 주기적으로 최신 커밋을 가져와 `nixos-rebuild switch` 실행
+- **업그레이드 체크**: `system.autoUpgrade`가 매일 04:40 KST에 최신 커밋을 가져와 `nixos-rebuild switch` 실행
 - **재부팅 체크**: 매월 마지막 토요일에 `auto-reboot` 서비스가 커널 업데이트 여부를 확인
 - **재부팅**: 커널이 변경된 경우에만 24시간 후 자동 재부팅 (`shutdown -r +1440`)
-- **지터**: ±20분 (호스트별 재부팅 시점 분산)
+- **재부팅 지터**: 최대 20분 지연 (호스트별 시점 분산)
 
 ## 사전 빌드 (Nixbot/Harmonia 캐시)
 
