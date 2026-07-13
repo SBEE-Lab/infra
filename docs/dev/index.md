@@ -14,24 +14,36 @@ SSH로 서버에 접속하여 사용하는 연구 컴퓨팅 환경입니다.
 
 ```mermaid
 graph TD
-  subgraph ssd["NVMe RAID0 (16TB, 고속)"]
+  subgraph root["Root NVMe (4TB)"]
     project["/project/&lt;user&gt;/<br/>개인 프로젝트 ✅ 백업"]
+    blobs["/blobs/<br/>대용량 파일 ✅ 백업"]
+  end
+  subgraph ssd["NVMe RAID0 (16TB, 고속)"]
     workspace["/workspace/&lt;user&gt;/<br/>임시 작업 공간 ❌ 백업"]
   end
   subgraph hdd["HDD RAID0 (60TB)"]
-    data["/data/<br/>장기 데이터 저장"]
+    data["/data/<br/>장기 데이터 저장 ❌ 백업"]
     databases["/data/databases/<br/>생물정보 DB ❌ 백업"]
   end
-  blobs["/blobs/<br/>대용량 파일 ✅ 백업"]
 ```
 
 | 경로 | 용도 | 백업 |
 |------|------|------|
-| `/project/<username>/` | 개인 프로젝트 (장기 작업 데이터) | O |
+| `/project/<username>/` | 개인 프로젝트 (장기 작업 데이터) | 매일¹ |
 | `/workspace/<username>/` | 임시 작업 공간 (고속 SSD) | X |
 | `/data/databases/` | 생물정보 DB (db-sync) | X |
 | `/blobs/` | 대용량/라이선스 파일 | O |
-| `/data/` | 장기 데이터 저장 (60TB HDD) | 별도 |
+| `/data/` | 장기 데이터 저장 (60TB HDD) | X |
+
+¹ `/project` 전체 사용량이 10GiB를 넘으면 source guard가 모든 `/project`·`/blobs` 백업을 중단합니다. 이 백업만 중요한 데이터의 유일한 사본으로 사용하지 마세요. 대용량 보호 데이터가 필요하면 작업 전에 관리자와 백업 범위를 협의합니다.
+
+개인 사용량 확인:
+
+```bash
+du -sh /project/$USER
+```
+
+전체 source guard 상태는 관리자가 Grafana `SjangLab Jobs`에서 확인합니다.
 
 ## 시작하기
 
