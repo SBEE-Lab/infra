@@ -7,7 +7,9 @@
 ## 시크릿 파일 구조
 
 ```
-.sops.yaml              # 암호화 규칙 정의
+.sops.nix               # 암호화 규칙의 source of truth
+.sops.yaml              # .sops.nix에서 생성된 sops 설정
+pubkeys.json            # 관리자/호스트 age 공개키
 .secrets.yaml           # 공통 시크릿
 hosts/
 ├── eta.yaml            # eta 전용 시크릿
@@ -36,12 +38,15 @@ sops hosts/eta.yaml
 
 ### 새 시크릿 추가
 
-1. `.sops.yaml`에 새 파일의 암호화 규칙(age 키)을 추가합니다
-1. `sops <file>`로 편집합니다
+1. `.sops.nix`의 `sopsPermissions`에 파일과 복호화할 호스트를 추가합니다
+1. `inv update-sops-files`로 `.sops.yaml`을 다시 생성합니다
+1. `sops <file>`로 시크릿 파일을 생성하거나 편집합니다
 1. NixOS 모듈에서 `sops.secrets.<name>`으로 참조합니다
+
+`.sops.yaml`은 생성 파일입니다. 직접 수정하면 다음 `inv update-sops-files` 실행 때 변경이 사라집니다.
 
 ## 원칙
 
 - 시크릿 값은 절대 stdout/로그에 노출하지 않습니다
 - `sops -d file.yaml | command` 패턴으로 파이핑합니다
-- 새 호스트 추가 시 해당 호스트의 age 키를 `.sops.yaml`에 등록해야 합니다
+- 새 호스트 추가 시 age 공개키를 `pubkeys.json`에 등록하고 `inv update-sops-files`를 실행합니다

@@ -1,6 +1,6 @@
 # 사용자 가이드
 
-VPN으로 SBEE Lab 웹 서비스를 사용하기 위한 가이드입니다.
+SBEE Lab 웹 서비스의 계정, VPN, 로그인 절차를 안내합니다.
 
 ## 시작하기 전에
 
@@ -26,15 +26,15 @@ flowchart LR
 
 | 서비스 | URL | 네트워크 | 인증 |
 |--------|-----|----------|------|
-| [Nextcloud](nextcloud.md) | `cloud.sjanglab.org` | VPN 필수 | OIDC |
-| [Vaultwarden](vaultwarden.md) | `vault.sjanglab.org` | 공개 | OIDC |
+| [Nextcloud](nextcloud.md) | `cloud.sjanglab.org` | 공개 | OIDC |
+| [Vaultwarden](vaultwarden.md) | `vault.sjanglab.org` | VPN 필수 | OIDC |
 | [n8n](n8n.md) | `n8n.sjanglab.org` | VPN 필수 | Forward Auth |
 | [Docling](docling.md) | `docling.sjanglab.org` | VPN 필수 | Headscale ACL |
 | [TEI](tei.md) | `tei.sjanglab.org` | VPN 필수 | Headscale ACL |
 | [MULTI-evolve](multievolve.md) | `multievolve.sjanglab.org` | VPN 필수 | Headscale ACL + Forward Auth |
 | [Upterm](upterm.md) | `upterm.sjanglab.org` | 공개 relay | GitHub user allow-list |
 
-Vaultwarden과 Upterm relay는 VPN 없이도 접근 가능합니다. 나머지 서비스는 [VPN 연결](vpn-setup.md) 후 사용할 수 있습니다.
+Nextcloud와 Upterm relay는 VPN 없이도 접근 가능합니다. Vaultwarden과 나머지 내부 서비스는 [VPN 연결](vpn-setup.md) 후 사용할 수 있습니다.
 
 ## 접근 권한
 

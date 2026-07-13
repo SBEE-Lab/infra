@@ -12,8 +12,8 @@ SBEE Lab의 NixOS 기반 연구 인프라 문서입니다.
 
 | 서비스 | URL | 용도 | 네트워크 |
 |--------|-----|------|----------|
-| Nextcloud | [cloud.sjanglab.org](https://cloud.sjanglab.org) | 파일, 캘린더, 문서 협업 | VPN 필수 |
-| Vaultwarden | [vault.sjanglab.org](https://vault.sjanglab.org) | 비밀번호 관리 | 공개 |
+| Nextcloud | [cloud.sjanglab.org](https://cloud.sjanglab.org) | 파일, 캘린더, 문서 협업 | 공개 |
+| Vaultwarden | [vault.sjanglab.org](https://vault.sjanglab.org) | 비밀번호 관리 | VPN 필수 |
 | n8n | [n8n.sjanglab.org](https://n8n.sjanglab.org) | 워크플로우 자동화 | VPN 필수 |
 | Docling | [docling.sjanglab.org](https://docling.sjanglab.org) | 문서 변환 | VPN 필수 |
 | TEI | [tei.sjanglab.org](https://tei.sjanglab.org) | 임베딩/리랭킹 API | VPN 필수 |

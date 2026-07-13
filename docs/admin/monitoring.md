@@ -30,6 +30,7 @@ flowchart LR
     gatus["Gatus"]
   end
 
+  bridge["Cloudflare alert bridge"]
   slack_alerts["Slack #infra-alerts"]
   slack_audit["Slack #infra-audit"]
   healthchecks["healthchecks.io"]
@@ -39,9 +40,12 @@ flowchart LR
   prom --> graf
   loki --> graf
   prom -- "alerts" --> alertmanager
-  alertmanager --> slack_alerts
-  alertmanager --> slack_audit
+  alertmanager -- "ops/audit alerts" --> bridge
+  bridge --> slack_alerts
+  bridge --> slack_audit
   alertmanager -- "Watchdog ping" --> healthchecks
+  bridge -- "heartbeat" --> healthchecks
+  healthchecks --> slack_alerts
   hosts -- "헬스체크 Push" --> gatus
 ```
 
@@ -101,8 +105,8 @@ eta의 Vector가 journald에서 수집해 이벤트를 분류합니다 (`modules
   - `blackbox_icmp`: eta vantage ICMP probe for wg-admin host reachability
   - `nvidia-gpu`: psi GPU exporter
 - Alert rules: 호스트 메트릭 freshness, 디스크 부족/심각 부족, 메모리 부족, 높은 CPU, generic scrape target down, Gatus non-app heartbeat down, blackbox exporter down, blackbox probe failed, GPU exporter down, Watchdog dead-man
-- Alert delivery: Alertmanager routes operational alerts to Slack `#infra-alerts`, audit alerts to `#infra-audit`, and the always-firing `Watchdog` to healthchecks.io. healthchecks.io then notifies Slack `#infra-alerts` through its integration if the Watchdog stops pinging.
-- Alert bridge: Cloudflare Worker/D1 bridge is deployed separately and has its own healthchecks.io heartbeat. Alertmanager/healthchecks.io traffic still uses legacy Slack paths until explicit cutover.
+- Alert delivery: Alertmanager는 operational alert를 `#infra-alerts`로, audit alert를 `#infra-audit`로 Cloudflare Worker/D1 bridge를 통해 전송합니다. `Watchdog`은 healthchecks.io로 직접 ping하며, ping이 끊기면 healthchecks.io가 `#infra-alerts`에 알립니다.
+- Alert bridge: Bridge는 자체 healthchecks.io heartbeat를 사용합니다. healthchecks.io 알림은 별도 cutover 전까지 기존 Slack integration을 유지합니다.
 
 ### Alert response runbook
 
@@ -114,16 +118,29 @@ eta의 Vector가 journald에서 수집해 이벤트를 분류합니다 (`modules
 1. 사용자 영향이 있으면 `#infra-alerts`에 조사 시작/완료 시간을 남깁니다.
 1. 원인을 모르면 silence하지 않습니다. 노이즈성 반복일 때만 만료 시간이 있는 silence를 설정합니다.
 
-대표 alert별 1차 확인:
+alert별 1차 확인:
 
 | Alert | 1차 확인 | 다음 조치 |
 |-------|----------|----------|
 | `HostMetricsMissing` | `systemctl status vector`, 네트워크, rho Prometheus target | Vector 재시작 또는 wg-admin 연결 복구 |
-| `DiskSpaceLow` / `DiskSpaceCritical` | `df -h`, `du -xhd1 <mount>` | GC, 오래된 workspace 정리, 백업 저장소 용량 증설 |
+| `DiskSpaceLow` / `DiskSpaceCritical` | `df -h`, `du -xhd1 <mount>` | GC, 오래된 workspace 정리, root filesystem 증설 |
+| `RustFSStoreMetricsMissing` | rho/tau Vector와 `/srv` mount 상태 | Vector 또는 mount 복구 후 metrics 수신 확인 |
+| `RustFSStoreSpaceLow` / `RustFSStoreSpaceCritical` | `df -h /srv`, RustFS object 증가량 | 불필요한 object 검토, 보관 정책 확인, 저장소 증설 |
+| `MemoryLow` / `HighCPULoad` | Grafana Hosts, `systemd-cgtop`, `ps` | 원인 process 확인 후 부하 제한·서비스 재시작 |
+| `PrometheusTargetDown` | Prometheus Targets의 job/instance와 대상 service | exporter/service 또는 wg-admin 연결 복구 |
 | `GatusEndpointDown` | Gatus endpoint와 해당 push unit journal | 서비스 health push unit 재시작 |
+| `BlackboxExporterDown` | eta의 `prometheus-blackbox-exporter.service` | exporter 재시작, listen address와 방화벽 확인 |
 | `BlackboxProbeFailed` | eta blackbox exporter, DNS, nginx 인증서 | ACME/프록시/방화벽 확인 |
-| `BackupJobFailed` / `BackupJobStale` | `log_type="systemd_status"`, 대상 timer/service | 백업 unit 수정 후 수동 실행 |
-| `AuditJobFailed` | `log_type="systemd_status"`, 대상 audit timer/service | 감사 수집 unit 복구 후 누락 구간 확인 |
+| `TlsCertificateExpiringSoon` | eta ACME timer와 대상 `acme-sync-*` unit | 인증서 갱신 후 대상 호스트 동기화 확인 |
+| `NvidiaGpuExporterDown` | psi exporter service와 `nvidia-smi` | NVIDIA driver/GPU 상태 확인 후 exporter 복구 |
+| `BackupJobFailed` / `BackupJobStale` | `log_type="systemd_status"`, 대상 timer/service | 백업 unit 수정 후 수동 실행, 새 snapshot 확인 |
+| `AuditJobFailed` / `AuditJobStale` | `log_type="systemd_status"`, 대상 audit timer/service | 감사 수집 unit 복구 후 누락 구간 확인 |
+| `AuditCorrelatorHeartbeatMissing` | rho audit correlator service와 Loki 수신 | correlator·Loki 연결 복구 후 heartbeat 확인 |
+| `NginxAccessLogsMissing` | nginx access log, Vector source, Loki | 로그 파일 권한과 Vector pipeline 복구 |
+| `HeadscaleNodeSnapshotsMissing` | eta snapshot timer/service와 Loki | snapshot job 복구 후 새 `node_snapshot` 확인 |
+| `SshLoginFailureBurst` | `log_type="ssh"`, source IP, 대상 user | 오탐 확인 후 계정/키 검토와 IP 차단 |
+| `AuthentikLoginFailureBurst` / `AuthentikForwardAuthDenyBurst` | Authentik audit log의 user, app, source IP | 사용자 영향과 계정 탈취 여부 확인 |
+| `HeadscaleOidcDenied` / `HeadscaleNodeExpired` | Authentik group, `users.yaml`, node expiry | 정당한 사용자면 inventory/expiry 수정 후 Terraform apply |
 | `Watchdog` 미수신 | Alertmanager, healthchecks.io ping URL, 네트워크 | Alertmanager 복구. bridge 장애와 분리 확인 |
 
 감사 alert는 `#infra-audit`에 도착합니다. 사용자명, source IP, app/node 정보를 기록하고 계정 탈취 가능성이 있으면 Authentik 계정 비활성화와 Headscale ACL apply를 우선합니다.

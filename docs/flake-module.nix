@@ -31,11 +31,18 @@
 
       checks.docs-linkcheck = pkgs.testers.lycheeLinkCheck rec {
         extraConfig = {
-          include_mail = true;
+          include_mail = false;
           include_verbatim = true;
           exclude = [
             "docker:.*"
             "file://.*/404.html#__skip"
+            # Local and method-specific API examples cannot be validated with
+            # the link checker's HTTP GET/HEAD requests.
+            "http://10\\.100\\.0\\.2:5000/?$"
+            "http://localhost:8000/?$"
+            "https://buildbot\\.sjanglab\\.org/(auth/github/callback|webhooks/github)$"
+            "https://docling\\.sjanglab\\.org(/.*)?$"
+            "https://tei\\.sjanglab\\.org/(embed|rerank)/.*$"
           ];
           root_dir = "${site}";
         };

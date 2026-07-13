@@ -2,7 +2,7 @@
 
 ## 접근 요청 { #requesting-access }
 
-SSH 서버 접속이 필요하면 관리자에게 다음 정보를 전달합니다:
+SSH 서버 접속이 필요하면 [접근 권한 요청](../guide/requesting-access.md#access-request-channel)에 안내된 채널로 다음 정보를 전달합니다:
 
 | 항목 | 예시 | 필수 |
 |------|------|------|

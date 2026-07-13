@@ -1,6 +1,6 @@
 # VPN 설정
 
-모든 서비스는 Headscale(Tailscale 호환) VPN을 통해 접근합니다.
+Vaultwarden, n8n UI, AI API 등 내부 서비스는 Headscale(Tailscale 호환) VPN을 통해 접근합니다. Nextcloud와 Upterm relay는 VPN 없이도 접근할 수 있습니다.
 
 ## 1. Tailscale 설치
 
@@ -117,19 +117,22 @@ Windows에서는 시스템 트레이의 Tailscale 아이콘이 **Connected** 상
 
 ## 네트워크 구조
 
-VPN 연결 후 Magic DNS로 서비스에 접근할 수 있습니다.
+VPN 연결 후 Magic DNS로 내부 서비스에 접근할 수 있습니다. Nextcloud는 VPN 연결 시 tau로 직접 연결하고, VPN이 없으면 eta public edge를 경유합니다.
 
 ```mermaid
 flowchart LR
   user["사용자<br/>Tailscale VPN"] --> hs["Headscale<br/>hs.sjanglab.org"]
   hs --> psi["psi (100.64.0.1)<br/>Docling · TEI · MULTI-evolve"]
   hs --> tau["tau (100.64.0.3)<br/>Nextcloud · n8n · Vaultwarden"]
-  hs --> eta_pub["eta public (141.164.53.203)<br/>Upterm"]
+  internet["VPN 없는 사용자"] --> eta_edge["eta public edge<br/>Nextcloud"]
+  eta_edge --> tau
+  internet --> upterm["eta<br/>Upterm relay"]
 ```
 
 | 도메인 | 내부 IP | 호스트 | 서비스 |
 |--------|---------|--------|--------|
 | `cloud.sjanglab.org` | 100.64.0.3 | tau | Nextcloud |
+| `vault.sjanglab.org` | 100.64.0.3 | tau | Vaultwarden |
 | `n8n.sjanglab.org` | 100.64.0.3 | tau | n8n |
 | `docling.sjanglab.org` | 100.64.0.1 | psi | Docling |
 | `tei.sjanglab.org` | 100.64.0.1 | psi | TEI |
