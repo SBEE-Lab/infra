@@ -23,7 +23,7 @@ NixOS-based infrastructure for bioinformatics research with four servers optimiz
 
 ### Prerequisites
 
-- Nix with flakes enabled on the administrator workstation
+- Nix with flakes enabled on the administrator workstation ([installation guide](docs/dev/nix-environment.md#local-nix-install))
 
 ### Development shell
 

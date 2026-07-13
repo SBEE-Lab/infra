@@ -2,6 +2,8 @@
 
 ## 개발 환경 준비
 
+관리자 workstation에는 flakes가 활성화된 Nix가 필요합니다. 설치와 확인 절차는 [Nix 개발 환경 — 개인 머신에 Nix 설치](../dev/nix-environment.md#local-nix-install)를 참조하세요.
+
 ### direnv (권장)
 
 저장소 루트에 `.envrc`가 있어 [direnv](https://direnv.net/)를 설정하면 디렉토리 진입 시 devShell이 자동으로 활성화됩니다.
