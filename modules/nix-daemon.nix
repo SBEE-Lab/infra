@@ -25,6 +25,10 @@ in
     optimise.automatic = mkForce false;
 
     settings = {
+      # Local accounts need the daemon for nix shell/develop; trusted-users
+      # separately controls privileged daemon operations.
+      allowed-users = [ "*" ];
+
       substituters = [
         "https://cache.nixos.org"
         "https://nix-community.cachix.org"

@@ -1,6 +1,6 @@
 # Nix 개발 환경
 
-서버는 NixOS 기반이므로 패키지 관리와 개발 환경 구성에 Nix를 활용합니다.
+SBEE Lab 서버에는 Nix와 flakes가 미리 활성화되어 있으므로 SSH 사용자가 별도로 설치할 필요가 없습니다. 모든 로컬 계정은 Nix daemon을 통해 `nix shell`, `nix run`, `nix develop`을 사용할 수 있으며, privileged daemon 기능은 관리자에게만 허용됩니다.
 
 ## 패키지 사용
 

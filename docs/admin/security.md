@@ -91,8 +91,8 @@ root의 `authorized_keys`에는 관리자 키만 등록됩니다 (`modules/users
 
 | 계정 | 서비스 | 유형 | 특기 사항 |
 |------|--------|------|----------|
-| `nixbot` | Nixbot CI | isSystemUser | `nix.settings.extra-allowed-users` |
-| `harmonia` | Nix 바이너리 캐시 | isSystemUser | `nix.settings.allowed-users` |
+| `nixbot` | Nixbot CI | isSystemUser | psi의 `nix.settings.extra-allowed-users`에 명시 |
+| `harmonia` | Nix 바이너리 캐시 | systemd DynamicUser | 별도 영구 계정 없음 |
 | `rustfs` | RustFS S3 저장소 | isSystemUser | `/srv/rustfs/data` 전용 |
 | `acme-sync-*` | TLS 인증서 동기화 | — | rsync 전용, 제한된 경로 |
 | `postgres` | PostgreSQL | isSystemUser | DB 전용 |
@@ -102,8 +102,11 @@ root의 `authorized_keys`에는 관리자 키만 등록됩니다 (`modules/users
 
 | 설정 | 대상 | 의미 |
 |------|------|------|
-| `trusted-users` | 관리자 | 캐시 서명, 임의 derivation 빌드 가능 |
-| `allowed-users` | nixbot, harmonia | Nix store 사용 허용 |
+| `allowed-users` | 모든 로컬 계정 (`*`) | Nix daemon 연결, store 조회, 일반 build 허용 |
+| `extra-allowed-users` | psi의 `nixbot` | Nixbot service account를 명시적으로 허용하며 현재 wildcard와 중복 |
+| `trusted-users` | `root` (NixOS), `@wheel` (srvos), `seungwon` (admin module) | 임의 substituter와 서명되지 않은 store path 등 privileged daemon 기능 허용 |
+
+일반 연구원·학생 계정은 `nix shell`, `nix run`, `nix develop`을 사용할 수 있지만 trusted user 권한은 없습니다. `allowed-users`는 SSH 로그인이나 호스트 접근 권한을 부여하지 않습니다.
 
 ## SSH 보안
 
