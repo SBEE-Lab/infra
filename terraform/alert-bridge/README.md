@@ -66,8 +66,12 @@ Run migrations before routing Alertmanager or healthchecks.io traffic to the Wor
 
 ## Cutover
 
+Alertmanager uses `POST /alertmanager` with `Authorization: Bearer $ALERTMANAGER_WEBHOOK_TOKEN` from `modules/monitoring/prometheus/alertmanager.nix`.
+
+Remaining cutover:
+
 1. Verify `GET /healthz` on the Worker URL.
-2. Point Alertmanager to `POST /alertmanager` and send `Authorization: Bearer $ALERTMANAGER_WEBHOOK_TOKEN`.
+2. Confirm Alertmanager bridge posts and updates Slack messages successfully.
 3. Point healthchecks.io webhooks to `POST /healthchecks` and send `Authorization: Bearer $HEALTHCHECKS_WEBHOOK_TOKEN`.
-4. Keep legacy Slack incoming webhooks configured until bridge posts and updates messages successfully.
+4. Keep legacy Slack incoming webhooks configured until the rollback window closes.
 5. Remove legacy webhook secrets and Slack `incoming-webhook` scope after the rollback window.

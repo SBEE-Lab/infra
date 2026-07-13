@@ -11,29 +11,23 @@ The external alert bridge implementation lives under `packages/infra-alert-bridg
 
 ## Current flow
 
-Alertmanager still sends Slack notifications through incoming webhooks. The Cloudflare Worker bridge is deployed separately and ready for cutover after D1 migrations and receiver URL changes.
-
-```text
-Prometheus -> Alertmanager -> Slack incoming webhook
-Watchdog -> healthchecks.io -> Slack integration
-```
-
-## Bridge cutover target
+Alertmanager sends Slack notifications through the Cloudflare Worker bridge so firing, update, and resolved events can share Slack threads.
 
 ```text
 Prometheus -> Alertmanager -> external alert bridge -> Slack Web API
-Watchdog -> healthchecks.io -> external alert bridge -> Slack Web API
+Watchdog -> healthchecks.io -> Slack integration
 ```
 
 Watchdog pings healthchecks.io directly and never depends on the bridge. The bridge has its own `infra-alert-bridge-heartbeat` healthchecks.io dead-man check.
 
-Cutover checklist:
+## Remaining bridge cutover
 
-1. Apply `terraform/alert-bridge`.
-2. Run D1 migrations from `packages/infra-alert-bridge`.
-3. Configure Alertmanager `webhook_configs` to `POST /alertmanager` with bearer token.
-4. Configure healthchecks.io webhook integration to `POST /healthchecks` with bearer token.
-5. Keep legacy Slack webhooks until bridge messages are confirmed.
-6. Remove `incoming-webhook` scope and SOPS webhook secrets after rollback window.
+healthchecks.io can later move from its Slack integration to `POST /healthchecks` on the bridge with `Authorization: Bearer $HEALTHCHECKS_WEBHOOK_TOKEN`.
+
+Rollback checklist:
+
+1. Restore Alertmanager `slack_configs` with the legacy incoming webhook secrets.
+2. Keep the healthchecks.io Slack integration in place until bridge healthchecks delivery is confirmed.
+3. Remove `incoming-webhook` scope and SOPS webhook secrets after the rollback window.
 
 See `slack-app/README.md` for Slack app bootstrap and drift checks.
