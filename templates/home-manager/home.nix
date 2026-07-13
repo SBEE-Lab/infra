@@ -31,6 +31,7 @@
       nix-direnv.enable = true;
     };
 
+    nix.package = pkgs.nix;
     nix.settings.extra-experimental-features = [
       "nix-command"
       "flakes"
@@ -38,9 +39,7 @@
 
     programs.zsh = {
       enable = true;
-      # `upterm-tmux <github-username>` — share a tmux session via the
-      # mulatta uptermd relay. Pair-programming session name matches the
-      # convention shown at https://upterm.mulatta.io.
+      # Reuse one tmux session so reconnecting guests return to the same shell.
       initContent = ''
         upterm-tmux() {
           if [ -z "$1" ]; then
@@ -49,7 +48,7 @@
           fi
           upterm host \
             --github-user "$1" \
-            --server ssh://upterm.mulatta.io:2323 \
+            --server ssh://upterm.sjanglab.org:2323 \
             --force-command 'tmux attach -t pair-programming' \
             -- tmux new -A -s pair-programming
         }
