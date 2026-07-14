@@ -205,11 +205,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1783583669,
-        "narHash": "sha256-fiAFsNCgzMmaeoEFQiibMIYO3MyUqvKlwNT3F+N94MI=",
+        "lastModified": 1784016977,
+        "narHash": "sha256-TydDba3YD2u15uS0L+PDs7lMqPopnzWggljTKDqOCSw=",
         "owner": "Mic92",
         "repo": "niks3",
-        "rev": "fbcded5420a3f2357fda14b6cf0f0453d1ed3266",
+        "rev": "b306808bf381e7e66e33de1e9446a1be0935f4e3",
         "type": "github"
       },
       "original": {
@@ -564,11 +564,11 @@
         "rust-overlay": "rust-overlay_2"
       },
       "locked": {
-        "lastModified": 1783958828,
-        "narHash": "sha256-1esi5UqMiTrljawLTzZOscrA0pWerfknMAYGo+D85gU=",
+        "lastModified": 1784041694,
+        "narHash": "sha256-F/4xnEIc9W1UYXJvEXzRpS3zkAbh/zB+3tm9AwUHMlc=",
         "owner": "rustfs",
         "repo": "rustfs",
-        "rev": "27a7cc739e9a352296cc44c60b5bde5ff7e87973",
+        "rev": "ea2e24ac13fd1307a5786aca7c4f6eec75022150",
         "type": "github"
       },
       "original": {
