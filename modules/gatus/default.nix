@@ -75,7 +75,8 @@ in
         ]
         ++ lib.optional hasAlertmanagerSecrets (mkExtEndpoint "Alertmanager" "monitoring")
         ++ [
-          (mkExtEndpoint "PostgreSQL" "platform")
+          (mkExtEndpoint "PostgreSQL primary rho" "platform")
+          (mkExtEndpoint "PostgreSQL replica tau" "platform")
         ];
     };
   };

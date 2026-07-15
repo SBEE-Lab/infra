@@ -2,6 +2,7 @@
 # Replicates from rho (primary) via wg-admin
 {
   config,
+  lib,
   pkgs,
   ...
 }:
@@ -12,21 +13,21 @@ let
   pgDataDir = "/var/lib/postgresql/${pgPackage.psqlSchema}";
 in
 {
+  imports = [ ./monitoring.nix ];
+
   services.postgresql = {
     enable = true;
     package = pgPackage;
 
     settings = {
-      # Listen on localhost only (replica doesn't need external access)
+      # Replica only serves local monitoring and emergency read-only queries.
       listen_addresses = "localhost";
       port = 5432;
-
-      # Hot standby allows read-only queries on the replica
       hot_standby = true;
     };
   };
 
-  # Initialize replica from primary before PostgreSQL starts
+  # Initialize replica from primary before PostgreSQL starts.
   systemd.services.postgresql-replica-init = {
     description = "Initialize PostgreSQL streaming replica";
     after = [
@@ -41,6 +42,8 @@ in
     path = [
       pgPackage
       pkgs.coreutils
+      pkgs.gnused
+      pkgs.jq
     ];
 
     serviceConfig = {
@@ -48,38 +51,62 @@ in
       RemainAfterExit = true;
       User = "postgres";
       Group = "postgres";
+      RuntimeDirectory = "postgresql-replica-init";
+      RuntimeDirectoryMode = "0700";
     };
 
     script = ''
-            set -euo pipefail
-            PGDATA="${pgDataDir}"
-            PASSWORD_FILE="${config.sops.secrets.pg-replicator-password.path}"
+      set -euo pipefail
+      PGDATA=${lib.escapeShellArg pgDataDir}
+      PASSWORD_FILE=${lib.escapeShellArg config.sops.secrets.pg-replicator-password.path}
+      PGPASSFILE="$RUNTIME_DIRECTORY/pgpass"
 
-            # Already initialized - just update connection info
-            if [ -f "$PGDATA/PG_VERSION" ]; then
-              echo "Replica already initialized, updating primary_conninfo..."
-            else
-              # Clean and initialize from primary
-              rm -rf "$PGDATA"
-              echo "Initializing replica from primary ${primaryHost}..."
+      audit_event() {
+        jq -nc --arg event "$1" '{
+          host: "tau",
+          log_type: "postgresql_audit",
+          event: $event,
+          configured_role: "replica"
+        }'
+      }
+      trap 'audit_event replica_initialization_failed' ERR
 
-              PGPASSWORD=$(cat "$PASSWORD_FILE") pg_basebackup \
-                -h ${primaryHost} \
-                -p 5432 \
-                -U replicator \
-                -D "$PGDATA" \
-                -Fp -Xs -P -R
+      # Keep credentials out of primary_conninfo and command arguments. pgpass
+      # requires backslash escaping for its two separator characters.
+      escaped_password=$(sed -e 's/\\/\\\\/g' -e 's/:/\\:/g' "$PASSWORD_FILE")
+      printf '%s:%s:*:replicator:%s\n' ${lib.escapeShellArg primaryHost} 5432 "$escaped_password" > "$PGPASSFILE"
+      chmod 600 "$PGPASSFILE"
 
-              echo "Replica initialization complete."
-            fi
+      if [ -f "$PGDATA/PG_VERSION" ]; then
+        if [ "$(cat "$PGDATA/PG_VERSION")" != ${lib.escapeShellArg pgPackage.psqlSchema} ] \
+          || [ ! -f "$PGDATA/standby.signal" ]; then
+          echo "Existing PostgreSQL data directory is not a PostgreSQL ${pgPackage.psqlSchema} standby" >&2
+          audit_event replica_initialization_failed
+          trap - ERR
+          exit 1
+        fi
+        audit_event replica_configuration_refreshed
+      else
+        rm -rf "$PGDATA"
+        audit_event replica_basebackup_started
+        PGPASSFILE="$PGPASSFILE" pg_basebackup \
+          -h ${lib.escapeShellArg primaryHost} \
+          -p 5432 \
+          -U replicator \
+          -D "$PGDATA" \
+          -Fp -Xs -P -R \
+          --slot=tau
+        audit_event replica_basebackup_completed
+      fi
 
-            # Update primary_conninfo with current password
-            PASSWORD=$(cat "$PASSWORD_FILE")
-            cat > "$PGDATA/postgresql.auto.conf" << 'CONF'
-      primary_conninfo = 'host=${primaryHost} port=5432 user=replicator password=PASSWORD_PLACEHOLDER application_name=tau sslmode=prefer'
+      cp "$PGPASSFILE" "$PGDATA/.pgpass"
+      chmod 600 "$PGDATA/.pgpass"
+      cat > "$PGDATA/postgresql.auto.conf" <<'CONF'
+      primary_conninfo = 'host=${primaryHost} port=5432 user=replicator passfile=${pgDataDir}/.pgpass application_name=tau sslmode=prefer'
+      primary_slot_name=tau
       CONF
-            sed -i "s/PASSWORD_PLACEHOLDER/$PASSWORD/" "$PGDATA/postgresql.auto.conf"
-            chmod 600 "$PGDATA/postgresql.auto.conf"
+      chmod 600 "$PGDATA/postgresql.auto.conf"
+      trap - ERR
     '';
   };
 
@@ -88,7 +115,9 @@ in
     group = "postgres";
   };
 
-  # Disable postgresql-setup on replica - it waits for recovery to complete,
-  # but replicas are always in recovery mode
+  # NixOS' PostgreSQL target requires postgresql-setup by default. Replica
+  # setup waits forever for recovery to end, so remove only that target edge
+  # while retaining postgresql.service as boot dependency.
   systemd.services.postgresql-setup.enable = false;
+  systemd.targets.postgresql.requires = lib.mkForce [ "postgresql.service" ];
 }

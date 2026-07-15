@@ -8,15 +8,7 @@ let
   inherit (config.networking.sbee) currentHost hosts;
 in
 {
-  imports = [ ../gatus/check.nix ];
-
-  gatusCheck.push = [
-    {
-      name = "PostgreSQL";
-      group = "platform";
-      systemdService = "postgresql.service";
-    }
-  ];
+  imports = [ ./monitoring.nix ];
 
   services.postgresql = {
     enable = true;
@@ -29,7 +21,11 @@ in
 
       wal_level = "replica";
       max_wal_senders = 3;
+      max_replication_slots = 3;
       wal_keep_size = "1GB";
+      # Bound slot retention so short outages recover automatically without
+      # allowing an abandoned replica to fill rho's root filesystem.
+      max_slot_wal_keep_size = "8GB";
     };
 
     ensureDatabases = [
@@ -121,6 +117,9 @@ in
       TERRAFORM_PW=$(cat ${config.sops.secrets.pg-terraform-password.path})
       NEXTCLOUD_PW=$(cat ${config.sops.secrets.pg-nextcloud-password.path})
       N8N_PW=$(cat ${config.sops.secrets.pg-n8n-password.path})
+
+      # tau uses this slot for bounded WAL retention across short outages.
+      ${psql} -tAc "SELECT pg_create_physical_replication_slot('tau') WHERE NOT EXISTS (SELECT 1 FROM pg_replication_slots WHERE slot_name = 'tau')" -d postgres
 
       # Some hosts import subsets of the database modules, so only update roles present locally.
       ${psql} -tAc "SELECT 1 FROM pg_roles WHERE rolname='replicator'" -d postgres | grep -q 1 && \

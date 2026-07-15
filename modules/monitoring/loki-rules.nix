@@ -184,6 +184,58 @@ let
             description = "rho has not received a heartbeat from the tailnet app access audit correlator";
           })
           (mkAlert {
+            alert = "PostgresqlAuditSnapshotsMissing";
+            expr = ''
+              absent_over_time({host="rho", log_type="postgresql_audit", event="replication_snapshot"}[5m])
+            '';
+            for = "2m";
+            labels = auditCritical // {
+              host = "rho";
+              service = "postgresql";
+            };
+            summary = "PostgreSQL audit snapshots missing";
+            description = "rho has not recorded a PostgreSQL replication audit snapshot for 5 minutes";
+          })
+          (mkAlert {
+            alert = "PostgresqlAuditSnapshotsMissing";
+            expr = ''
+              absent_over_time({host="tau", log_type="postgresql_audit", event="replication_snapshot"}[5m])
+            '';
+            for = "2m";
+            labels = auditCritical // {
+              host = "tau";
+              service = "postgresql";
+            };
+            summary = "PostgreSQL audit snapshots missing";
+            description = "rho has not received a tau PostgreSQL replication audit snapshot for 5 minutes";
+          })
+          (mkAlert {
+            alert = "PostgresqlReplicaReinitialized";
+            expr = ''
+              sum(count_over_time({host="tau", log_type="postgresql_audit", event="replica_basebackup_completed"}[10m])) > 0
+            '';
+            for = "0m";
+            labels = auditWarning // {
+              host = "tau";
+              service = "postgresql";
+            };
+            summary = "PostgreSQL replica reinitialized";
+            description = "tau completed a new pg_basebackup from rho";
+          })
+          (mkAlert {
+            alert = "PostgresqlReplicaInitializationFailed";
+            expr = ''
+              sum(count_over_time({host="tau", log_type="postgresql_audit", event="replica_initialization_failed"}[10m])) > 0
+            '';
+            for = "0m";
+            labels = auditCritical // {
+              host = "tau";
+              service = "postgresql";
+            };
+            summary = "PostgreSQL replica initialization failed";
+            description = "tau failed while configuring or rebuilding its PostgreSQL replica";
+          })
+          (mkAlert {
             alert = "NginxAccessLogsMissing";
             expr = ''
               absent_over_time({log_type="nginx_access"}[15m])

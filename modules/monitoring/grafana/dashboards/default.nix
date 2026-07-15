@@ -5,6 +5,7 @@
 # - jobs.nix: batch/sync/backup status
 # - access-audit.nix: SSH / Authentik / Headscale audit drilldown
 # - ai-resources.nix: AI/GPU-facing service status
+# - postgresql.nix: primary/replica health and replication audit history
 {
   pkgs,
   lib,
@@ -29,6 +30,7 @@ let
     sjanglab-jobs = import ./jobs.nix { inherit datasources; };
     sjanglab-access-audit = import ./access-audit.nix { inherit datasources; };
     sjanglab-ai-resources = import ./ai-resources.nix { inherit datasources; };
+    sjanglab-postgresql = import ./postgresql.nix { inherit datasources; };
   };
 
   dashboardsDir = pkgs.runCommand "grafana-dashboards" { } (

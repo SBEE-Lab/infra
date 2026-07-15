@@ -48,7 +48,7 @@
         # repetitive state and stay on the 7-day default.
         retention_stream = [
           {
-            selector = ''{log_type=~"ssh|ssh_bastion|access_audit|audit|authentik|headscale"}'';
+            selector = ''{log_type=~"ssh|ssh_bastion|access_audit|audit|authentik|headscale|postgresql_audit"}'';
             priority = 1;
             period = "2160h"; # 90 days
           }

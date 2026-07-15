@@ -2,6 +2,7 @@
 {
   imports = [
     ../modules/sops/checks.nix
+    ./postgresql-replication.nix
   ];
 
   flake.herculesCI = import ./effects.nix { inherit inputs self; };

@@ -9,7 +9,9 @@
   - `SjangLab Jobs`: db-sync 및 batch/sync/backup 상태
   - `SjangLab Access & Audit`: SSH bastion, Authentik, Headscale 감사 드릴다운
   - `SjangLab AI Resources`: AI 서비스 smoke, psi 리소스, 데이터 동기화 상태
+  - `SjangLab PostgreSQL`: rho primary, tau replica, streaming lag, slot WAL 여유, replication 감사 이력
 - **Gatus**: `https://status.sjanglab.org` (tailnet 내부 공개 상태 페이지)
+  - PostgreSQL은 `primary rho`와 `replica tau`를 별도 endpoint로 표시합니다.
 
 ## 스택 구성
 
@@ -63,6 +65,8 @@ flowchart LR
 | Headscale 노드 인벤토리 스냅샷 (eta) | Loki (rho:3100) | 300초 |
 | 호스트 메트릭 | Prometheus (rho:9090) | 60초 |
 | psi job freshness/status snapshot | Loki (rho:3100) | 60초 |
+| PostgreSQL exporter metrics (rho/tau) | Prometheus (rho:9090) | 30초 |
+| PostgreSQL replication audit snapshot (rho/tau) | Loki (rho:3100) | 60초 |
 
 eta는 SSH 인증 로그와 같은 PID의 outbound socket을 관찰해 `ssh_bastion` 로그를 생성하고 Loki로 직접 전송합니다. ProxyJump 때문에 대상 호스트가 eta의 내부 IP만 보더라도 실제 접속원 IP, bastion 사용자, 대상 호스트를 함께 조회할 수 있습니다.
 
@@ -104,7 +108,8 @@ eta의 Vector가 journald에서 수집해 이벤트를 분류합니다 (`modules
   - `blackbox_tcp`: eta vantage TCP probe for Upterm
   - `blackbox_icmp`: eta vantage ICMP probe for wg-admin host reachability
   - `nvidia-gpu`: psi GPU exporter
-- Alert rules: 호스트 메트릭 freshness, 디스크 부족/심각 부족, 메모리 부족, 높은 CPU, generic scrape target down, Gatus non-app heartbeat down, blackbox exporter down, blackbox probe failed, GPU exporter down, Watchdog dead-man
+  - `postgresql`: rho/tau local postgres_exporter metrics relayed through Vector
+- Alert rules: 호스트 메트릭 freshness, 디스크 부족/심각 부족, 메모리 부족, 높은 CPU, generic scrape target down, Gatus non-app heartbeat down, PostgreSQL DB/exporter/role/streaming/lag/slot WAL 상태, blackbox exporter down, blackbox probe failed, GPU exporter down, Watchdog dead-man
 - Alert delivery: Alertmanager는 operational alert를 `#infra-alerts`로, audit alert를 `#infra-audit`로 Cloudflare Worker/D1 bridge를 통해 전송합니다. `Watchdog`은 healthchecks.io로 직접 ping하며, ping이 끊기면 healthchecks.io가 `#infra-alerts`에 알립니다.
 - Alert bridge: Bridge는 자체 healthchecks.io heartbeat를 사용합니다. healthchecks.io 알림은 별도 cutover 전까지 기존 Slack integration을 유지합니다.
 
@@ -133,6 +138,10 @@ alert별 1차 확인:
 | `BlackboxProbeFailed` | eta blackbox exporter, DNS, nginx 인증서 | ACME/프록시/방화벽 확인 |
 | `TlsCertificateExpiringSoon` | eta ACME timer와 대상 `acme-sync-*` unit | 인증서 갱신 후 대상 호스트 동기화 확인 |
 | `NvidiaGpuExporterDown` | psi exporter service와 `nvidia-smi` | NVIDIA driver/GPU 상태 확인 후 exporter 복구 |
+| `PostgresqlDown` / `PostgresqlExporterMissing` | rho/tau `postgresql.service`, `prometheus-postgres-exporter.service`, Vector | DB 또는 exporter 복구 후 `pg_up` 확인 |
+| `PostgresqlReplicaNotStreaming` / `PostgresqlReplicationLagHigh` | rho `pg_stat_replication`, tau `pg_stat_wal_receiver` | 연결·WAL 상태 확인, WAL 유실이면 tau 재-bootstrap |
+| `PostgresqlReplicationSlotInactive` / `PostgresqlReplicationSlotWalRisk` | rho `pg_replication_slots` | tau 상태 복구. `wal_status=lost`면 새 basebackup 수행 |
+| `PostgresqlAuditSnapshotsMissing` | rho/tau audit timer와 Vector/Loki | timer·전송 경로 복구 후 누락 구간 기록 |
 | `BackupJobFailed` / `BackupJobStale` | `log_type="systemd_status"`, 대상 timer/service | 백업 unit 수정 후 수동 실행, 새 snapshot 확인 |
 | `AuditJobFailed` / `AuditJobStale` | `log_type="systemd_status"`, 대상 audit timer/service | 감사 수집 unit 복구 후 누락 구간 확인 |
 | `AuditCorrelatorHeartbeatMissing` | rho audit correlator service와 Loki 수신 | correlator·Loki 연결 복구 후 heartbeat 확인 |
@@ -144,6 +153,19 @@ alert별 1차 확인:
 | `Watchdog` 미수신 | Alertmanager, healthchecks.io ping URL, 네트워크 | Alertmanager 복구. bridge 장애와 분리 확인 |
 
 감사 alert는 `#infra-audit`에 도착합니다. 사용자명, source IP, app/node 정보를 기록하고 계정 탈취 가능성이 있으면 Authentik 계정 비활성화와 Headscale ACL apply를 우선합니다.
+
+### PostgreSQL replica recovery
+
+일시적인 네트워크 장애는 slot이 보존한 WAL로 자동 복구됩니다. `requested WAL segment ... has already been removed` 또는 `wal_status=lost`이면 기존 PGDATA를 다시 시작하지 않습니다.
+
+1. tau의 `postgresql.target`을 중지합니다.
+1. `/var/lib/postgresql/17`을 timestamp가 붙은 `17.stale-*` 경로로 이동해 보존합니다.
+1. rho의 inactive/lost `tau` slot을 삭제하고 physical slot을 다시 만듭니다.
+1. `inv deploy --hosts tau`를 실행하면 `postgresql-replica-init`이 `pg_basebackup --slot=tau`로 새 replica를 구성합니다.
+1. rho `pg_stat_replication`의 `application_name=tau`, `state=streaming`과 tau `pg_is_in_recovery()=true`를 확인합니다.
+1. Grafana와 Loki에서 byte lag 0, healthy audit snapshot, `replica_basebackup_completed`를 확인합니다.
+
+stale PGDATA는 새 replica와 backup 검증 완료 전 삭제하지 않습니다.
 
 ### Alert delivery bootstrap
 
@@ -197,7 +219,7 @@ healthchecks.io webhook integration은 아직 legacy Slack integration을 유지
 
 ### Loki (rho)
 
-- 리텐션: 기본 7일, 감사 스트림(`log_type=~"ssh|ssh_bastion|audit|authentik|headscale"`)은 90일
+- 리텐션: 기본 7일, 감사 스트림(`log_type=~"ssh|ssh_bastion|access_audit|audit|authentik|headscale|postgresql_audit"`)은 90일
   - `headscale_nodes` 스냅샷은 반복 상태 데이터라 기본 7일 적용
 - 스토리지: 로컬 파일시스템 (`/var/lib/loki`)
 
