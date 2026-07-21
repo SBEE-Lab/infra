@@ -39,7 +39,7 @@ flowchart LR
 
 ## RustFS bootstrap
 
-`services.rustfs`는 daemon과 bucket bootstrap을 함께 선언합니다. Bucket 같은 object store 내부 state는 `rustfs-bootstrap.service`가 RustFS readiness를 기다린 뒤 S3-compatible client로 적용합니다.
+RustFS daemon은 nixpkgs upstream `services.rustfs` 모듈로 실행합니다. Infra 모듈은 `/srv/rustfs/data`, wg-admin bind, sops 환경 파일, bucket/IAM bootstrap, monitoring만 덧붙입니다. Bucket 같은 object store 내부 state는 `rustfs-bootstrap.service`가 RustFS readiness를 기다린 뒤 S3-compatible client로 적용합니다.
 
 `rustfs-bootstrap.service`는 선언된 object-store state를 다음 순서로 수렴합니다.
 
@@ -49,7 +49,7 @@ flowchart LR
 
 선언에서 제거한 user/policy는 RustFS에서 자동 삭제하지 않습니다. 폐기된 credential은 bootstrap 후 별도 `mc admin user rm` 절차로 제거합니다.
 
-RustFS root credential은 bootstrap과 break-glass 용도로만 사용합니다. restic job은 별도 writer/prune/restore credential을 사용해야 합니다. RustFS console UI는 현재 upstream package에서 static asset이 빠져 있어 운영 절차에 포함하지 않습니다.
+RustFS root credential은 sops template로 생성되는 systemd `EnvironmentFile`을 통해 daemon에 전달되며, bootstrap과 break-glass 용도로만 사용합니다. restic job은 별도 writer/prune/restore credential을 사용해야 합니다. RustFS console UI는 localhost에만 bind하며 운영 절차에 포함하지 않습니다.
 
 ## RustFS monitoring
 
