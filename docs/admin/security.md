@@ -203,10 +203,12 @@ sops updatekeys hosts/psi.yaml
 | API 바인드 | wg-admin IP만 (`:9100`) |
 | console 바인드 | localhost only (`127.0.0.1:9101`) |
 | 저장소 | `/srv/rustfs/data` |
+| daemon 모듈 | nixpkgs upstream `services.rustfs` |
+| secret 전달 | sops template `EnvironmentFile` |
 | bucket state | `rustfs-bootstrap.service`가 S3 API로 생성/검증 |
 | client 인증 | access key / secret key |
 
-RustFS root credential은 bootstrap과 break-glass 용도로만 사용합니다. Backup job은 repo별 writer/pruner/reader/mirror credential과 IAM policy를 사용해야 합니다.
+RustFS root credential은 daemon 시작, bootstrap, break-glass 용도로만 사용합니다. Backup job은 repo별 writer/pruner/reader/mirror credential과 IAM policy를 사용해야 합니다.
 
 ## 감사 및 모니터링
 

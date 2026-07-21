@@ -1,11 +1,11 @@
 {
   config,
-  inputs ? null,
   lib,
   pkgs,
   ...
 }:
 let
+  cfg = config.services.rustfs;
   jsonFormat = pkgs.formats.json { };
   bucketType = lib.types.submodule {
     options = {
@@ -52,22 +52,6 @@ let
 in
 {
   options.services.rustfs = {
-    enable = lib.mkEnableOption "RustFS S3-compatible object storage";
-
-    package = lib.mkOption {
-      type = lib.types.package;
-      default =
-        if inputs != null && inputs ? rustfs then
-          inputs.rustfs.packages.${pkgs.stdenv.hostPlatform.system}.default
-        else
-          pkgs.writeShellScriptBin "rustfs-missing" ''
-            echo "services.rustfs.package must be set when flake inputs are unavailable" >&2
-            exit 1
-          '';
-      defaultText = "inputs.rustfs.packages.\${pkgs.stdenv.hostPlatform.system}.default";
-      description = "RustFS package to run.";
-    };
-
     listenAddress = lib.mkOption {
       type = lib.types.str;
       default = config.networking.sbee.currentHost.wg-admin;
@@ -188,5 +172,60 @@ in
         description = "Ship RustFS service logs to the central Loki instance.";
       };
     };
+  };
+
+  config = lib.mkIf cfg.enable {
+    services.rustfs = {
+      settings = {
+        RUSTFS_ADDRESS = "${cfg.listenAddress}:${toString cfg.apiPort}";
+        RUSTFS_CONSOLE_ENABLE = "true";
+        RUSTFS_CONSOLE_ADDRESS = "127.0.0.1:${toString cfg.consolePort}";
+        RUSTFS_VOLUMES = cfg.dataDir;
+      };
+      environmentFile = config.sops.templates.rustfs-env.path;
+    };
+
+    sops.templates.rustfs-env = {
+      owner = cfg.user;
+      inherit (cfg) group;
+      mode = "0400";
+      content = ''
+        RUSTFS_ACCESS_KEY=${config.sops.placeholder.rustfs-access-key}
+        RUSTFS_SECRET_KEY=${config.sops.placeholder.rustfs-secret-key}
+      '';
+    };
+
+    systemd.tmpfiles.rules = [
+      "d /srv/rustfs 0750 ${cfg.user} ${cfg.group} -"
+    ];
+
+    systemd.services.rustfs = {
+      after = [
+        "srv.mount"
+      ]
+      ++ lib.optional (cfg.secretInstallService != null) cfg.secretInstallService;
+      requires = lib.optional (cfg.secretInstallService != null) cfg.secretInstallService;
+      unitConfig = {
+        RequiresMountsFor = "/srv";
+        StartLimitIntervalSec = "5min";
+      };
+      serviceConfig = {
+        WorkingDirectory = "/var/lib/rustfs";
+        StateDirectory = "rustfs";
+        LogsDirectory = "rustfs";
+        ProtectSystem = "strict";
+        UMask = "0077";
+        ReadWritePaths = [
+          cfg.dataDir
+          "/var/lib/rustfs"
+          "/var/log/rustfs"
+        ];
+        StandardOutput = "journal";
+        StandardError = "journal";
+      };
+    };
+
+    networking.firewall.interfaces.wg-admin.allowedTCPPorts = [ cfg.apiPort ];
+    environment.systemPackages = [ cfg.package ];
   };
 }
