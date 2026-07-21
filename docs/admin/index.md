@@ -70,6 +70,7 @@ Terraform이 Authentik 그룹과 Headscale ACL policy를 같은 사용자 invent
 - [백업](backup.md) — RustFS S3 백업 저장소와 복구 원칙
 - [CI/CD](ci-cd.md) — Nixbot, Nix 바이너리 캐시
 - [아키텍처](architecture.md) — 전체 구조, 호스트 역할, 기술 스택
+- [아키텍처 도식](architecture-diagrams.md) — 전체/인증/네트워크/백업/관측/운영/CI 도식 묶음
 - [모듈 개발](module-development.md) — NixOS 모듈 작성 가이드
 - [Terraform](terraform.md) — DNS, GitHub 리소스 관리
 - [네트워크](network.md) — 토폴로지, WireGuard, Headscale, 방화벽

@@ -1,0 +1,321 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "CI/CD와 Nix 캐시",
+    "subtitle": "GitHub App webhook, eta edge, psi Nixbot, Harmonia substituter",
+    "output": "docs/admin/cicd-cache-architecture.html",
+    "visual_preset": "blueprint",
+    "quality_profile": "standard",
+    "views": [
+      {
+        "id": "webhook",
+        "label": "GitHub 웹훅",
+        "focus": [
+          "github",
+          "eta-edge",
+          "psi-nginx",
+          "nixbot-master",
+          "nixbot-db"
+        ],
+        "note": "GitHub App webhook은 eta TLS edge를 거쳐 psi Nixbot stack으로 전달됩니다."
+      },
+      {
+        "id": "build",
+        "label": "빌드 실행",
+        "focus": [
+          "nixbot-master",
+          "builders",
+          "checks",
+          "github"
+        ],
+        "note": "Nixbot은 allowlist repository의 eval/build effect를 실행하고 GitHub check context를 업데이트합니다."
+      },
+      {
+        "id": "cache",
+        "label": "바이너리 캐시",
+        "focus": [
+          "builders",
+          "harmonia",
+          "eta-host",
+          "rho-host",
+          "tau-host"
+        ],
+        "note": "psi Harmonia cache는 eta/rho/tau Nix substituter로 사용됩니다."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "github",
+      "type": "external",
+      "label": "GitHub",
+      "sublabel": "App · OAuth · Checks",
+      "pos": [
+        50,
+        260
+      ]
+    },
+    {
+      "id": "eta-edge",
+      "type": "security",
+      "label": "eta edge",
+      "sublabel": "buildbot.sjanglab.org TLS",
+      "pos": [
+        260,
+        260
+      ]
+    },
+    {
+      "id": "psi-nginx",
+      "type": "security",
+      "label": "psi nginx",
+      "sublabel": "wg-admin upstream",
+      "pos": [
+        480,
+        260
+      ]
+    },
+    {
+      "id": "nixbot-master",
+      "type": "backend",
+      "label": "Nixbot master",
+      "sublabel": "eval · scheduler",
+      "pos": [
+        700,
+        258
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "nixbot-db",
+      "type": "database",
+      "label": "Nixbot DB",
+      "sublabel": "PostgreSQL on psi",
+      "pos": [
+        700,
+        410
+      ],
+      "size": [
+        150,
+        62
+      ]
+    },
+    {
+      "id": "builders",
+      "type": "backend",
+      "label": "빌더",
+      "sublabel": "Nix build effects",
+      "pos": [
+        930,
+        260
+      ]
+    },
+    {
+      "id": "checks",
+      "type": "cloud",
+      "label": "Check contexts",
+      "sublabel": "buildbot/*",
+      "pos": [
+        930,
+        110
+      ]
+    },
+    {
+      "id": "harmonia",
+      "type": "backend",
+      "label": "Harmonia",
+      "sublabel": "psi :5000",
+      "pos": [
+        930,
+        410
+      ]
+    },
+    {
+      "id": "eta-host",
+      "type": "backend",
+      "label": "eta",
+      "sublabel": "substituter",
+      "pos": [
+        1160,
+        250
+      ]
+    },
+    {
+      "id": "rho-host",
+      "type": "backend",
+      "label": "rho",
+      "sublabel": "substituter",
+      "pos": [
+        1160,
+        365
+      ]
+    },
+    {
+      "id": "tau-host",
+      "type": "backend",
+      "label": "tau",
+      "sublabel": "substituter",
+      "pos": [
+        1160,
+        480
+      ]
+    },
+    {
+      "id": "secrets",
+      "type": "security",
+      "label": "GitHub secrets",
+      "sublabel": "App/OAuth keys",
+      "pos": [
+        480,
+        430
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "eta public ingress",
+      "wraps": [
+        "eta-edge"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "psi CI stack",
+      "wraps": [
+        "psi-nginx",
+        "nixbot-master",
+        "nixbot-db",
+        "builders",
+        "harmonia",
+        "secrets"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "github-webhook",
+      "from": "github",
+      "to": "eta-edge",
+      "label": "webhook HTTPS",
+      "variant": "emphasis"
+    },
+    {
+      "id": "eta-psi",
+      "from": "eta-edge",
+      "to": "psi-nginx",
+      "label": "wg-admin proxy",
+      "variant": "security"
+    },
+    {
+      "id": "psi-master",
+      "from": "psi-nginx",
+      "to": "nixbot-master",
+      "label": "HTTP upstream",
+      "variant": "emphasis"
+    },
+    {
+      "id": "master-db",
+      "from": "nixbot-master",
+      "to": "nixbot-db",
+      "label": "state",
+      "variant": "security",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        775,
+        338
+      ]
+    },
+    {
+      "id": "master-builders",
+      "from": "nixbot-master",
+      "to": "builders",
+      "label": "build effects",
+      "variant": "emphasis"
+    },
+    {
+      "id": "builders-checks",
+      "from": "builders",
+      "to": "checks",
+      "label": "status",
+      "variant": "emphasis",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "checks-github",
+      "from": "checks",
+      "to": "github",
+      "label": "GitHub API",
+      "variant": "dashed",
+      "route": "orthogonal-h",
+      "via": [
+        [
+          1005,
+          80
+        ],
+        [
+          40,
+          80
+        ]
+      ]
+    },
+    {
+      "id": "builders-cache",
+      "from": "builders",
+      "to": "harmonia",
+      "label": "nar publish",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        990,
+        334
+      ]
+    },
+    {
+      "id": "harmonia-eta",
+      "from": "harmonia",
+      "to": "eta-host",
+      "label": "substitute",
+      "variant": "dashed"
+    },
+    {
+      "id": "harmonia-rho",
+      "from": "harmonia",
+      "to": "rho-host",
+      "label": "substitute",
+      "variant": "dashed"
+    },
+    {
+      "id": "harmonia-tau",
+      "from": "harmonia",
+      "to": "tau-host",
+      "label": "substitute",
+      "variant": "dashed"
+    },
+    {
+      "id": "secrets-master",
+      "from": "secrets",
+      "to": "nixbot-master",
+      "label": "OAuth/App",
+      "variant": "security"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "CI 정책",
+      "items": [
+        "check context prefix는 buildbot 유지",
+        "SBEE-Lab 조직과 allowlist 사용자만 빌드 대상",
+        "실패한 build/effect는 Nixbot UI에서 재시도"
+      ]
+    }
+  ]
+}

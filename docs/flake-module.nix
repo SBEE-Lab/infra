@@ -5,7 +5,9 @@
       inherit (pkgs.lib) fileset;
       docsFiles = fileset.unions [
         ../zensical.toml
-        (fileset.fileFilter (file: file.hasExt "md" || file.hasExt "css") ../docs)
+        (fileset.fileFilter (
+          file: file.hasExt "md" || file.hasExt "css" || file.hasExt "html" || file.hasExt "json"
+        ) ../docs)
       ];
     in
     {

@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "인프라 서비스 아키텍처",
+    "subtitle": "공개 엣지, 인증 게이트, Tailnet, 앱, 데이터, 관측 경로",
+    "output": "docs/admin/infra-services-architecture.html",
+    "visual_preset": "blueprint",
+    "quality_profile": "standard",
+    "views": [
+      {
+        "id": "public-auth-path",
+        "label": "공개 인증 경로",
+        "focus": ["users", "cloudflare", "eta-edge", "authentik", "tau-apps"],
+        "note": "브라우저 요청은 Cloudflare DNS와 eta nginx를 거쳐 Authentik Forward Auth 또는 OIDC로 앱에 도달합니다."
+      },
+      {
+        "id": "tailnet-access",
+        "label": "Tailnet 접근",
+        "focus": ["users", "authentik", "headscale", "tailnet", "psi-ai", "rho-observe", "tau-apps"],
+        "note": "Headscale은 Authentik OIDC와 Terraform ACL을 사용해 사용자 그룹별 Tailnet 접근을 제한합니다."
+      },
+      {
+        "id": "data-protection",
+        "label": "데이터 보호",
+        "focus": ["psi-ci", "rho-db", "tau-db", "tau-backup", "rho-backup"],
+        "note": "PostgreSQL, RustFS, restic 백업은 rho와 tau 사이에서 primary/replica/mirror 역할로 분리됩니다."
+      },
+      {
+        "id": "operations-plane",
+        "label": "운영 평면",
+        "focus": ["admin", "terraform", "sops", "eta-edge", "wg-admin", "psi-ci", "rho-observe", "tau-apps"],
+        "note": "관리자는 NixOS 배포, Terraform 리소스, sops 시크릿, wg-admin 네트워크를 통해 서비스를 운영합니다."
+      }
+    ]
+  },
+  "components": [
+    { "id": "users", "type": "external", "label": "사용자", "sublabel": "브라우저 · VPN", "pos": [40, 250], "size": [124, 62], "tag": "student/researcher" },
+    { "id": "admin", "type": "external", "label": "관리자", "sublabel": "Nix · SSH", "pos": [40, 420], "size": [124, 62], "tag": "admin" },
+    { "id": "cloudflare", "type": "cloud", "label": "Cloudflare", "sublabel": "DNS · ACME", "pos": [225, 250], "size": [132, 62], "tag": "public" },
+    { "id": "terraform", "type": "cloud", "label": "Terraform", "sublabel": "Auth · ACL · DNS", "pos": [225, 420], "size": [132, 62], "tag": "state" },
+    { "id": "sops", "type": "security", "label": "sops-nix", "sublabel": "age secrets", "pos": [225, 560], "size": [132, 62], "tag": "encrypted" },
+
+    { "id": "eta-edge", "type": "security", "label": "eta nginx", "sublabel": "공개 엣지 · TLS", "pos": [455, 240], "size": [150, 70], "tag": "Vultr" },
+    { "id": "authentik", "type": "security", "label": "Authentik", "sublabel": "SSO · Forward Auth", "pos": [455, 370], "size": [150, 70], "tag": "OIDC" },
+    { "id": "headscale", "type": "security", "label": "Headscale", "sublabel": "VPN · ACL", "pos": [455, 500], "size": [150, 70], "tag": "100.64/10" },
+    { "id": "gatus", "type": "backend", "label": "Gatus", "sublabel": "상태 점검", "pos": [455, 645], "size": [150, 62], "tag": "eta" },
+
+    { "id": "wg-admin", "type": "messagebus", "label": "wg-admin", "sublabel": "10.100.0.0/24", "pos": [690, 370], "size": [142, 62], "tag": "관리망" },
+    { "id": "tailnet", "type": "messagebus", "label": "Tailnet", "sublabel": "Magic DNS · tags", "pos": [690, 500], "size": [142, 62], "tag": "사용자망" },
+
+    { "id": "psi-ci", "type": "backend", "label": "psi CI", "sublabel": "Nixbot · Harmonia", "pos": [930, 115], "size": [155, 68], "tag": "KREN" },
+    { "id": "psi-ai", "type": "backend", "label": "psi AI", "sublabel": "Docling · TEI · BioDB", "pos": [930, 240], "size": [155, 68], "tag": "GPU" },
+    { "id": "rho-db", "type": "database", "label": "rho DB", "sublabel": "PostgreSQL primary", "pos": [930, 367], "size": [155, 68], "tag": "lab" },
+    { "id": "rho-observe", "type": "backend", "label": "rho 관측", "sublabel": "Grafana · Loki", "pos": [930, 497], "size": [155, 68], "tag": "monitoring" },
+    { "id": "tau-apps", "type": "backend", "label": "tau 앱", "sublabel": "Nextcloud · n8n", "pos": [930, 625], "size": [155, 68], "tag": "apps" },
+    { "id": "vaultwarden", "type": "security", "label": "Vaultwarden", "sublabel": "eta/tau 프록시", "pos": [1135, 628], "size": [145, 62], "tag": "passwords" },
+    { "id": "tau-db", "type": "database", "label": "tau DB", "sublabel": "PostgreSQL replica", "pos": [1135, 370], "size": [145, 62], "tag": "replica" },
+    { "id": "tau-backup", "type": "database", "label": "tau RustFS", "sublabel": "S3 primary", "pos": [1135, 500], "size": [145, 62], "tag": "restic" },
+    { "id": "rho-backup", "type": "database", "label": "rho RustFS", "sublabel": "S3 mirror", "pos": [1135, 240], "size": [145, 62], "tag": "delayed" }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Vultr 공개 엣지", "wraps": ["eta-edge", "authentik", "headscale", "gatus"] },
+    { "kind": "security-group", "label": "인증 게이트", "wraps": ["eta-edge", "authentik", "headscale"] },
+    { "kind": "region", "label": "KREN 베어메탈", "wraps": ["psi-ci", "psi-ai"] },
+    { "kind": "region", "label": "랩 내부 NAT", "wraps": ["rho-db", "rho-observe", "tau-apps", "tau-db", "tau-backup", "rho-backup", "vaultwarden"] },
+    { "kind": "security-group", "label": "운영 관리 평면", "wraps": ["terraform", "sops", "wg-admin", "psi-ci", "rho-db", "rho-observe", "tau-apps"] }
+  ],
+  "connections": [
+    { "id": "users-to-cloudflare", "from": "users", "to": "cloudflare", "label": "도메인", "variant": "emphasis" },
+    { "id": "cloudflare-to-edge", "from": "cloudflare", "to": "eta-edge", "label": "HTTPS", "variant": "emphasis" },
+    { "id": "edge-to-authentik", "from": "eta-edge", "to": "authentik", "label": "forward auth", "variant": "security", "fromSide": "bottom", "toSide": "top", "labelAt": [530, 324] },
+    { "id": "authentik-to-headscale", "from": "authentik", "to": "headscale", "label": "OIDC", "variant": "security", "fromSide": "bottom", "toSide": "top", "labelAt": [530, 454] },
+    { "id": "headscale-to-tailnet", "from": "headscale", "to": "tailnet", "label": "ACL", "variant": "security", "route": "orthogonal-h" },
+    { "id": "edge-to-wg", "from": "eta-edge", "to": "wg-admin", "label": "프록시", "variant": "security", "route": "orthogonal-h" },
+    { "id": "wg-to-psi-ci", "from": "wg-admin", "to": "psi-ci", "label": "Nixbot", "variant": "security", "route": "orthogonal-h", "via": [[860, 401], [860, 149]] },
+    { "id": "wg-to-rho-db", "from": "wg-admin", "to": "rho-db", "label": "SSH · DB", "variant": "security" },
+    { "id": "wg-to-rho-observe", "from": "wg-admin", "to": "rho-observe", "label": "Grafana", "variant": "security", "route": "orthogonal-h" },
+    { "id": "wg-to-tau-apps", "from": "wg-admin", "to": "tau-apps", "label": "앱 upstream", "variant": "security", "route": "orthogonal-h", "via": [[860, 401], [860, 659]], "labelAt": [860, 590] },
+    { "id": "tailnet-to-psi-ai", "from": "tailnet", "to": "psi-ai", "label": "AI 서비스", "variant": "emphasis", "route": "orthogonal-h", "via": [[865, 531], [865, 274]] },
+    { "id": "tailnet-to-rho-observe", "from": "tailnet", "to": "rho-observe", "label": "관측 UI", "variant": "emphasis" },
+    { "id": "tailnet-to-tau-apps", "from": "tailnet", "to": "tau-apps", "label": "앱", "variant": "emphasis", "route": "orthogonal-h" },
+    { "id": "tau-apps-to-vaultwarden", "from": "tau-apps", "to": "vaultwarden", "label": "tailnet proxy", "variant": "security", "labelAt": [1110, 707] },
+    { "id": "rho-db-to-tau-db", "from": "rho-db", "to": "tau-db", "label": "WAL", "variant": "security" },
+    { "id": "tau-db-to-tau-backup", "from": "tau-db", "to": "tau-backup", "label": "restic", "variant": "dashed", "fromSide": "bottom", "toSide": "top", "labelAt": [1208, 446] },
+    { "id": "tau-backup-to-rho-backup", "from": "tau-backup", "to": "rho-backup", "label": "mirror", "variant": "dashed", "fromSide": "right", "toSide": "right", "via": [[1320, 531], [1320, 271]], "labelAt": [1320, 390] },
+    { "id": "psi-ci-to-rho-backup", "from": "psi-ci", "to": "rho-backup", "label": "백업", "variant": "dashed", "route": "orthogonal-h" },
+    { "id": "admin-to-terraform", "from": "admin", "to": "terraform", "label": "apply", "variant": "dashed" },
+    { "id": "admin-to-sops", "from": "admin", "to": "sops", "label": "secrets", "variant": "security", "route": "orthogonal-h" },
+    { "id": "terraform-to-authentik", "from": "terraform", "to": "authentik", "label": "그룹", "variant": "security", "route": "orthogonal-h" },
+    { "id": "terraform-to-headscale", "from": "terraform", "to": "headscale", "label": "ACL", "variant": "security", "route": "orthogonal-h" },
+    { "id": "sops-to-edge", "from": "sops", "to": "eta-edge", "label": "ACME secrets", "variant": "security", "route": "orthogonal-h" }
+  ],
+  "cards": [
+    { "dot": "rose", "title": "인증 게이트", "items": ["eta nginx가 공개 TLS와 reverse proxy를 담당", "Authentik은 앱 SSO와 Forward Auth 결정점", "Headscale ACL은 Authentik 그룹 membership과 동기화"] },
+    { "dot": "cyan", "title": "서비스 배치", "items": ["psi: Nixbot, Harmonia, GPU AI, BioDB", "rho: PostgreSQL primary, Grafana, Loki, RustFS mirror", "tau: Nextcloud, n8n, PostgreSQL replica, RustFS primary"] },
+    { "dot": "emerald", "title": "운영/복구", "items": ["Terraform은 Cloudflare, Authentik, Headscale 정책을 관리", "sops-nix는 host/service secrets를 age로 배포", "restic과 RustFS mirror로 DB 및 보호 데이터를 보존"] }
+  ]
+}
