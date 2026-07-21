@@ -109,7 +109,7 @@ in
         passwordFile = config.sops.secrets.${psiProtected.secretNames.repositoryPassword}.path;
         environmentFile = config.sops.templates.${resticEnvTemplateName "pruner"}.path;
         timerConfig = {
-          OnCalendar = "weekly";
+          OnCalendar = "Mon *-*-* 01:00:00";
           Persistent = true;
         };
         pruneOpts = [
