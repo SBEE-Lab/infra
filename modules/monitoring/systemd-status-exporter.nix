@@ -6,6 +6,7 @@
 }:
 let
   cfg = config.services.sbee.systemdStatusExporter;
+  monitoring = lib.sbee.monitoring;
   sourceName = "${cfg.host}_systemd_status_source";
   sinkName = "${cfg.host}_systemd_status_loki";
 
@@ -121,15 +122,13 @@ in
         decoding.codec = "json";
       };
 
-      sinks.${sinkName} = {
-        type = "loki";
-        inputs = [ sourceName ];
+      sinks.${sinkName} = monitoring.mkVectorLokiSink {
+        input = sourceName;
         endpoint = cfg.lokiEndpoint;
-        encoding.codec = "json";
         labels = {
-          host = "{{ host }}";
-          log_type = "{{ log_type }}";
-          event = "{{ event }}";
+          inherit (cfg) host;
+          log_type = "systemd_status";
+          event = "job_snapshot";
         };
         batch.timeout_secs = 10;
       };

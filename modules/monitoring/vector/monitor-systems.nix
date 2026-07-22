@@ -161,53 +161,6 @@ in
     }
   ];
 
-  services.vector.settings.sinks = {
-    # SSH logs to local Loki
-    ssh_logs_local = {
-      type = "loki";
-      inputs = [ "filter_ssh" ];
-      endpoint = "http://127.0.0.1:3100";
-      encoding.codec = "json";
-      labels = {
-        host = "{{ host }}";
-        log_type = "{{ log_type }}";
-        event = "{{ event }}";
-      };
-    };
-
-    # Audit logs to local Loki
-    audit_logs_local = {
-      type = "loki";
-      inputs = [ "filter_audit" ];
-      endpoint = "http://127.0.0.1:3100";
-      encoding.codec = "json";
-      labels = {
-        host = "{{ host }}";
-        log_type = "{{ log_type }}";
-        event = "{{ event }}";
-      };
-    };
-
-    nginx_access_logs_local = {
-      type = "loki";
-      inputs = [ "parse_nginx_access" ];
-      endpoint = "http://127.0.0.1:3100";
-      encoding.codec = "json";
-      labels = {
-        host = "{{ host }}";
-        log_type = "{{ log_type }}";
-        service = "{{ service }}";
-        ingress_network = "{{ ingress_network }}";
-      };
-    };
-
-    system_metrics_local = {
-      type = "prometheus_exporter";
-      inputs = [ "tag_metrics" ];
-      address = "127.0.0.1:9598";
-    };
-  };
-
   # Prometheus server
   services.prometheus = {
     enable = true;
