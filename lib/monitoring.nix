@@ -5,9 +5,127 @@ let
   hasOption = options: path: lib.hasAttrByPath path options;
 
   hostRegex = hosts: lib.concatStringsSep "|" hosts;
+
+  componentId =
+    value: lib.replaceStrings [ "." "@" "-" "/" ":" " " ] [ "_" "_" "_" "_" "_" "_" ] value;
+
+  mkVectorLokiSink =
+    {
+      input,
+      endpoint,
+      labels,
+      batch ? null,
+    }:
+    {
+      type = "loki";
+      inputs = [ input ];
+      inherit endpoint labels;
+      encoding.codec = "json";
+    }
+    // lib.optionalAttrs (batch != null) {
+      inherit batch;
+    };
+
+  routeValues =
+    values: includeOther: otherValue:
+    values ++ lib.optional (includeOther && !(builtins.elem otherValue values)) otherValue;
+
+  routeInputName = name: value: "${name}_${componentId value}";
+
+  mkVectorFieldFilters =
+    {
+      name,
+      input,
+      field,
+      values,
+      includeOther ? true,
+      otherValue ? "other",
+    }:
+    let
+      otherCondition = ''!includes(${builtins.toJSON values}, (to_string(.${field}) ?? ""))'';
+    in
+    lib.listToAttrs (
+      map (value: {
+        name = routeInputName name value;
+        value = {
+          type = "filter";
+          inputs = [ input ];
+          condition =
+            if includeOther && value == otherValue then
+              otherCondition
+            else
+              ''(to_string(.${field}) ?? "") == ${builtins.toJSON value}'';
+        };
+      }) (routeValues values includeOther otherValue)
+    );
+
+  mkVectorRoutedLokiSinks =
+    {
+      name,
+      routeName ? name,
+      endpoint,
+      values,
+      labelsFor,
+      batch ? null,
+      includeOther ? true,
+      otherValue ? "other",
+    }:
+    lib.listToAttrs (
+      map (value: {
+        name = "${name}_${componentId value}_loki";
+        value = mkVectorLokiSink {
+          input = routeInputName routeName value;
+          inherit endpoint batch;
+          labels = labelsFor value;
+        };
+      }) (routeValues values includeOther otherValue)
+    );
+
+  mkVectorRoutedLokiPipeline =
+    {
+      name,
+      input,
+      field,
+      values,
+      endpoint,
+      labelsFor,
+      batch ? null,
+      includeOther ? true,
+      otherValue ? "other",
+    }:
+    {
+      transforms = mkVectorFieldFilters {
+        inherit
+          name
+          input
+          field
+          values
+          includeOther
+          otherValue
+          ;
+      };
+      sinks = mkVectorRoutedLokiSinks {
+        inherit
+          name
+          endpoint
+          values
+          labelsFor
+          batch
+          includeOther
+          otherValue
+          ;
+      };
+    };
 in
 {
-  inherit hasOption;
+  inherit
+    hasOption
+    componentId
+    mkVectorLokiSink
+    mkVectorFieldFilters
+    mkVectorRoutedLokiSinks
+    mkVectorRoutedLokiPipeline
+    ;
 
   requireOption =
     {
@@ -63,38 +181,45 @@ in
       maxBatchBytes ? 1048576,
       batchTimeoutSecs ? 10,
     }:
-    {
-      sources."${name}_journald" = {
-        type = "journald";
-        include_units = units;
-      };
-
-      transforms."${name}_logs" = {
-        type = "remap";
-        inputs = [ "${name}_journald" ];
-        source = ''
-          .host = "${hostName}"
-          .service = "${service}"
-          .unit = to_string(._SYSTEMD_UNIT) ?? "unknown"
-          .message = to_string(.message) ?? ""
-        '';
-      };
-
-      sinks."${name}_logs_loki" = {
-        type = "loki";
-        inputs = [ "${name}_logs" ];
+    let
+      routed = mkVectorRoutedLokiPipeline {
+        name = "${name}_logs";
+        input = "${name}_logs";
+        field = "unit";
+        values = units;
         inherit endpoint;
-        encoding.codec = "json";
-        labels = {
-          host = "{{ host }}";
-          service = "{{ service }}";
-          unit = "{{ unit }}";
+        includeOther = false;
+        labelsFor = unit: {
+          host = hostName;
+          inherit service unit;
         };
         batch = {
           max_bytes = maxBatchBytes;
           timeout_secs = batchTimeoutSecs;
         };
       };
+    in
+    {
+      sources."${name}_journald" = {
+        type = "journald";
+        include_units = units;
+      };
+
+      transforms = {
+        "${name}_logs" = {
+          type = "remap";
+          inputs = [ "${name}_journald" ];
+          source = ''
+            .host = "${hostName}"
+            .service = "${service}"
+            .unit = to_string(._SYSTEMD_UNIT) ?? "unknown"
+            .message = to_string(.message) ?? ""
+          '';
+        };
+      }
+      // routed.transforms;
+
+      inherit (routed) sinks;
     };
 
   mkFilesystemFreeSpaceAlerts =
