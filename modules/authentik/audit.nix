@@ -9,11 +9,22 @@
 # cookies/headers/secrets never leave the host.
 {
   config,
+  lib,
   ...
 }:
 let
   inherit (config.networking) hostName;
+  monitoring = lib.sbee.monitoring;
   lokiEndpoint = "http://${config.networking.sbee.hosts.rho.wg-admin}:3100";
+  events = [
+    "login"
+    "login_failed"
+    "logout"
+    "app_authorize"
+    "admin_change"
+    "policy_error"
+    "forward_auth_deny"
+  ];
 in
 {
   services.vector.settings = {
@@ -108,21 +119,24 @@ in
         inputs = [ "parse_authentik" ];
         condition = ".event != \"other\"";
       };
+    }
+    // monitoring.mkVectorFieldFilters {
+      name = "authentik_audit";
+      input = "filter_authentik";
+      field = "event";
+      values = events;
     };
 
-    sinks = {
-      authentik_audit_loki = {
-        type = "loki";
-        inputs = [ "filter_authentik" ];
-        endpoint = lokiEndpoint;
-        encoding.codec = "json";
-        labels = {
-          host = "{{ host }}";
-          log_type = "{{ log_type }}";
-          event = "{{ event }}";
-        };
-        batch.timeout_secs = 10;
+    sinks = monitoring.mkVectorRoutedLokiSinks {
+      name = "authentik_audit";
+      endpoint = lokiEndpoint;
+      values = events;
+      labelsFor = event: {
+        host = hostName;
+        inherit event;
+        log_type = "authentik";
       };
+      batch.timeout_secs = 10;
     };
   };
 }

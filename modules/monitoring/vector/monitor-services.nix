@@ -9,6 +9,7 @@
 }:
 let
   wgAdminAddr = config.networking.sbee.currentHost.wg-admin;
+  monitoring = lib.sbee.monitoring;
 in
 {
   imports = [
@@ -62,17 +63,10 @@ in
 
       sinks = {
         # save in loki
-        nextflow_logs = {
-          type = "loki";
-          inputs = [ "parse_nextflow" ];
+        nextflow_logs = monitoring.mkVectorLokiSink {
+          input = "parse_nextflow";
           endpoint = "http://${wgAdminAddr}:3100";
-          encoding.codec = "json";
-          labels = {
-            log_type = "nextflow";
-            project = "{{ project }}";
-            status = "{{ status }}";
-            hostname = "{{ hostname }}";
-          };
+          labels.log_type = "nextflow";
         };
 
         # backup file

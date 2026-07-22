@@ -12,7 +12,19 @@
 }:
 let
   inherit (config.networking) hostName;
+  monitoring = lib.sbee.monitoring;
   lokiEndpoint = "http://${config.networking.sbee.hosts.rho.wg-admin}:3100";
+  auditEvents = [
+    "error"
+    "preauth_key"
+    "node_expire"
+    "node_register"
+    "oidc_denied"
+  ];
+  nodeEvents = [
+    "node_snapshot"
+    "nodes_summary"
+  ];
 
   # Field names differ across headscale versions (snake_case vs camelCase),
   # so accept both when flattening the node list into one JSON line per node.
@@ -164,35 +176,43 @@ in
         inputs = [ "parse_headscale" ];
         condition = ".event != \"other\"";
       };
+    }
+    // monitoring.mkVectorFieldFilters {
+      name = "headscale_audit";
+      input = "filter_headscale";
+      field = "event";
+      values = auditEvents;
+    }
+    // monitoring.mkVectorFieldFilters {
+      name = "headscale_nodes";
+      input = "headscale_nodes_snapshot";
+      field = "event";
+      values = nodeEvents;
     };
 
-    sinks = {
-      headscale_audit_loki = {
-        type = "loki";
-        inputs = [ "filter_headscale" ];
+    sinks =
+      monitoring.mkVectorRoutedLokiSinks {
+        name = "headscale_audit";
         endpoint = lokiEndpoint;
-        encoding.codec = "json";
-        labels = {
-          host = "{{ host }}";
-          log_type = "{{ log_type }}";
-          event = "{{ event }}";
+        values = auditEvents;
+        labelsFor = event: {
+          host = hostName;
+          inherit event;
+          log_type = "headscale";
+        };
+        batch.timeout_secs = 10;
+      }
+      // monitoring.mkVectorRoutedLokiSinks {
+        name = "headscale_nodes";
+        endpoint = lokiEndpoint;
+        values = nodeEvents;
+        labelsFor = event: {
+          host = hostName;
+          inherit event;
+          log_type = "headscale_nodes";
         };
         batch.timeout_secs = 10;
       };
-
-      headscale_nodes_loki = {
-        type = "loki";
-        inputs = [ "headscale_nodes_snapshot" ];
-        endpoint = lokiEndpoint;
-        encoding.codec = "json";
-        labels = {
-          host = "{{ host }}";
-          log_type = "{{ log_type }}";
-          event = "{{ event }}";
-        };
-        batch.timeout_secs = 10;
-      };
-    };
   };
 
   # The snapshot script talks to the headscale unix socket. Headscale creates
