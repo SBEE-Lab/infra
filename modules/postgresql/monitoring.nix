@@ -9,7 +9,17 @@ let
   host = config.networking.hostName;
   isPrimary = host == "rho";
   configuredRole = if isPrimary then "primary" else "replica";
+  monitoring = lib.sbee.monitoring;
   systemCollector = config.networking.sbee.hosts.rho.wg-admin;
+  auditEndpoint = if isPrimary then "http://127.0.0.1:3100" else "http://${systemCollector}:3100";
+  auditEvents = [
+    "replication_snapshot"
+    "replica_configuration_refreshed"
+    "replica_initialization_failed"
+    "replica_basebackup_started"
+    "replica_basebackup_completed"
+  ];
+  auditSinkName = if isPrimary then "postgresql_audit_local" else "postgresql_audit_remote";
   auditQuery =
     if isPrimary then
       ''
@@ -184,6 +194,12 @@ in
         inputs = [ "parse_postgresql_audit" ];
         condition = ''.log_type == "postgresql_audit"'';
       };
+    }
+    // monitoring.mkVectorFieldFilters {
+      name = "postgresql_audit";
+      input = "filter_postgresql_audit";
+      field = "event";
+      values = auditEvents;
     };
 
     sinks = {
@@ -199,30 +215,17 @@ in
         inputs = [ "tag_postgresql_metrics" ];
         address = "127.0.0.1:9599";
       };
-      postgresql_audit_remote = lib.mkIf (!isPrimary) {
-        type = "loki";
-        inputs = [ "filter_postgresql_audit" ];
-        endpoint = "http://${systemCollector}:3100";
-        encoding.codec = "json";
-        labels = {
-          host = "{{ host }}";
-          log_type = "{{ log_type }}";
-          event = "{{ event }}";
-        };
-        batch.timeout_secs = 10;
+    }
+    // monitoring.mkVectorRoutedLokiSinks {
+      name = auditSinkName;
+      routeName = "postgresql_audit";
+      endpoint = auditEndpoint;
+      values = auditEvents;
+      labelsFor = event: {
+        inherit host event;
+        log_type = "postgresql_audit";
       };
-      postgresql_audit_local = lib.mkIf isPrimary {
-        type = "loki";
-        inputs = [ "filter_postgresql_audit" ];
-        endpoint = "http://127.0.0.1:3100";
-        encoding.codec = "json";
-        labels = {
-          host = "{{ host }}";
-          log_type = "{{ log_type }}";
-          event = "{{ event }}";
-        };
-        batch.timeout_secs = 10;
-      };
+      batch.timeout_secs = 10;
     };
   };
 

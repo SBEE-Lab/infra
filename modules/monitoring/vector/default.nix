@@ -14,6 +14,32 @@ let
   systemCollector = config.networking.sbee.hosts.rho.wg-admin;
   isSystemCollector = hostName == "rho";
 
+  monitoring = lib.sbee.monitoring;
+  sshEvents = [
+    "login_success"
+    "login_failed"
+    "session_closed"
+    "session_opened"
+    "disconnected"
+  ];
+  auditEvents = [
+    "session_start"
+    "session_end"
+    "auth_attempt"
+  ];
+  ingressNetworks = [
+    "unknown"
+    "tailnet"
+    "wg-admin"
+    "public"
+  ];
+  lokiEndpoint =
+    if isSystemCollector then "http://127.0.0.1:3100" else "http://${systemCollector}:3100";
+  lokiBatch = {
+    max_bytes = 1048576;
+    timeout_secs = 10;
+  };
+
   netStatsScript = pkgs.writeShellScript "net-stats.sh" ''
     #!/usr/bin/env bash
     for iface in /sys/class/net/*; do
@@ -256,62 +282,68 @@ in
             }
           '';
         };
+      }
+      // monitoring.mkVectorFieldFilters {
+        name = "ssh_logs";
+        input = "filter_ssh";
+        field = "event";
+        values = sshEvents;
+      }
+      // monitoring.mkVectorFieldFilters {
+        name = "audit_logs";
+        input = "filter_audit";
+        field = "event";
+        values = auditEvents;
+      }
+      // monitoring.mkVectorFieldFilters {
+        name = "nginx_access_logs";
+        input = "parse_nginx_access";
+        field = "ingress_network";
+        values = ingressNetworks;
       };
 
-      sinks = lib.mkMerge [
-        (lib.mkIf (!isSystemCollector) {
-          # SSH logs to Loki
-          ssh_logs_remote = {
-            type = "loki";
-            inputs = [ "filter_ssh" ];
-            endpoint = "http://${systemCollector}:3100";
-            encoding.codec = "json";
-            labels = {
-              host = "{{ host }}";
-              log_type = "{{ log_type }}";
-              event = "{{ event }}";
-            };
-            batch = {
-              max_bytes = 1048576;
-              timeout_secs = 10;
-            };
+      sinks =
+        monitoring.mkVectorRoutedLokiSinks {
+          name = "ssh_logs";
+          endpoint = lokiEndpoint;
+          values = sshEvents;
+          batch = lokiBatch;
+          labelsFor = event: {
+            host = hostName;
+            inherit event;
+            log_type = "ssh";
           };
-
-          # Audit logs to Loki
-          audit_logs_remote = {
-            type = "loki";
-            inputs = [ "filter_audit" ];
-            endpoint = "http://${systemCollector}:3100";
-            encoding.codec = "json";
-            labels = {
-              host = "{{ host }}";
-              log_type = "{{ log_type }}";
-              event = "{{ event }}";
-            };
-            batch = {
-              max_bytes = 1048576;
-              timeout_secs = 10;
-            };
+        }
+        // monitoring.mkVectorRoutedLokiSinks {
+          name = "audit_logs";
+          endpoint = lokiEndpoint;
+          values = auditEvents;
+          batch = lokiBatch;
+          labelsFor = event: {
+            host = hostName;
+            inherit event;
+            log_type = "audit";
           };
-
-          nginx_access_logs_remote = {
-            type = "loki";
-            inputs = [ "parse_nginx_access" ];
-            endpoint = "http://${systemCollector}:3100";
-            encoding.codec = "json";
-            labels = {
-              host = "{{ host }}";
-              log_type = "{{ log_type }}";
-              service = "{{ service }}";
-              ingress_network = "{{ ingress_network }}";
-            };
-            batch = {
-              max_bytes = 1048576;
-              timeout_secs = 10;
-            };
+        }
+        // monitoring.mkVectorRoutedLokiSinks {
+          name = "nginx_access_logs";
+          endpoint = lokiEndpoint;
+          values = ingressNetworks;
+          batch = lokiBatch;
+          labelsFor = ingressNetwork: {
+            system_host = hostName;
+            log_type = "nginx_access";
+            ingress_network = ingressNetwork;
           };
-
-          # Metrics to Prometheus
+        }
+        // lib.optionalAttrs isSystemCollector {
+          system_metrics_local = {
+            type = "prometheus_exporter";
+            inputs = [ "tag_metrics" ];
+            address = "127.0.0.1:9598";
+          };
+        }
+        // lib.optionalAttrs (!isSystemCollector) {
           system_metrics_remote = {
             type = "prometheus_remote_write";
             inputs = [ "tag_metrics" ];
@@ -319,8 +351,7 @@ in
             batch.timeout_secs = 10;
             healthcheck.enabled = false;
           };
-        })
-      ];
+        };
     };
   };
 
