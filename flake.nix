@@ -116,7 +116,7 @@
           _module.args.pkgs = pkgs;
 
           treefmt = {
-            projectRootFile = ".git/config";
+            projectRootFile = "flake.nix";
 
             programs = {
               # Nix formatters & linters
