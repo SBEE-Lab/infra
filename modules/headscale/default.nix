@@ -79,6 +79,11 @@
             value = "100.64.0.3"; # tau headscale IP
           }
           {
+            name = "omnigraph.sjanglab.org";
+            type = "A";
+            value = "100.64.0.3"; # tau headscale IP
+          }
+          {
             name = "upterm.sjanglab.org";
             type = "A";
             value = "141.164.53.203"; # eta public IP
