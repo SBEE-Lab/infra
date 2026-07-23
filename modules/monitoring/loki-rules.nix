@@ -246,6 +246,20 @@ let
             description = "rho Loki has not received nginx access logs for 15 minutes";
           })
           (mkAlert {
+            alert = "OmnigraphNonTailnetAccess";
+            expr = ''
+              sum by (host, service, ingress_network) (
+                count_over_time({log_type="nginx_access", service="omnigraph", ingress_network!~"tailnet|wg-admin"}[5m])
+              ) > 0
+            '';
+            for = "1m";
+            labels = auditWarning // {
+              service = "omnigraph";
+            };
+            summary = "Omnigraph non-tailnet access observed";
+            description = "{{ $labels.host }} received Omnigraph access from {{ $labels.ingress_network }}";
+          })
+          (mkAlert {
             alert = "HeadscaleNodeSnapshotsMissing";
             expr = ''
               absent_over_time({log_type="headscale_nodes", event="node_snapshot"}[15m])

@@ -8,6 +8,7 @@ _: {
       n8n.sjanglab.org n8n;
       cloud.sjanglab.org nextcloud;
       vault.sjanglab.org vaultwarden;
+      omnigraph.sjanglab.org omnigraph;
       docling.sjanglab.org docling;
       tei.sjanglab.org tei;
       multievolve.sjanglab.org multievolve;
