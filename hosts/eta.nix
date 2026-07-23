@@ -3,6 +3,13 @@ let
   inherit (config.networking.sbee) hosts;
   wgAdminAddr = config.networking.sbee.currentHost.wg-admin;
 
+  mkInternalCert = {
+    dnsProvider = "cloudflare";
+    environmentFile = config.sops.secrets.cloudflare-credentials.path;
+    webroot = null;
+    group = "acme";
+  };
+
   blackboxConfig = pkgs.writeText "blackbox.yml" (
     builtins.toJSON {
       modules = {
@@ -105,44 +112,24 @@ in
       remoteUser = "acme-sync-vaultwarden";
       remoteHost = hosts.tau.wg-admin;
     }
+    {
+      domain = "omnigraph.sjanglab.org";
+      serviceName = "acme-sync-omnigraph-to-tau";
+      remoteUser = "acme-sync-omnigraph";
+      remoteHost = hosts.tau.wg-admin;
+    }
   ];
 
   disko.rootDisk = "/dev/vda";
 
   # ACME certificates for internal services
-  security.acme.certs."status.sjanglab.org" = {
-    dnsProvider = "cloudflare";
-    environmentFile = config.sops.secrets.cloudflare-credentials.path;
-    webroot = null;
-    group = "acme";
-  };
-
-  security.acme.certs."logging.sjanglab.org" = {
-    dnsProvider = "cloudflare";
-    environmentFile = config.sops.secrets.cloudflare-credentials.path;
-    webroot = null;
-    group = "acme";
-  };
-
-  security.acme.certs."multievolve.sjanglab.org" = {
-    dnsProvider = "cloudflare";
-    environmentFile = config.sops.secrets.cloudflare-credentials.path;
-    webroot = null;
-    group = "acme";
-  };
-
-  security.acme.certs."tei.sjanglab.org" = {
-    dnsProvider = "cloudflare";
-    environmentFile = config.sops.secrets.cloudflare-credentials.path;
-    webroot = null;
-    group = "acme";
-  };
-
-  security.acme.certs."vault.sjanglab.org" = {
-    dnsProvider = "cloudflare";
-    environmentFile = config.sops.secrets.cloudflare-credentials.path;
-    webroot = null;
-    group = "acme";
+  security.acme.certs = {
+    "status.sjanglab.org" = mkInternalCert;
+    "logging.sjanglab.org" = mkInternalCert;
+    "multievolve.sjanglab.org" = mkInternalCert;
+    "tei.sjanglab.org" = mkInternalCert;
+    "vault.sjanglab.org" = mkInternalCert;
+    "omnigraph.sjanglab.org" = mkInternalCert;
   };
 
   networking.hostName = "eta";
