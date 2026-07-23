@@ -1,0 +1,3470 @@
+
+<!doctype html>
+<html lang="ko" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="SBEE Lab의 NixOS 기반 생물정보학 연구 인프라 문서">
+      
+      
+        <meta name="author" content="SBEE Lab">
+      
+      
+        <link rel="canonical" href="https://sbee-lab.github.io/infra/admin/security/">
+      
+      
+        <link rel="prev" href="../secrets-management/">
+      
+      
+        <link rel="next" href="../contributing/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="zensical-0.0.50">
+    
+    
+      
+        <title>보안 - SBEE Lab Infra</title>
+      
+    
+    
+      
+        
+      
+      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.62c9b9cc.min.css">
+      
+        
+          
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/modern/palette.dfe2e883.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,500,500i,700,700i%7CJetBrains+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_scope.pathname.endsWith("/")||(__md_scope=new URL(__md_scope.pathname+"/",location)),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,_=__md_scope)=>JSON.parse(t.getItem(_.pathname+"."+e)),__md_set=(e,t,_=localStorage,a=__md_scope)=>{try{_.setItem(a.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer" aria-label="네비게이션"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#_1" class="md-skip">
+          콘텐츠로 이동
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="상단/헤더">
+    <a href="../.." title="SBEE Lab Infra" class="md-header__button md-logo" aria-label="SBEE Lab Infra" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 7v14M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer" aria-label="네비게이션">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-menu" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            SBEE Lab Infra
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              보안
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="라이트 모드로 전환"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="라이트 모드로 전환" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sun-moon" viewBox="0 0 24 24"><path d="M12 2v2M14.837 16.385a6 6 0 1 1-7.223-7.222c.624-.147.97.66.715 1.248a4 4 0 0 0 5.26 5.259c.589-.255 1.396.09 1.248.715M16 12a4 4 0 0 0-4-4M19 5l-1.256 1.256M20 12h2"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="다크 모드로 전환"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="다크 모드로 전환" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="orange"  aria-label="시스템 설정 따르기"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="시스템 설정 따르기" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-moon-star" viewBox="0 0 24 24"><path d="M18 5h4M20 3v4M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search" aria-label="검색">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog" aria-label="검색">
+  <button type="button" class="md-search__button">
+    검색
+  </button>
+</div>
+      
+    
+    <div class="md-header__source">
+      
+        <a href="https://github.com/sbee-lab/infra" title="저장소로 이동" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    sbee-lab/infra
+  </div>
+</a>
+      
+    </div>
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="탭" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  홈
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+      
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../guide/" class="md-tabs__link">
+          
+  
+  사용자 가이드
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+      
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../dev/" class="md-tabs__link">
+          
+  
+  연구·개발 환경
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+      
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  관리자 가이드
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+      
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../reference/faq/" class="md-tabs__link">
+          
+  
+  참조
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="네비게이션" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="SBEE Lab Infra" class="md-nav__button md-logo" aria-label="SBEE Lab Infra" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 7v14M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>
+
+    </a>
+    SBEE Lab Infra
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/sbee-lab/infra" title="저장소로 이동" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    sbee-lab/infra
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  홈
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../guide/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  사용자 가이드
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  사용자 가이드
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/requesting-access/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  접근 권한 요청
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/vpn-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  VPN 설정
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/first-login/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  첫 로그인
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/nextcloud/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Nextcloud
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/vaultwarden/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Vaultwarden
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/docling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Docling
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/tei/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  TEI
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/multievolve/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  MULTI-evolve
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/n8n/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  n8n
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/upterm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Upterm
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../dev/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  연구·개발 환경
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  연구·개발 환경
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/ssh-access/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  SSH 접속
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/gpu-computing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  GPU 컴퓨팅
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/apptainer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Apptainer
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/bioinformatics-db/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  생물정보 DB
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Nix
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Nix
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/nix-environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  개발 환경
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/home-manager/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Home Manager
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  학생
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  학생
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/students/best-practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  모범 사례
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/students/account-expiration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  계정 만료
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  관리자 가이드
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  관리자 가이드
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  사용자 관리
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  배포
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../monitoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  모니터링
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  백업
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ci-cd/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  CI/CD
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  아키텍처
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../module-development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  모듈 개발
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../terraform/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Terraform
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../network/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  네트워크
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../authentication/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  인증
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../secrets-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  비밀 관리
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  보안
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="././" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  보안
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="목차">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      목차
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        네트워크 보안
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="네트워크 보안">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        방화벽 정책
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bastion" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Bastion 아키텍처
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ssh" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        SSH 속도 제한
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wireguard-vpn" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        WireGuard VPN 분리
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        계정 및 권한 정책
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="계정 및 권한 정책">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        사용자 계층
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#root" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Root 접근 정책
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        시스템 계정
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nix" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Nix 권한
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ssh_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        SSH 보안
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SSH 보안">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        알고리즘 정책
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        세션 정책
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ssh-ca" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        SSH CA 인증서
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        비밀 관리
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="비밀 관리">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sops-nix-age" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        sops-nix + age
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        비밀 편집
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tls" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        TLS 인증서
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        데이터 보안
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="데이터 보안">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#postgresql" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        PostgreSQL
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rustfs-s3-backup-store" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        RustFS S3 backup store
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        감사 및 모니터링
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="감사 및 모니터링">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#auditd" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        auditd
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        로그 파이프라인
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        시스템 안정성
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="시스템 안정성">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        자동 업그레이드
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        서비스 복구
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  코드 기여
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datacenter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  데이터센터
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  참조
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  참조
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  FAQ
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  용어집
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/server-specs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  서버 스펙
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  
+                    
+                    
+                    
+                      
+                    
+                    
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
+                  
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="목차">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      목차
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        네트워크 보안
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="네트워크 보안">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        방화벽 정책
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bastion" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Bastion 아키텍처
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ssh" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        SSH 속도 제한
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wireguard-vpn" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        WireGuard VPN 분리
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        계정 및 권한 정책
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="계정 및 권한 정책">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        사용자 계층
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#root" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Root 접근 정책
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        시스템 계정
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#nix" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Nix 권한
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ssh_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        SSH 보안
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SSH 보안">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        알고리즘 정책
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        세션 정책
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ssh-ca" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        SSH CA 인증서
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        비밀 관리
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="비밀 관리">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sops-nix-age" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        sops-nix + age
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        비밀 편집
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tls" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        TLS 인증서
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        데이터 보안
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="데이터 보안">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#postgresql" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        PostgreSQL
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rustfs-s3-backup-store" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        RustFS S3 backup store
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        감사 및 모니터링
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="감사 및 모니터링">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#auditd" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        auditd
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        로그 파이프라인
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        시스템 안정성
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="시스템 안정성">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        자동 업그레이드
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        서비스 복구
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="네비게이션" >
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href="../.." class="md-path__link">
+        
+  
+  <span class="md-ellipsis">
+    홈
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+      <li class="md-path__item">
+        <a href="../" class="md-path__link">
+          
+  
+  <span class="md-ellipsis">
+    관리자 가이드
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+  
+    <a href="https://github.com/sbee-lab/infra/edit/main/docs/admin/security.md" title="이 페이지를 편집" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-file-pen" viewBox="0 0 24 24"><path d="M12.659 22H18a2 2 0 0 0 2-2V8a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 14 2H6a2 2 0 0 0-2 2v9.34"/><path d="M14 2v5a1 1 0 0 0 1 1h5M10.378 12.622a1 1 0 0 1 3 3.003L8.36 20.637a2 2 0 0 1-.854.506l-2.867.837a.5.5 0 0 1-.62-.62l.836-2.869a2 2 0 0 1 .506-.853z"/></svg>
+    </a>
+  
+  
+    
+      
+    
+    <a href="https://github.com/sbee-lab/infra/raw/main/docs/admin/security.md" title="페이지소스 보기" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-file-code-2" viewBox="0 0 24 24"><path d="M4 12.15V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.706.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2h-3.35"/><path d="M14 2v5a1 1 0 0 0 1 1h5M5 16l-3 3 3 3M9 22l3-3-3-3"/></svg>
+    </a>
+  
+
+
+<h1 id="_1">보안<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
+<p>인프라 전반의 보안 정책과 구현 현황을 정리합니다.</p>
+<h2 id="_2">네트워크 보안<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<h3 id="_3">방화벽 정책<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<p>인터페이스별 화이트리스트 방식으로 포트를 관리합니다.</p>
+<table>
+<thead>
+<tr>
+<th>인터페이스</th>
+<th>용도</th>
+<th>열린 포트</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>eta eth0 (퍼블릭)</td>
+<td>public edge</td>
+<td>TCP 80, 443, 10022, 2323; UDP 51820</td>
+</tr>
+<tr>
+<td>psi eth0 (퍼블릭)</td>
+<td>WireGuard/Tailscale transport</td>
+<td>UDP 51820, 41641; public TCP 없음</td>
+</tr>
+<tr>
+<td>rho/tau eth0 (랩 내부 NAT)</td>
+<td>LAN 및 VPN transport</td>
+<td>tau TCP 80, 443; UDP 51820, 41641</td>
+</tr>
+<tr>
+<td>wg-admin (WireGuard)</td>
+<td>신뢰된 호스트 간 관리·서비스 트래픽</td>
+<td>모든 포트</td>
+</tr>
+<tr>
+<td>tailscale0 (Headscale)</td>
+<td>사용자 서비스</td>
+<td>서비스별 (주로 80, 443)</td>
+</tr>
+</tbody>
+</table>
+<p>기본 정책은 <strong>deny all</strong>입니다. 단, <code>wg-admin</code>은 <code>networking.firewall.trustedInterfaces</code>에 등록되어 호스트 방화벽이 모든 트래픽을 허용합니다. wg-admin 서비스는 listen address와 WireGuard peer 관리로 노출 범위를 제한합니다. 퍼블릭·Headscale 인터페이스는 각 서비스 모듈이 필요한 포트만 개방합니다.</p>
+<h3 id="bastion">Bastion 아키텍처<a class="headerlink" href="#bastion" title="Permanent link">&para;</a></h3>
+<p>eta가 유일한 인터넷 노출 SSH 호스트입니다. Upterm relay도 eta의 <code>2323/tcp</code>에서만 외부에 노출됩니다. 다른 호스트(psi, rho, tau)는 <code>wg-admin</code> 인터페이스에서만 SSH를 수신합니다.</p>
+<pre class="mermaid"><code>flowchart LR
+  inet["인터넷"] -- "포트 10022" --&gt; eta["eta&lt;br/&gt;jump.sjanglab.org"]
+  inet -- "포트 2323" --&gt; eta
+  eta -- "wg-admin" --&gt; psi["psi&lt;br/&gt;10.100.0.2"]
+  eta -- "wg-admin" --&gt; rho["rho&lt;br/&gt;10.100.0.3"]
+  eta -- "wg-admin" --&gt; tau["tau&lt;br/&gt;10.100.0.4"]</code></pre>
+<h3 id="ssh">SSH 속도 제한<a class="headerlink" href="#ssh" title="Permanent link">&para;</a></h3>
+<p>eta에 적용되는 방어 계층:</p>
+<pre class="mermaid"><code>flowchart TD
+  conn["SSH 연결 시도"] --&gt; ipt{"iptables&lt;br/&gt;60초 내 NEW 5회 초과?"}
+  ipt -- "초과" --&gt; drop["즉시 DROP"]
+  ipt -- "통과" --&gt; sshd["sshd 인증"]
+  sshd -- "성공" --&gt; ok["접속 허용"]
+  sshd -- "실패" --&gt; log["sshd 로그 기록"]
+  log --&gt; f1["fail2ban sshd&lt;br/&gt;10분 내 3회 → 기본 5분 차단"]
+  log --&gt; f2["fail2ban aggressive&lt;br/&gt;10분 내 3회 → 기본 5분 차단"]</code></pre>
+<p>iptables(연결 빈도)와 fail2ban(인증 실패 로그)은 <strong>독립적인 병렬 계층</strong>입니다. iptables는 TCP 연결 시점에 즉시 판단하고, fail2ban은 sshd 로그를 감시하여 사후 차단합니다.</p>
+<table>
+<thead>
+<tr>
+<th>계층</th>
+<th>조건</th>
+<th>차단</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>iptables</td>
+<td>60초 내 NEW 연결 5회 초과</td>
+<td>즉시 DROP</td>
+</tr>
+<tr>
+<td>fail2ban <code>sshd</code></td>
+<td>10분 내 일반 SSH 인증 실패 3회</td>
+<td>기본 5분</td>
+</tr>
+<tr>
+<td>fail2ban <code>sshd-aggressive</code></td>
+<td>10분 내 aggressive 필터 일치 3회</td>
+<td>기본 5분</td>
+</tr>
+</tbody>
+</table>
+<p>재차 차단되는 IP는 전체 jail 이력을 기준으로 차단 시간이 지수 증가하며 최대 7일까지 늘어납니다. 화이트리스트는 <code>10.0.0.0/8</code> 내부 네트워크와 다른 호스트의 공인 IP입니다.</p>
+<h3 id="wireguard-vpn">WireGuard VPN 분리<a class="headerlink" href="#wireguard-vpn" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>네트워크</th>
+<th>대역</th>
+<th>용도</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>wg-admin</td>
+<td><code>10.100.0.0/24</code></td>
+<td>인프라 관리 (SSH, DB, 내부 서비스)</td>
+</tr>
+<tr>
+<td>Headscale</td>
+<td><code>100.64.0.0/10</code></td>
+<td>사용자 서비스 접근 (웹 서비스)</td>
+</tr>
+</tbody>
+</table>
+<p>두 네트워크는 독립적입니다. wg-admin peer key는 인프라 호스트와 승인된 관리자 기기에만 배포합니다. 일반 사용자는 wg-admin peer가 되지 않으며, SSH가 허용된 사용자는 eta bastion을 통해 대상 호스트의 wg-admin 주소로 접속합니다.</p>
+<h2 id="_4">계정 및 권한 정책<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<h3 id="_5">사용자 계층<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>역할</th>
+<th>NixOS 그룹</th>
+<th>sudo</th>
+<th>Docker</th>
+<th>SSH 호스트</th>
+<th>만료</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>관리자</td>
+<td><code>wheel</code>, <code>docker</code>, <code>admin</code>, <code>input</code></td>
+<td>O</td>
+<td>O</td>
+<td>전체</td>
+<td>—</td>
+</tr>
+<tr>
+<td>연구원</td>
+<td><code>docker</code>, <code>researcher</code>, <code>input</code></td>
+<td>X</td>
+<td>O</td>
+<td>지정 호스트</td>
+<td>필수</td>
+</tr>
+<tr>
+<td>학생</td>
+<td><code>docker</code>, <code>student</code>, <code>input</code></td>
+<td>X</td>
+<td>O</td>
+<td>지정 호스트</td>
+<td>필수</td>
+</tr>
+</tbody>
+</table>
+<h3 id="root">Root 접근 정책<a class="headerlink" href="#root" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>접근 경로</th>
+<th>허용</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SSH (인터넷)</td>
+<td><strong>차단</strong> (<code>PermitRootLogin no</code>)</td>
+</tr>
+<tr>
+<td>SSH (wg-admin, 10.100.0.0/24)</td>
+<td>공개키만 (<code>prohibit-password</code>)</td>
+</tr>
+<tr>
+<td>sudo (로컬)</td>
+<td><code>wheel</code> 그룹만</td>
+</tr>
+</tbody>
+</table>
+<p>root의 <code>authorized_keys</code>에는 관리자 키만 등록됩니다 (<code>modules/users/admins.nix</code>).</p>
+<h3 id="_6">시스템 계정<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h3>
+<p>서비스별로 전용 시스템 계정이 분리되어 있습니다.</p>
+<table>
+<thead>
+<tr>
+<th>계정</th>
+<th>서비스</th>
+<th>유형</th>
+<th>특기 사항</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>nixbot</code></td>
+<td>Nixbot CI</td>
+<td>isSystemUser</td>
+<td>psi의 <code>nix.settings.extra-allowed-users</code>에 명시</td>
+</tr>
+<tr>
+<td><code>harmonia</code></td>
+<td>Nix 바이너리 캐시</td>
+<td>systemd DynamicUser</td>
+<td>별도 영구 계정 없음</td>
+</tr>
+<tr>
+<td><code>rustfs</code></td>
+<td>RustFS S3 저장소</td>
+<td>isSystemUser</td>
+<td><code>/srv/rustfs/data</code> 전용</td>
+</tr>
+<tr>
+<td><code>acme-sync-*</code></td>
+<td>TLS 인증서 동기화</td>
+<td>—</td>
+<td>rsync 전용, 제한된 경로</td>
+</tr>
+<tr>
+<td><code>postgres</code></td>
+<td>PostgreSQL</td>
+<td>isSystemUser</td>
+<td>DB 전용</td>
+</tr>
+<tr>
+<td><code>nextcloud</code></td>
+<td>Nextcloud</td>
+<td>isSystemUser</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h3 id="nix">Nix 권한<a class="headerlink" href="#nix" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>설정</th>
+<th>대상</th>
+<th>의미</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>allowed-users</code></td>
+<td>모든 로컬 계정 (<code>*</code>)</td>
+<td>Nix daemon 연결, store 조회, 일반 build 허용</td>
+</tr>
+<tr>
+<td><code>extra-allowed-users</code></td>
+<td>psi의 <code>nixbot</code></td>
+<td>Nixbot service account를 명시적으로 허용하며 현재 wildcard와 중복</td>
+</tr>
+<tr>
+<td><code>trusted-users</code></td>
+<td><code>root</code> (NixOS), <code>@wheel</code> (srvos), <code>seungwon</code> (admin module)</td>
+<td>임의 substituter와 서명되지 않은 store path 등 privileged daemon 기능 허용</td>
+</tr>
+</tbody>
+</table>
+<p>일반 연구원·학생 계정은 <code>nix shell</code>, <code>nix run</code>, <code>nix develop</code>을 사용할 수 있지만 trusted user 권한은 없습니다. <code>allowed-users</code>는 SSH 로그인이나 호스트 접근 권한을 부여하지 않습니다.</p>
+<h2 id="ssh_1">SSH 보안<a class="headerlink" href="#ssh_1" title="Permanent link">&para;</a></h2>
+<h3 id="_7">알고리즘 정책<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>허용 알고리즘</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ciphers</td>
+<td><code>chacha20-poly1305</code>, <code>aes256-gcm</code>, <code>aes128-gcm</code></td>
+</tr>
+<tr>
+<td>KexAlgorithms</td>
+<td><code>curve25519-sha256</code>, <code>diffie-hellman-group16-sha512</code>, <code>diffie-hellman-group18-sha512</code></td>
+</tr>
+<tr>
+<td>MACs</td>
+<td><code>hmac-sha2-512-etm</code>, <code>hmac-sha2-256-etm</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="_8">세션 정책<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>설정</th>
+<th>값</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>인증 방식</td>
+<td>공개키만 (비밀번호 비활성화)</td>
+</tr>
+<tr>
+<td>키 알고리즘</td>
+<td>Ed25519 권장</td>
+</tr>
+<tr>
+<td>MaxAuthTries</td>
+<td>3</td>
+</tr>
+<tr>
+<td>LoginGraceTime</td>
+<td>30초</td>
+</tr>
+<tr>
+<td>ClientAliveInterval</td>
+<td>1200초 (20분)</td>
+</tr>
+<tr>
+<td>X11Forwarding</td>
+<td>비활성화</td>
+</tr>
+<tr>
+<td>Compression</td>
+<td>비활성화</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ssh-ca">SSH CA 인증서<a class="headerlink" href="#ssh-ca" title="Permanent link">&para;</a></h3>
+<p>호스트 키는 CA로 서명되어 있어 <code>known_hosts</code>에 CA 공개키만 등록하면 모든 호스트를 신뢰할 수 있습니다.</p>
+<div class="highlight"><pre><span></span><code>@cert-authority *.sjanglab.org ssh-ed25519 AAAAC3...
+</code></pre></div>
+<p>설정 위치: <code>modules/sshd/certs/</code></p>
+<h2 id="_9">비밀 관리<a class="headerlink" href="#_9" title="Permanent link">&para;</a></h2>
+<h3 id="sops-nix-age">sops-nix + age<a class="headerlink" href="#sops-nix-age" title="Permanent link">&para;</a></h3>
+<p>모든 비밀은 age(Curve25519) 암호화로 보호됩니다. 호스트별 age 키와 관리자 키가 각 비밀 파일을 복호화할 수 있습니다.</p>
+<table>
+<thead>
+<tr>
+<th>비밀 파일</th>
+<th>접근 가능 키</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>hosts/&lt;host&gt;.yaml</code></td>
+<td>해당 호스트 + admin</td>
+<td>root 비밀번호 해시, WireGuard 키</td>
+</tr>
+<tr>
+<td><code>hosts/rho.yaml</code>, <code>hosts/tau.yaml</code></td>
+<td>해당 호스트</td>
+<td>RustFS root credential, host-local backup passwords, PostgreSQL 사용자/복제 암호</td>
+</tr>
+<tr>
+<td><code>modules/acme/secrets.yaml</code></td>
+<td>eta, psi, tau</td>
+<td>Cloudflare API 인증</td>
+</tr>
+<tr>
+<td><code>modules/buildbot/secrets.yaml</code></td>
+<td>psi</td>
+<td>Nixbot GitHub App/OAuth 시크릿</td>
+</tr>
+<tr>
+<td><code>modules/authentik/secrets.yaml</code></td>
+<td>eta</td>
+<td>OIDC 클라이언트 시크릿</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_10">비밀 편집<a class="headerlink" href="#_10" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># 비밀 편집 (age 키 자동 사용)</span>
+sops<span class="w"> </span>hosts/psi.yaml
+
+<span class="c1"># 키 교체 후 재암호화</span>
+sops<span class="w"> </span>updatekeys<span class="w"> </span>hosts/psi.yaml
+</code></pre></div>
+<p>자세한 내용은 <a href="../secrets-management/">비밀 관리</a>를 참조합니다.</p>
+<h2 id="tls">TLS 인증서<a class="headerlink" href="#tls" title="Permanent link">&para;</a></h2>
+<p>대부분의 도메인은 eta에서 Let's Encrypt ACME + Cloudflare DNS 챌린지로 인증서를 발급합니다. Nixbot 공개 ingress는 eta에서 인증서를 발급하고, psi의 Nixbot 스택도 내부 nginx용 인증서를 유지합니다. 다른 호스트에서 사용하는 인증서는 <code>acme-sync</code> 서비스가 rsync로 동기화하고, 대상 호스트의 systemd path unit이 파일 변경을 감지하여 nginx를 자동 리로드합니다.</p>
+<table>
+<thead>
+<tr>
+<th>도메인</th>
+<th>발급 호스트</th>
+<th>사용 호스트</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>auth.sjanglab.org</code></td>
+<td>eta</td>
+<td>eta</td>
+</tr>
+<tr>
+<td><code>vault.sjanglab.org</code></td>
+<td>eta</td>
+<td>eta</td>
+</tr>
+<tr>
+<td><code>hs.sjanglab.org</code></td>
+<td>eta</td>
+<td>eta</td>
+</tr>
+<tr>
+<td><code>cloud.sjanglab.org</code></td>
+<td>eta</td>
+<td>tau (동기화)</td>
+</tr>
+<tr>
+<td><code>n8n.sjanglab.org</code></td>
+<td>eta</td>
+<td>tau (동기화)</td>
+</tr>
+<tr>
+<td><code>docling.sjanglab.org</code></td>
+<td>eta</td>
+<td>psi (동기화)</td>
+</tr>
+<tr>
+<td><code>tei.sjanglab.org</code></td>
+<td>eta</td>
+<td>psi (동기화)</td>
+</tr>
+<tr>
+<td><code>multievolve.sjanglab.org</code></td>
+<td>eta</td>
+<td>psi (동기화)</td>
+</tr>
+<tr>
+<td><code>buildbot.sjanglab.org</code></td>
+<td>eta, psi</td>
+<td>eta (public edge), psi (service stack)</td>
+</tr>
+<tr>
+<td><code>upterm.sjanglab.org</code></td>
+<td>eta</td>
+<td>eta</td>
+</tr>
+</tbody>
+</table>
+<p>인증서 동기화: eta에서 발급 → <code>acme-sync</code> 서비스가 rsync로 대상 호스트에 전송 → systemd path unit이 변경 감지 → nginx 자동 리로드. Nixbot은 eta 공개 edge와 psi 서비스 스택 양쪽에서 인증서를 발급합니다.</p>
+<h2 id="_11">데이터 보안<a class="headerlink" href="#_11" title="Permanent link">&para;</a></h2>
+<h3 id="postgresql">PostgreSQL<a class="headerlink" href="#postgresql" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>설정</th>
+<th>값</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>바인드 주소</td>
+<td>wg-admin IP만</td>
+</tr>
+<tr>
+<td>인증 방식</td>
+<td>SCRAM-SHA-256 (원격), Peer (로컬)</td>
+</tr>
+<tr>
+<td>복제</td>
+<td>WAL 스트리밍 (rho → tau)</td>
+</tr>
+<tr>
+<td>암호 관리</td>
+<td>sops 암호화</td>
+</tr>
+</tbody>
+</table>
+<h3 id="rustfs-s3-backup-store">RustFS S3 backup store<a class="headerlink" href="#rustfs-s3-backup-store" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>설정</th>
+<th>값</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>API 바인드</td>
+<td>wg-admin IP만 (<code>:9100</code>)</td>
+</tr>
+<tr>
+<td>console 바인드</td>
+<td>localhost only (<code>127.0.0.1:9101</code>)</td>
+</tr>
+<tr>
+<td>저장소</td>
+<td><code>/srv/rustfs/data</code></td>
+</tr>
+<tr>
+<td>daemon 모듈</td>
+<td>nixpkgs upstream <code>services.rustfs</code></td>
+</tr>
+<tr>
+<td>secret 전달</td>
+<td>sops template <code>EnvironmentFile</code></td>
+</tr>
+<tr>
+<td>bucket state</td>
+<td><code>rustfs-bootstrap.service</code>가 S3 API로 생성/검증</td>
+</tr>
+<tr>
+<td>client 인증</td>
+<td>access key / secret key</td>
+</tr>
+</tbody>
+</table>
+<p>RustFS root credential은 daemon 시작, bootstrap, break-glass 용도로만 사용합니다. Backup job은 repo별 writer/pruner/reader/mirror credential과 IAM policy를 사용해야 합니다.</p>
+<h2 id="_12">감사 및 모니터링<a class="headerlink" href="#_12" title="Permanent link">&para;</a></h2>
+<h3 id="auditd">auditd<a class="headerlink" href="#auditd" title="Permanent link">&para;</a></h3>
+<p>Linux 감사 데몬으로 다음을 추적합니다:</p>
+<table>
+<thead>
+<tr>
+<th>추적 대상</th>
+<th>파일</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PAM 세션</td>
+<td><code>/var/log/wtmp</code>, <code>/var/log/btmp</code>, <code>/var/run/utmp</code></td>
+</tr>
+<tr>
+<td>SSH 설정 변경</td>
+<td><code>/etc/ssh/sshd_config</code></td>
+</tr>
+</tbody>
+</table>
+<p>로그: <code>/var/log/audit/audit.log</code> (최대 8MB × 2)</p>
+<h3 id="_13">로그 파이프라인<a class="headerlink" href="#_13" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>flowchart LR
+  src["auditd / journald"] --&gt; vec["Vector"]
+  vec --&gt; loki["Loki (rho)"]
+  loki --&gt; graf["Grafana"]</code></pre>
+<h2 id="_14">시스템 안정성<a class="headerlink" href="#_14" title="Permanent link">&para;</a></h2>
+<h3 id="_15">자동 업그레이드<a class="headerlink" href="#_15" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>설정</th>
+<th>값</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>소스</td>
+<td><code>github:SBEE-lab/infra</code></td>
+</tr>
+<tr>
+<td>업그레이드</td>
+<td><code>system.autoUpgrade</code>가 매일 04:40 KST에 최신 설정 적용</td>
+</tr>
+<tr>
+<td>재부팅 체크</td>
+<td>매월 마지막 토요일 (<code>auto-reboot</code> 서비스)</td>
+</tr>
+<tr>
+<td>재부팅 조건</td>
+<td>커널 변경 시에만 24시간 후 자동 재부팅</td>
+</tr>
+<tr>
+<td>재부팅 지터</td>
+<td>최대 20분 지연 (호스트별 분산)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_16">서비스 복구<a class="headerlink" href="#_16" title="Permanent link">&para;</a></h3>
+<p>systemd가 서비스 실패 시 자동 재시작합니다. 모니터링은 Gatus(<code>status.sjanglab.org</code>)에서 헬스체크를 수행합니다.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-circle-arrow-up" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16 12-4-4-4 4M12 16V8"/></svg>
+  맨위로
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="하단/푸터" >
+        
+          
+          <a href="../secrets-management/" class="md-footer__link md-footer__link--prev" aria-label="이전: 비밀 관리">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                이전
+              </span>
+              <div class="md-ellipsis">
+                비밀 관리
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../contributing/" class="md-footer__link md-footer__link--next" aria-label="다음: 코드 기여">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                다음
+              </span>
+              <div class="md-ellipsis">
+                코드 기여
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2025 SBEE Lab
+    </div>
+  
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/sbee-lab" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://sjanglab.org" target="_blank" rel="noopener" title="sjanglab.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M351.9 280H161c2.9 64.5 17.2 123.9 37.5 167.4 11.4 24.5 23.7 41.8 35.1 52.4 11.2 10.5 18.9 12.2 22.9 12.2s11.7-1.7 22.9-12.2c11.4-10.6 23.7-28 35.1-52.4 20.3-43.5 34.6-102.9 37.5-167.4zm-191-48h190.9c-2.8-64.5-17.1-123.9-37.4-167.4-11.4-24.4-23.7-41.8-35.1-52.4C268.1 1.7 260.4 0 256.4 0s-11.7 1.7-22.9 12.2c-11.4 10.6-23.7 28-35.1 52.4-20.3 43.5-34.6 102.9-37.5 167.4m-48 0c3.5-85.6 25.6-165.1 57.9-217.3C78.7 47.3 10.9 131.2 1.5 232zM1.5 280c9.4 100.8 77.2 184.7 169.3 217.3-32.3-52.2-54.4-131.7-57.9-217.3zm398.4 0c-3.5 85.6-25.6 165.1-57.9 217.3 92.1-32.7 159.9-116.5 169.3-217.3zm111.4-48C501.9 131.2 434.1 47.3 342 14.7c32.3 52.2 54.4 131.7 57.9 217.3z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["announce.dismiss","content.action.edit","content.action.view","content.code.annotate","content.code.copy","content.code.select","content.footnote.tooltips","content.tabs.link","content.tooltips","navigation.footer","navigation.indexes","navigation.path","navigation.sections","navigation.tabs","navigation.top","search.highlight","search.suggest"],"search":"../../assets/javascripts/workers/search.b6b7e04f.min.js","tags":null,"translations":{"clipboard.copied":"클립보드에 복사됨","clipboard.copy":"클립보드로 복사","search.result.more.one":"이 문서에서 1개의 검색 결과 더 보기","search.result.more.other":"이 문서에서 #개의 검색 결과 더 보기","search.result.none":"검색어와 일치하는 문서가 없습니다","search.result.one":"1개의 일치하는 문서","search.result.other":"#개의 일치하는 문서","search.result.placeholder":"검색어를 입력하세요","search.result.term.missing":"포함되지 않은 검색어","select.version":"버전 선택"},"version":null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7f30b55.min.js"></script>
+      
+    
+  </body>
+</html>
