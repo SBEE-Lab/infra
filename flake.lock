@@ -183,13 +183,13 @@
       "locked": {
         "lastModified": 1785151169,
         "narHash": "sha256-lMjTMaU3vB0hhGVHF6Q4kA+Ti5qYuUQbs6dtdq0VEgU=",
-        "owner": "mulatta",
+        "owner": "SBEE-Lab",
         "repo": "multievolve-nix",
         "rev": "4d9aac9cb98e28bda26a213d203d0611af8d48a5",
         "type": "github"
       },
       "original": {
-        "owner": "mulatta",
+        "owner": "SBEE-Lab",
         "repo": "multievolve-nix",
         "type": "github"
       }
