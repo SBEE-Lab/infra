@@ -12,6 +12,7 @@
     ../modules/monitoring/vector/monitor-services.nix
     ../modules/nextcloud
     ../modules/n8n
+    ../modules/documenso
     ../modules/vaultwarden/reverse-proxy.nix
   ];
 
