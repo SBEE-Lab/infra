@@ -21,6 +21,8 @@ let
       NEXT_PRIVATE_ENCRYPTION_KEY=$(cat "$CREDENTIALS_DIRECTORY/encryption-key")
       export NEXT_PRIVATE_ENCRYPTION_SECONDARY_KEY
       NEXT_PRIVATE_ENCRYPTION_SECONDARY_KEY=$(cat "$CREDENTIALS_DIRECTORY/encryption-secondary-key")
+      export NEXT_PRIVATE_OIDC_CLIENT_SECRET
+      NEXT_PRIVATE_OIDC_CLIENT_SECRET=$(cat "$CREDENTIALS_DIRECTORY/oidc-client-secret")
 
       export NEXT_PRIVATE_DATABASE_URL="${databaseUrl}"
       export NEXT_PRIVATE_DIRECT_DATABASE_URL="${databaseUrl}"
@@ -74,6 +76,13 @@ in
       NEXT_PRIVATE_JOBS_PROVIDER = "local";
       NEXT_PRIVATE_SMTP_FROM_NAME = "Documenso";
       NEXT_PRIVATE_SMTP_FROM_ADDRESS = "noreply@sjanglab.org";
+      NEXT_PRIVATE_OIDC_WELL_KNOWN = "https://auth.sjanglab.org/application/o/documenso/.well-known/openid-configuration";
+      NEXT_PRIVATE_OIDC_CLIENT_ID = "NJ46KMGddzOrzAwiNarftcidtl17wACc6c9AGEa8";
+      NEXT_PRIVATE_OIDC_PROVIDER_LABEL = "Authentik";
+      NEXT_PRIVATE_OIDC_SKIP_VERIFY = "true";
+      NEXT_PUBLIC_DISABLE_EMAIL_PASSWORD_SIGNUP = "true";
+      NEXT_PUBLIC_DISABLE_GOOGLE_SIGNUP = "true";
+      NEXT_PUBLIC_DISABLE_MICROSOFT_SIGNUP = "true";
       NEXT_PUBLIC_FEATURE_BILLING_ENABLED = "false";
       DOCUMENSO_DISABLE_TELEMETRY = "true";
     };
@@ -89,6 +98,7 @@ in
         "nextauth-secret:${config.sops.secrets.documenso-nextauth-secret.path}"
         "encryption-key:${config.sops.secrets.documenso-encryption-key.path}"
         "encryption-secondary-key:${config.sops.secrets.documenso-encryption-secondary-key.path}"
+        "oidc-client-secret:${config.sops.secrets.documenso-oidc-client-secret.path}"
       ];
       ExecStart = lib.getExe startDocumenso;
       Restart = "on-failure";
@@ -121,6 +131,13 @@ in
       sopsFile = ./secrets.yaml;
       owner = "documenso";
       group = "documenso";
+    };
+    documenso-oidc-client-secret = {
+      sopsFile = ../../terraform/authentik/oidc-secrets.yaml;
+      key = "DOCUMENSO_CLIENT_SECRET";
+      owner = "documenso";
+      group = "documenso";
+      restartUnits = [ "documenso.service" ];
     };
   };
 
