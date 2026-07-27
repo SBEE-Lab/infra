@@ -1,4 +1,9 @@
-{ config, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 {
   imports = [
     ../acme
@@ -45,6 +50,11 @@
           }
           {
             name = "n8n.sjanglab.org";
+            type = "A";
+            value = "100.64.0.3"; # tau headscale IP
+          }
+          {
+            name = "documenso.sjanglab.org";
             type = "A";
             value = "100.64.0.3"; # tau headscale IP
           }
@@ -113,6 +123,36 @@
       # ACL policy is managed by terraform/headscale through the Headscale API.
       policy.mode = "database";
     };
+  };
+
+  systemd.services.headscale = {
+    after = [
+      "authentik.service"
+      "authentik-worker.service"
+    ];
+    wants = [
+      "authentik.service"
+      "authentik-worker.service"
+    ];
+
+    preStart = lib.mkBefore ''
+      for attempt in {1..60}; do
+        if ${pkgs.curl}/bin/curl --fail --silent --show-error --output /dev/null \
+          https://auth.sjanglab.org/application/o/headscale/.well-known/openid-configuration; then
+          exit 0
+        fi
+        sleep 2
+      done
+
+      echo "authentik OIDC discovery did not become ready" >&2
+      exit 1
+    '';
+
+    unitConfig = {
+      StartLimitIntervalSec = 300;
+      StartLimitBurst = 30;
+    };
+    serviceConfig.RestartSec = lib.mkDefault 5;
   };
 
   sops.secrets.headscale-oidc-secret = {
