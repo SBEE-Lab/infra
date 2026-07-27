@@ -62,7 +62,7 @@
 
     # Applications.
     multievolve-nix = {
-      url = "github:mulatta/multievolve-nix/nixos-module-service";
+      url = "github:mulatta/multievolve-nix";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.treefmt-nix.follows = "treefmt-nix";
     };
