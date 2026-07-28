@@ -85,7 +85,7 @@ Nixbot 관리자를 변경하려면:
 
 ### 외부 캐시 푸시
 
-Nixbot은 `mulatta/dots`, `mulatta/seqtable` 빌드 성공 결과만 `https://niks3.mulatta.io`로 push합니다. 전체 빌드는 psi의 Harmonia cache에서 계속 제공됩니다.
+Nixbot은 `mulatta/dots`, `mulatta/seqtable`, `mulatta/buzz.nix` 빌드 성공 결과만 `https://niks3.mulatta.io`로 push합니다. 전체 빌드는 psi의 Harmonia cache에서 계속 제공됩니다.
 
 ## Package 자동 업데이트
 
