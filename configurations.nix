@@ -44,6 +44,7 @@ let
 
   commonModules = [
     ./modules/auto-upgrade.nix
+    ./modules/biomcp
     ./modules/cleanup-usr.nix
     ./modules/hosts.nix
     ./modules/network.nix
