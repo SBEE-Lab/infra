@@ -8,6 +8,7 @@
     }:
     {
       packages = {
+        biomcp = pkgs.callPackage ./biomcp { };
         infra-alert-bridge = pkgs.callPackage ./infra-alert-bridge { };
         slack-cli = pkgs.callPackage ./slack-cli { };
         updater = pkgs.callPackage ./updater { };
