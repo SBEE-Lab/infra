@@ -10,6 +10,7 @@
     ../modules/rustfs
     ../modules/backup/primary.nix
     ../modules/monitoring/vector/monitor-services.nix
+    ../modules/hermes-agent
     ../modules/nextcloud
     ../modules/n8n
     ../modules/vaultwarden/reverse-proxy.nix
@@ -49,6 +50,13 @@
   };
 
   services.rustfs.enable = true;
+
+  services.hermes-agent = {
+    enable = true;
+    enableDashboard = true;
+    externalInterface = "eth0";
+    allowedSlackUsers = [ "U04GMC10NNP" ];
+  };
   services.sbee.backups = {
     primary = {
       psiProtected.enable = true;
