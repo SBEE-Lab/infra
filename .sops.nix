@@ -62,6 +62,7 @@ let
       ];
       "modules/buildbot/secrets.yaml" = [ "psi" ];
       "modules/monitoring/secrets.yaml" = [ "rho" ];
+      "modules/hermes-agent/secrets.yaml" = [ "tau" ];
       "modules/n8n/secrets.yaml" = [ "tau" ];
       "modules/nextcloud/secrets.yaml" = [ "tau" ];
       "modules/nfs/secrets.yaml" = [ "psi" ];
