@@ -164,6 +164,11 @@ let
         name = "postgresql";
         prefix = "rho/postgresql";
       };
+      eta = mkResticContract {
+        host = "eta";
+        name = "postgresql";
+        prefix = "eta/postgresql";
+      };
     };
   };
 in

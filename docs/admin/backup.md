@@ -95,6 +95,7 @@ Streaming replica는 장애 대응용이고 백업으로 간주하지 않습니�
 
 - rho: `terraform`, `nextcloud`, `n8n`
 - psi: `nixbot`
+- eta: `stalwart-mail`
 - globals: `pg_dumpall --globals-only`
 - database dump: `pg_dump --format=custom --create --clean --if-exists`
 
@@ -102,10 +103,11 @@ Streaming replica는 장애 대응용이고 백업으로 간주하지 않습니�
 
 - rho: `backups/rho/postgresql/`
 - psi: `backups/psi/postgresql/`
+- eta: `backups/eta/postgresql/`
 
 스케줄과 보관:
 
-- dump + backup: daily (`rho` 04:30, `psi` 02:30)
+- dump + backup: daily (`rho` 04:30, `psi` 02:30, `eta` 03:30)
 - check: monthly, reader credential
 - prune: weekly, pruner credential
 - retention: daily 7, weekly 4, monthly 6
@@ -115,9 +117,9 @@ Streaming replica는 장애 대응용이고 백업으로 간주하지 않습니�
 
 rho가 tau primary RustFS에서 pull 방식으로 secondary RustFS에 복사합니다.
 
-- units: `backup-mirror-psi-protected.service`, `backup-mirror-psi-postgresql.service`, `backup-mirror-rho-postgresql.service`
+- units: `backup-mirror-psi-protected.service`, `backup-mirror-psi-postgresql.service`, `backup-mirror-rho-postgresql.service`, `backup-mirror-eta-postgresql.service`
 - timer: daily, `RandomizedDelaySec=2h`
-- sources: `tau:backups/psi/protected/`, `tau:backups/psi/postgresql/`, `tau:backups/rho/postgresql/`
+- sources: `tau:backups/psi/protected/`, `tau:backups/psi/postgresql/`, `tau:backups/rho/postgresql/`, `tau:backups/eta/postgresql/`
 - destinations: matching prefixes on rho RustFS
 - rclone options: `copy --immutable --min-age 24h --exclude 'locks/**' --s3-no-check-bucket`
 

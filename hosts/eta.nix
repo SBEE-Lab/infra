@@ -57,11 +57,13 @@ in
     ../modules/authentik
     ../modules/stalwart
     ../modules/vaultwarden
+    ../modules/backup/postgresql.nix
     ../modules/buildbot/edge-proxy.nix
     ../modules/niks3/edge-proxy.nix
     ../modules/uptermd
     ../modules/gatus
     ../modules/monitoring/vector
+    ../modules/monitoring/systemd-status-exporter.nix
     ../modules/n8n/reverse-proxy.nix
     ../modules/nextcloud/reverse-proxy.nix
     ../modules/acme/sync.nix
@@ -148,6 +150,15 @@ in
   };
 
   networking.hostName = "eta";
+
+  services.sbee = {
+    systemdStatusExporter.enable = true;
+    backups.postgresql = {
+      enable = true;
+      databases = [ "stalwart-mail" ];
+      startAt = "*-*-* 03:30:00";
+    };
+  };
 
   services.prometheus.exporters.blackbox = {
     enable = true;
