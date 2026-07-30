@@ -1,19 +1,53 @@
-# https://github.com/TUM-DSE/doctor-cluster-config/tree/04a6acec04fbed055511b8f03055b117e76683d3/modules/auto-upgrade.nix
 {
+  config,
   pkgs,
-  lib,
   ...
 }:
 {
-  system.autoUpgrade.enable = lib.mkDefault true;
-  system.autoUpgrade.flake = "github:SBEE-lab/infra";
-  system.autoUpgrade.flags = [
-    "--option"
-    "accept-flake-config"
-    "true"
-  ];
+  # Fetch and apply system updates from buildbot CI.
+  # Adapted from: https://github.com/TUM-DSE/doctor-cluster-config/blob/master/modules/auto-upgrade.nix
+  systemd.services.auto-upgrade = {
+    restartIfChanged = false;
+    unitConfig.X-StopOnRemoval = false;
+    serviceConfig = {
+      Restart = "on-failure";
+      RestartSec = "30s";
+      Type = "oneshot";
+    };
+    path = [
+      config.nix.package
+      config.systemd.package
+      pkgs.coreutils
+      pkgs.curl
+    ];
+    script = ''
+      set -euo pipefail
 
-  # add a random jitter so not all machines reboot at the same time.
+      hostname=$(uname -n)
+      p=$(curl -fsSL "https://buildbot.sjanglab.org/nix-outputs/github/SBEE-Lab/infra/main/default.checks.${pkgs.stdenv.buildPlatform.system}.nixos-$hostname")
+
+      if [[ "$(readlink /run/current-system)" == "$p" ]]; then
+        echo "Already at $p, nothing to do"
+        exit 0
+      fi
+
+      echo "Updating to $p"
+      nix-store --option narinfo-cache-negative-ttl 0 --realise "$p"
+      nix-env --profile /nix/var/nix/profiles/system --set "$p"
+
+      /nix/var/nix/profiles/system/bin/switch-to-configuration switch
+    '';
+  };
+
+  systemd.timers.auto-upgrade = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnBootSec = "5m";
+      OnUnitInactiveSec = "1d";
+    };
+  };
+
+  # Reboot on the last Saturday of each month if kernel changed.
   systemd.timers.auto-reboot.timerConfig.RandomizedDelaySec = 60 * 20;
 
   systemd.services.auto-reboot = {
@@ -21,7 +55,6 @@
       pkgs.systemd
       pkgs.util-linux
     ];
-    # The last saturday in a month
     startAt = "Sat *-*~07/1";
     script = ''
       booted="$(readlink /run/booted-system/{initrd,kernel,kernel-modules})"
@@ -29,7 +62,6 @@
       if [ "''${booted}" = "''${built}" ]; then
         echo "No kernel update... skipping reboot"
       else
-        # reboot in 24 hours
         msg=$(shutdown -r +${toString (60 * 24)} 2>&1)
         echo "$msg" | wall
       fi
