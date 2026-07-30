@@ -83,9 +83,9 @@ Nixbot 관리자를 변경하려면:
 | `docs-pages` | `main` push | `.#docs` 결과를 `gh-pages` 브랜치로 force-push합니다. GitHub Pages source는 `terraform/github/repo.tf`에서 `gh-pages` `/`로 관리합니다. |
 | `update-packages` | 매일 03:00 UTC | `.#updater -- --pr`를 실행해 updateable package별 PR을 생성합니다. |
 
-### 외부 캐시 푸시
+### 바이너리 캐시 푸시
 
-Nixbot은 `mulatta/dots`, `mulatta/seqtable`, `mulatta/buzz.nix` 빌드 성공 결과만 `https://niks3.sjanglab.org`로 push합니다. 전체 빌드는 psi의 Harmonia cache에서 계속 제공됩니다.
+Nixbot은 모든 성공 빌드 결과를 `https://niks3.sjanglab.org`로 push합니다. niks3는 closure metadata와 garbage collection 상태를 psi PostgreSQL에서 추적하고, NAR와 narinfo는 Cloudflare R2에 직접 저장합니다.
 
 ## Package 자동 업데이트
 
@@ -120,15 +120,14 @@ flowchart LR
 
 ## Nix 바이너리 캐시
 
-### Harmonia (내부 캐시)
+### niks3와 Cloudflare R2
 
-psi에서 빌드한 `/nix/store` 경로를 Harmonia 데몬이 네트워크로 제공합니다. 다른 호스트가 배포 시 이 캐시에서 빌드 결과를 가져오므로 중복 빌드를 피할 수 있습니다.
+Nixbot은 성공한 closure를 niks3에 등록한 뒤 presigned URL로 R2에 직접 업로드합니다. 모든 호스트는 공개 read endpoint `https://cache.sjanglab.org`를 Nix substituter로 사용하므로 psi나 eta를 거치지 않고 결과를 받습니다.
 
 | 항목 | 값 |
 |------|-----|
-| 호스트 | psi |
-| 포트 | 5000 (`wg-admin` 인터페이스) |
-| 주소 | `http://10.100.0.2:5000` |
-| 서명 키 | `secrets.yaml` (sops 암호화) |
-
-모든 호스트(rho, tau, eta)는 이 주소를 Nix substituter로 자동 설정되어 있습니다.
+| control plane | psi niks3 (`wg-admin:5751`) |
+| push endpoint | `https://niks3.sjanglab.org` |
+| read endpoint | `https://cache.sjanglab.org` |
+| object storage | Cloudflare R2 `niks3` bucket |
+| 서명 키 | `modules/niks3/secrets.yaml` (sops 암호화) |

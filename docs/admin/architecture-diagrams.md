@@ -41,8 +41,8 @@
 ## 7. CI/CD와 Nix 캐시
 
 - [CI/CD와 Nix 캐시](cicd-cache-architecture.html)
-- 목적: GitHub App webhook, eta public edge, psi Nixbot, Nixbot DB, builder, Harmonia substituter 관계를 설명합니다.
-- 적합한 질문: “PR check는 어떤 경로로 실행되나?”, “Harmonia cache는 누가 쓰나?”
+- 목적: GitHub App webhook, eta public edge, psi Nixbot, Nixbot DB, builder, niks3/R2 cache 관계를 설명합니다.
+- 적합한 질문: “PR check는 어떤 경로로 실행되나?”, “niks3 cache는 누가 쓰나?”
 
 ## 관리 원칙
 

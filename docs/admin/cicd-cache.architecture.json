@@ -3,7 +3,7 @@
   "diagram_type": "architecture",
   "meta": {
     "title": "CI/CD와 Nix 캐시",
-    "subtitle": "GitHub App webhook, eta edge, psi Nixbot, Harmonia substituter",
+    "subtitle": "GitHub App webhook, eta edge, psi Nixbot, niks3와 R2 substituter",
     "output": "docs/admin/cicd-cache-architecture.html",
     "visual_preset": "blueprint",
     "quality_profile": "standard",
@@ -36,12 +36,13 @@
         "label": "바이너리 캐시",
         "focus": [
           "builders",
-          "harmonia",
+          "niks3",
+          "r2-cache",
           "eta-host",
           "rho-host",
           "tau-host"
         ],
-        "note": "psi Harmonia cache는 eta/rho/tau Nix substituter로 사용됩니다."
+        "note": "Nixbot은 niks3에 closure를 등록하고, eta/rho/tau는 Cloudflare R2를 Nix substituter로 사용합니다."
       }
     ]
   },
@@ -125,10 +126,10 @@
       ]
     },
     {
-      "id": "harmonia",
+      "id": "niks3",
       "type": "backend",
-      "label": "Harmonia",
-      "sublabel": "psi :5000",
+      "label": "niks3",
+      "sublabel": "psi :5751",
       "pos": [
         930,
         410
@@ -140,7 +141,7 @@
       "label": "eta",
       "sublabel": "substituter",
       "pos": [
-        1160,
+        1390,
         250
       ]
     },
@@ -150,7 +151,7 @@
       "label": "rho",
       "sublabel": "substituter",
       "pos": [
-        1160,
+        1390,
         365
       ]
     },
@@ -160,7 +161,7 @@
       "label": "tau",
       "sublabel": "substituter",
       "pos": [
-        1160,
+        1390,
         480
       ]
     },
@@ -172,6 +173,20 @@
       "pos": [
         480,
         430
+      ]
+    },
+    {
+      "id": "r2-cache",
+      "type": "cloud",
+      "label": "Cloudflare R2",
+      "sublabel": "cache.sjanglab.org",
+      "pos": [
+        1160,
+        410
+      ],
+      "size": [
+        150,
+        60
       ]
     }
   ],
@@ -191,7 +206,7 @@
         "nixbot-master",
         "nixbot-db",
         "builders",
-        "harmonia",
+        "niks3",
         "secrets"
       ]
     }
@@ -268,8 +283,8 @@
     {
       "id": "builders-cache",
       "from": "builders",
-      "to": "harmonia",
-      "label": "nar publish",
+      "to": "niks3",
+      "label": "closure 등록",
       "variant": "emphasis",
       "fromSide": "bottom",
       "toSide": "top",
@@ -279,22 +294,22 @@
       ]
     },
     {
-      "id": "harmonia-eta",
-      "from": "harmonia",
+      "id": "r2-eta",
+      "from": "r2-cache",
       "to": "eta-host",
       "label": "substitute",
       "variant": "dashed"
     },
     {
-      "id": "harmonia-rho",
-      "from": "harmonia",
+      "id": "r2-rho",
+      "from": "r2-cache",
       "to": "rho-host",
       "label": "substitute",
       "variant": "dashed"
     },
     {
-      "id": "harmonia-tau",
-      "from": "harmonia",
+      "id": "r2-tau",
+      "from": "r2-cache",
       "to": "tau-host",
       "label": "substitute",
       "variant": "dashed"
@@ -305,6 +320,13 @@
       "to": "nixbot-master",
       "label": "OAuth/App",
       "variant": "security"
+    },
+    {
+      "id": "niks3-r2",
+      "from": "niks3",
+      "to": "r2-cache",
+      "label": "presigned write",
+      "variant": "emphasis"
     }
   ],
   "cards": [

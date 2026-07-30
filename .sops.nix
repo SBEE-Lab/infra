@@ -60,7 +60,6 @@ let
         "tau"
       ];
       "modules/buildbot/secrets.yaml" = [ "psi" ];
-      "modules/harmonia/secrets.yaml" = [ "psi" ];
       "modules/monitoring/secrets.yaml" = [ "rho" ];
       "modules/n8n/secrets.yaml" = [ "tau" ];
       "modules/nextcloud/secrets.yaml" = [ "tau" ];

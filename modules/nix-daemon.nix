@@ -32,7 +32,7 @@ in
       substituters = [
         "https://cache.nixos.org"
         "https://nix-community.cachix.org"
-        "http://10.100.0.2:5000"
+        "https://cache.sjanglab.org"
       ];
 
       trusted-public-keys = [

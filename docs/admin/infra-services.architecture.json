@@ -49,7 +49,7 @@
     { "id": "wg-admin", "type": "messagebus", "label": "wg-admin", "sublabel": "10.100.0.0/24", "pos": [690, 370], "size": [142, 62], "tag": "관리망" },
     { "id": "tailnet", "type": "messagebus", "label": "Tailnet", "sublabel": "Magic DNS · tags", "pos": [690, 500], "size": [142, 62], "tag": "사용자망" },
 
-    { "id": "psi-ci", "type": "backend", "label": "psi CI", "sublabel": "Nixbot · Harmonia", "pos": [930, 115], "size": [155, 68], "tag": "KREN" },
+    { "id": "psi-ci", "type": "backend", "label": "psi CI", "sublabel": "Nixbot · niks3", "pos": [930, 115], "size": [155, 68], "tag": "KREN" },
     { "id": "psi-ai", "type": "backend", "label": "psi AI", "sublabel": "Docling · TEI · BioDB", "pos": [930, 240], "size": [155, 68], "tag": "GPU" },
     { "id": "rho-db", "type": "database", "label": "rho DB", "sublabel": "PostgreSQL primary", "pos": [930, 367], "size": [155, 68], "tag": "lab" },
     { "id": "rho-observe", "type": "backend", "label": "rho 관측", "sublabel": "Grafana · Loki", "pos": [930, 497], "size": [155, 68], "tag": "monitoring" },
@@ -93,7 +93,7 @@
   ],
   "cards": [
     { "dot": "rose", "title": "인증 게이트", "items": ["eta nginx가 공개 TLS와 reverse proxy를 담당", "Authentik은 앱 SSO와 Forward Auth 결정점", "Headscale ACL은 Authentik 그룹 membership과 동기화"] },
-    { "dot": "cyan", "title": "서비스 배치", "items": ["psi: Nixbot, Harmonia, GPU AI, BioDB", "rho: PostgreSQL primary, Grafana, Loki, RustFS mirror", "tau: Nextcloud, n8n, PostgreSQL replica, RustFS primary"] },
+    { "dot": "cyan", "title": "서비스 배치", "items": ["psi: Nixbot, niks3, GPU AI, BioDB", "rho: PostgreSQL primary, Grafana, Loki, RustFS mirror", "tau: Nextcloud, n8n, PostgreSQL replica, RustFS primary"] },
     { "dot": "emerald", "title": "운영/복구", "items": ["Terraform은 Cloudflare, Authentik, Headscale 정책을 관리", "sops-nix는 host/service secrets를 age로 배포", "restic과 RustFS mirror로 DB 및 보호 데이터를 보존"] }
   ]
 }

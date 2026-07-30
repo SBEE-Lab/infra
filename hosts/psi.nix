@@ -36,7 +36,6 @@ in
     ../modules/monitoring/systemd-status-exporter.nix
     ../modules/backup/psi-protected.nix
     ../modules/backup/postgresql.nix
-    ../modules/harmonia
     ../modules/niks3
     ../modules/multievolve
     # ../modules/vllm
@@ -85,13 +84,6 @@ in
 
   # Enable periodic TRIM for SSD health
   services.fstrim.enable = true;
-
-  # Use localhost for harmonia cache instead of wireguard IP
-  nix.settings.substituters = lib.mkForce [
-    "https://cache.nixos.org"
-    "https://nix-community.cachix.org"
-    "http://127.0.0.1:5000"
-  ];
 
   networking.hostName = "psi";
 

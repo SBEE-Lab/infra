@@ -92,7 +92,7 @@ root의 `authorized_keys`에는 관리자 키만 등록됩니다 (`modules/users
 | 계정 | 서비스 | 유형 | 특기 사항 |
 |------|--------|------|----------|
 | `nixbot` | Nixbot CI | isSystemUser | psi의 `nix.settings.extra-allowed-users`에 명시 |
-| `harmonia` | Nix 바이너리 캐시 | systemd DynamicUser | 별도 영구 계정 없음 |
+| `niks3` | Nix 캐시 control plane | system user | R2 credential과 signing key만 읽기 가능 |
 | `rustfs` | RustFS S3 저장소 | isSystemUser | `/srv/rustfs/data` 전용 |
 | `acme-sync-*` | TLS 인증서 동기화 | — | rsync 전용, 제한된 경로 |
 | `postgres` | PostgreSQL | isSystemUser | DB 전용 |

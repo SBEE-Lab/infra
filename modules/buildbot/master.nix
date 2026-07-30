@@ -57,16 +57,9 @@ in
           (interpolate ''
             set -euo pipefail
 
-            case "%(prop:project)s" in
-              mulatta/dots|mulatta/seqtable|mulatta/buzz.nix)
-                echo "Pushing %(prop:project)s:%(prop:attr)s to niks3 cache..."
-                export NIKS3_AUTH_TOKEN_FILE="$CREDENTIALS_DIRECTORY/niks3-auth-token"
-                niks3 push "%(prop:out_link)s"
-                ;;
-              *)
-                echo "Skipping niks3 push for %(prop:project)s"
-                ;;
-            esac
+            echo "Pushing %(prop:project)s:%(prop:attr)s to niks3 cache..."
+            export NIKS3_AUTH_TOKEN_FILE="$CREDENTIALS_DIRECTORY/niks3-auth-token"
+            niks3 push "%(prop:out_link)s"
           '')
         ];
         warnOnly = true;
