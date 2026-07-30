@@ -19,7 +19,11 @@ terragrunt apply
 
 ### Cloudflare DNS (`sjanglab.org`)
 
-공개 ingress가 필요한 레코드만 Cloudflare DNS에 둡니다. Tailnet 전용 서비스 이름은 Headscale split DNS로 관리합니다.
+`terraform/dns`는 공개 ingress가 필요한 레코드만 관리합니다. Tailnet 전용 서비스 이름은 Headscale split DNS로 관리합니다.
+
+### Cloudflare R2
+
+`terraform/r2`는 R2 bucket과 custom domain을 관리합니다. niks3 push endpoint는 `niks3.sjanglab.org`, 공개 cache read endpoint는 R2 custom domain `cache.sjanglab.org`를 사용합니다.
 
 ### Authentik
 

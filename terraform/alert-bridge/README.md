@@ -29,7 +29,7 @@ Required keys:
 - `HEALTHCHECKS_WEBHOOK_TOKEN`
 - `BRIDGE_HEARTBEAT_PING_URL`
 
-`CLOUDFLARE_ZONE_ID` can reuse the value from `terraform/cloudflare/secrets.yaml`; Terraform derives the account ID from that zone.
+`CLOUDFLARE_ZONE_ID` can reuse the value from `terraform/dns/secrets.yaml`; Terraform derives the account ID from that zone.
 
 ## Build Worker bundle
 
