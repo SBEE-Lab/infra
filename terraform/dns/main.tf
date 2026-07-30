@@ -44,6 +44,37 @@ resource "cloudflare_dns_record" "eta" {
   comment = "Jumphost server (eta)"
 }
 
+resource "cloudflare_dns_record" "mail" {
+  zone_id = data.sops_file.secrets.data["CLOUDFLARE_ZONE_ID"]
+  name    = "mail.sjanglab.org"
+  content = "141.164.53.203"
+  type    = "A"
+  ttl     = 300
+  proxied = false
+  comment = "Stalwart mail server on eta"
+}
+
+resource "cloudflare_dns_record" "mail_mx" {
+  zone_id  = data.sops_file.secrets.data["CLOUDFLARE_ZONE_ID"]
+  name     = "sjanglab.org"
+  content  = "mail.sjanglab.org"
+  type     = "MX"
+  priority = 10
+  ttl      = 300
+  proxied  = false
+  comment  = "Inbound mail delivery to Stalwart"
+}
+
+resource "cloudflare_dns_record" "mail_dmarc" {
+  zone_id = data.sops_file.secrets.data["CLOUDFLARE_ZONE_ID"]
+  name    = "_dmarc.sjanglab.org"
+  content = "v=DMARC1; p=none; rua=mailto:postmaster@sjanglab.org"
+  type    = "TXT"
+  ttl     = 300
+  proxied = false
+  comment = "Observe mail authentication before enforcing DMARC"
+}
+
 resource "cloudflare_dns_record" "documenso" {
   zone_id = data.sops_file.secrets.data["CLOUDFLARE_ZONE_ID"]
   name    = "documenso.sjanglab.org"
