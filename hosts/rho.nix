@@ -60,7 +60,10 @@
       ];
       startAt = "*-*-* 04:30:00";
     };
-    mirror.postgresql.enable = true;
+    mirror = {
+      postgresql.enable = true;
+      vaultwarden.enable = true;
+    };
   };
 
   services.sbee.systemdStatusExporter = {

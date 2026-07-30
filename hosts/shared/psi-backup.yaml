@@ -11,6 +11,10 @@ eta-postgresql-writer-secret-key: ENC[AES256_GCM,data:gFQrENa5eIxFYFuUHuYdeAdWrb
 eta-postgresql-reader-secret-key: ENC[AES256_GCM,data:5+Fb4Kg7YCxxSnWJwqjJFTmqnw0AnuQ8k1Aagq2wRfmt64mPrUBR0UDG1/8Of4xSjXGxJ7aCETTwXgGIg+q9,iv:bQe94aDxl6P/hHH5BrXxLrno3aUlBiekQGwIcFblUS4=,tag:CqF+IW0aZODcDDWIMyKp0g==,type:str]
 eta-postgresql-pruner-secret-key: ENC[AES256_GCM,data:xrhiX2mlQBJiA2YUVsU6NPVNrwQ4p0VxXro4+4TF23ozWABp6bc18S2lWip3kD8imzjMoNubfeD1TXd9UA==,iv:Y0I8/fAZ7533V97NpPd1rMLRhSr78BWNy2dbjeoecmw=,tag:fmfutNFLnpaadPrtRNEfcw==,type:str]
 eta-postgresql-repository-password: ENC[AES256_GCM,data:xyM5OTKnwv3m7cspswbuIXOI8qQYG3HEQ8MeNfZ48YcMNGaQYq+6NW5pQmCANrmGoifXMmEAlk6SXZrUEZA=,iv:9aMNjOdveMsYmhaOXygruzDH6CG4bPgTkjNCcBkIodQ=,tag:aA1AoK/9ht8iGtu4fGb4JQ==,type:str]
+eta-vaultwarden-writer-secret-key: ENC[AES256_GCM,data:ubjxAIY=,iv:v5DK4+f1Dgrt0i/zG6K8p0D77iqin6LI1mS0pFBk3Oc=,tag:PhUs2uOHkCVZS3eJMd9x3g==,type:str]
+eta-vaultwarden-reader-secret-key: ENC[AES256_GCM,data:syTQ7G4=,iv:3NjHCGFdZMhBv19p8ewXQRAmggpLE9IluQ2lBw29+Z4=,tag:88xL13SFNwjVDCO/6s9vcw==,type:str]
+eta-vaultwarden-pruner-secret-key: ENC[AES256_GCM,data:UZMC/Hs=,iv:NDX2F16k8WqwUrm6gISWtdKXiREgzbtwW7hAqETtuOg=,tag:JVJaQwO6l4U6x2fq+wBsvw==,type:str]
+eta-vaultwarden-mirror-secret-key: ENC[AES256_GCM,data:AsmEHFw=,iv:QenIA7Xc9ycSdtFn5V40FTyeYDFzJT3wraeQqXLH5WU=,tag:YZFd0fjOB+64kBgtoFMBUA==,type:str]
 sops:
     age:
         - enc: |
@@ -49,7 +53,7 @@ sops:
             0dp2AhwPlqurso+CI67/VLMnfOGtPPyKEeRi+Zg35YQqpMB1EvlM9Q==
             -----END AGE ENCRYPTED FILE-----
           recipient: age1730f3cxdyh56zw8xcvlmpa7u2x7353wu4u0e58kyx24rsefgp98sxehm6s
-    lastmodified: "2026-07-30T19:48:28Z"
-    mac: ENC[AES256_GCM,data:iiNBesAiLiYd7wBQ1WXi38QR/UC+ND4JdmJN3bl7JOOzEacdJoPts2qnz3C1rzSP71aKsMR+acmBNwMOCq0WDEOwHjqIpD1N6Jd34zKrjodObZ3eyUjwG2tm+WCsjXyxPLfJLLnzORouWiUFzUuhhRmXdY6wKRwLaWNOekqkuHQ=,iv:cKmuRlbJwkKTVfI8SNgTrSnnsB6CmOfx6aDLg26retE=,tag:VL0n8W8ahmk70xsDZhHtVg==,type:str]
+    lastmodified: "2026-07-30T20:02:43Z"
+    mac: ENC[AES256_GCM,data:4uEAVFGQhDTJlz6Iv4Y+OhiPNGMPOSLQvwGEs/E+PfDQ//9mayV2I56nIBU4mzmbl18DIgxJ/hnIANU/om9YJg0XJJIOjeJo0QprqJbqYoa55AH84LzNrq7Kqt3zwKXU+Dc5DoDyEtrTGlh7XixZbfj+llWs5QqW5USwzkRKY+4=,iv:jxvMQCCUcjZwfJyq2M+IUSEBwDs06DATV7YFguWZBEg=,tag:shp/wdhcnxja48Lz6ruFOQ==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.13.2

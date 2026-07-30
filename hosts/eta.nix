@@ -58,6 +58,7 @@ in
     ../modules/stalwart
     ../modules/vaultwarden
     ../modules/backup/postgresql.nix
+    ../modules/backup/vaultwarden.nix
     ../modules/buildbot/edge-proxy.nix
     ../modules/niks3/edge-proxy.nix
     ../modules/uptermd
@@ -153,13 +154,16 @@ in
 
   services.sbee = {
     systemdStatusExporter.enable = true;
-    backups.postgresql = {
-      enable = true;
-      databases = [
-        "authentik"
-        "stalwart-mail"
-      ];
-      startAt = "*-*-* 03:30:00";
+    backups = {
+      postgresql = {
+        enable = true;
+        databases = [
+          "authentik"
+          "stalwart-mail"
+        ];
+        startAt = "*-*-* 03:30:00";
+      };
+      vaultwarden.enable = true;
     };
   };
 

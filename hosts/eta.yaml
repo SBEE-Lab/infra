@@ -4,6 +4,7 @@ ssh_host_ed25519_key: ENC[AES256_GCM,data:vVb3syMboNmXBpdeUGdiL5gzDb7yfL2IcW79gd
 ssh_host_ed25519_key.pub: ENC[AES256_GCM,data:EK4nZ6kaOJtGpKSigjMOul2ePcbelI/QQ8C2DolOfzZhskBGv83Tzdj0NzFVI9Y5XLRdcMbJxxAe2bhQ1HN+VKp7SOES0Qi9A8LGTa4VAZvL+b4DvIoZipxXT2L/bMx/9+VLuquw3A==,iv:SSZk3jAA1ydhbEaB8oQ87mwfCdvSOVUk1c3mk0Wv7wE=,tag:t1H9yN3zkwptDGyLbIVA/w==,type:str]
 wg-admin-key: ENC[AES256_GCM,data:8CQ0kVSqbt6NmPPf5rp0P1bP24YFtJegAhF5LIkdULReBrTC5r4gQ2fx9Gw=,iv:an1vuek1w/MzMStx4hqztTeDslYlJ6JESzZWnqfEJrU=,tag:krpN87bPKZUJ3lIaz6o2Fg==,type:str]
 eta-postgresql-repository-password: ENC[AES256_GCM,data:7iiF1F4=,iv:Sc2WJctfa99+ahdNJ7RP+SkJfT057fWJ8K50PqYryfs=,tag:z5IU8Pw1O8XIdxLppEm+Fg==,type:str]
+eta-vaultwarden-repository-password: ENC[AES256_GCM,data:oA0Uhqo=,iv:2chX8Iybarf3pQOYaZPfVaPXignU77ywoIUPIa+lm18=,tag:Eu66YEdOx6eHdnkOWYivpg==,type:str]
 sops:
     age:
         - enc: |
@@ -24,7 +25,7 @@ sops:
             /hkhJ5P85pBECQ6l8QLJ+GY3g001R6rpG1LbUAGr+G/gsON5tgO/UQ==
             -----END AGE ENCRYPTED FILE-----
           recipient: age1730f3cxdyh56zw8xcvlmpa7u2x7353wu4u0e58kyx24rsefgp98sxehm6s
-    lastmodified: "2026-07-30T19:42:56Z"
-    mac: ENC[AES256_GCM,data:8mKV9wDJjym8Ll1amlOQY6MGbzYZ19Vi7V3r2zvQAtfPrn9B4etEu3cYPlm1qarmBpRONVZ3xMZpuPreZg4rc8vv2liL2+vM/S4Agib+DxFN4aCX3fK7GnVOf+OkgPnD0tCBtDpUDzrEXQfCxPO9XAX+kygPqIpT+BLZR8BmVb8=,iv:2oHtBOqP5091/k5WvacNSvSeUanBnKkUCze6NkJjnP0=,tag:XLlVbVhikQPd29eRiY6N0Q==,type:str]
+    lastmodified: "2026-07-30T20:02:43Z"
+    mac: ENC[AES256_GCM,data:2W9sbMWpPL8pnF5VKK9PK2jdRlRHRIoKxFORaRm/TPzjhf5MrNJRV3TSPPB+VV4OKThAsmgf9to/U4Z1D9kM1ZTeFMEsShzUmVktqiTmmBgNjLToNWuAbMA5vo7zHEWPLMS/D1KT/90d0Jm/0g/nF+K5F6k71Q4z2i/p5im0msM=,iv:8qEqd5P6xlmPMo8mehQETbptvwhynhv+pb0HwP6AWmY=,tag:TlXkn13jI6lSy/i32MpAFQ==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.11.0
