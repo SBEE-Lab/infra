@@ -41,11 +41,6 @@ creation_rules:
       - age:
           - age1zdhqm6ptcnuu3tf2lzcngqmf6eud7jfah7v8falfy5mdksmnfuzq35sq54
           - age1730f3cxdyh56zw8xcvlmpa7u2x7353wu4u0e58kyx24rsefgp98sxehm6s
-    path_regex: modules/attic/secrets.yaml
-  - key_groups:
-      - age:
-          - age1zdhqm6ptcnuu3tf2lzcngqmf6eud7jfah7v8falfy5mdksmnfuzq35sq54
-          - age1730f3cxdyh56zw8xcvlmpa7u2x7353wu4u0e58kyx24rsefgp98sxehm6s
     path_regex: modules/authentik/secrets.yaml
   - key_groups:
       - age:
