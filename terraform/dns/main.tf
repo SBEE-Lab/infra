@@ -44,6 +44,26 @@ resource "cloudflare_dns_record" "eta" {
   comment = "Jumphost server (eta)"
 }
 
+resource "cloudflare_dns_record" "documenso" {
+  zone_id = data.sops_file.secrets.data["CLOUDFLARE_ZONE_ID"]
+  name    = "documenso.sjanglab.org"
+  content = "141.164.53.203"
+  type    = "A"
+  ttl     = 300
+  proxied = false
+  comment = "Documenso public edge (eta -> tau)"
+}
+
+resource "cloudflare_dns_record" "niks3" {
+  zone_id = data.sops_file.secrets.data["CLOUDFLARE_ZONE_ID"]
+  name    = "niks3.sjanglab.org"
+  content = "141.164.53.203"
+  type    = "A"
+  ttl     = 300
+  proxied = false
+  comment = "niks3 binary cache push endpoint (eta edge)"
+}
+
 resource "cloudflare_dns_record" "buildbot" {
   zone_id = data.sops_file.secrets.data["CLOUDFLARE_ZONE_ID"]
   name    = "buildbot.sjanglab.org"

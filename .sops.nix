@@ -74,7 +74,8 @@ let
       ];
       "terraform/authentik/users.yaml" = [ ];
       "terraform/alert-bridge/secrets.yaml" = [ ];
-      "terraform/cloudflare/secrets.yaml" = [ ];
+      "terraform/dns/secrets.yaml" = [ ];
+      "terraform/r2/secrets.yaml" = [ ];
       "terraform/github/secrets.yaml" = [ ];
       "terraform/headscale/secrets.yaml" = [ ];
       "terraform/healthchecksio/secrets.yaml" = [ ];

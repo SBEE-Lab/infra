@@ -137,7 +137,7 @@ creation_rules:
   - key_groups:
       - age:
           - age1730f3cxdyh56zw8xcvlmpa7u2x7353wu4u0e58kyx24rsefgp98sxehm6s
-    path_regex: terraform/cloudflare/secrets.yaml
+    path_regex: terraform/dns/secrets.yaml
   - key_groups:
       - age:
           - age1730f3cxdyh56zw8xcvlmpa7u2x7353wu4u0e58kyx24rsefgp98sxehm6s
@@ -150,6 +150,10 @@ creation_rules:
       - age:
           - age1730f3cxdyh56zw8xcvlmpa7u2x7353wu4u0e58kyx24rsefgp98sxehm6s
     path_regex: terraform/healthchecksio/secrets.yaml
+  - key_groups:
+      - age:
+          - age1730f3cxdyh56zw8xcvlmpa7u2x7353wu4u0e58kyx24rsefgp98sxehm6s
+    path_regex: terraform/r2/secrets.yaml
   - key_groups:
       - age:
           - age1730f3cxdyh56zw8xcvlmpa7u2x7353wu4u0e58kyx24rsefgp98sxehm6s
