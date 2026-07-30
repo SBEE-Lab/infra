@@ -7,11 +7,14 @@ let
   publicDomain = "mail.sjanglab.org";
   httpPort = 8082;
   adminPasswordFile = config.sops.secrets.stalwart-admin-password.path;
+  r2Endpoint = "https://0572d3fa726276fa78f433d5ba90048e.r2.cloudflarestorage.com";
+  primaryBlobBucket = "stalwart-mail-blobs";
 in
 {
   imports = [
     ./principals
     ./reverse-proxy.nix
+    ./backup.nix
   ];
 
   services.stalwart = {
@@ -111,8 +114,8 @@ in
         mail-blobs = {
           type = "s3";
           region = "auto";
-          bucket = "stalwart-mail-blobs";
-          endpoint = "https://0572d3fa726276fa78f433d5ba90048e.r2.cloudflarestorage.com";
+          bucket = primaryBlobBucket;
+          endpoint = r2Endpoint;
           access-key = "%{file:${config.sops.secrets.stalwart-r2-access-key-id.path}}%";
           secret-key = "%{file:${config.sops.secrets.stalwart-r2-secret-access-key.path}}%";
         };
