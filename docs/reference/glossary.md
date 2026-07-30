@@ -17,7 +17,7 @@
 | **flake-parts** | Nix flake 모듈화 프레임워크 |
 | **Forward Auth** | nginx에서 외부 인증 서비스로 인증을 위임하는 패턴 |
 | **Gatus** | 서비스 헬스체크 및 상태 페이지 |
-| **Harmonia** | Nix 바이너리 캐시 (내부 호스트 간 공유용) |
+| **niks3** | Cloudflare R2 기반 Nix 바이너리 캐시와 garbage collection control plane |
 | **Headscale** | 자체 호스팅 Tailscale 호환 VPN 제어 서버 |
 | **Home Manager** | Nix 기반 사용자 환경 관리 도구. 셸 설정, 도구 등을 선언적으로 관리 |
 | **db-sync** | 생물정보 DB 동기화 및 스냅샷 관리 NixOS 모듈 (rclone 기반). `db-sync-status`, `db-sync-all`, `db-sync-stop`, `db-list`, `db-freeze`, `db-thaw` CLI 제공 |

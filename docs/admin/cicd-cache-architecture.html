@@ -3768,10 +3768,10 @@
         <div class="pulse-dot"></div>
         <h1>CI/CD와 Nix 캐시</h1>
       </div>
-      <p class="subtitle">GitHub App webhook, eta edge, psi Nixbot, Harmonia substituter</p>
+      <p class="subtitle">GitHub App webhook, eta edge, psi Nixbot, niks3와 R2 substituter</p>
     </div>
 
-    <script id="archify-guided-views-data" type="application/json">[{"id":"webhook","label":"GitHub 웹훅","focus":["github","eta-edge","psi-nginx","nixbot-master","nixbot-db"],"note":"GitHub App webhook은 eta TLS edge를 거쳐 psi Nixbot stack으로 전달됩니다."},{"id":"build","label":"빌드 실행","focus":["nixbot-master","builders","checks","github"],"note":"Nixbot은 allowlist repository의 eval/build effect를 실행하고 GitHub check context를 업데이트합니다."},{"id":"cache","label":"바이너리 캐시","focus":["builders","harmonia","eta-host","rho-host","tau-host"],"note":"psi Harmonia cache는 eta/rho/tau Nix substituter로 사용됩니다."}]</script>
+    <script id="archify-guided-views-data" type="application/json">[{"id":"webhook","label":"GitHub 웹훅","focus":["github","eta-edge","psi-nginx","nixbot-master","nixbot-db"],"note":"GitHub App webhook은 eta TLS edge를 거쳐 psi Nixbot stack으로 전달됩니다."},{"id":"build","label":"빌드 실행","focus":["nixbot-master","builders","checks","github"],"note":"Nixbot은 allowlist repository의 eval/build effect를 실행하고 GitHub check context를 업데이트합니다."},{"id":"cache","label":"바이너리 캐시","focus":["builders","niks3","r2-cache","eta-host","rho-host","tau-host"],"note":"Nixbot은 niks3에 closure를 등록하고, eta/rho/tau는 Cloudflare R2를 Nix substituter로 사용합니다."}]</script>
     <div class="guided-views no-print" id="guided-views" hidden aria-label="Guided diagram views">
       <button id="guided-view-prev" type="button" aria-label="Previous guided view" title="Previous guided view ([)">&#8592;</button>
       <div class="guided-view-copy">
@@ -3813,9 +3813,9 @@
 
     <!-- Main Diagram -->
     <div class="diagram-container" data-detail-level="map">
-      <svg viewBox="0 0 1320 608" role="img" aria-labelledby="archify-diagram-title archify-diagram-description" data-preset="blueprint" data-quality-profile="standard">
+      <svg viewBox="0 0 1550 608" role="img" aria-labelledby="archify-diagram-title archify-diagram-description" data-preset="blueprint" data-quality-profile="standard">
         <title id="archify-diagram-title">CI/CD와 Nix 캐시</title>
-        <desc id="archify-diagram-description">GitHub App webhook, eta edge, psi Nixbot, Harmonia substituter</desc>
+        <desc id="archify-diagram-description">GitHub App webhook, eta edge, psi Nixbot, niks3와 R2 substituter</desc>
         <!-- Definitions -->
         <defs>
           <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
@@ -3853,11 +3853,12 @@
         <path data-edge-from="nixbot-master" data-edge-to="builders" data-edge-label="build effects" data-edge-key="4" data-edge-id="master-builders" data-composition-points="850,290;930,290" d="M 850 290 L 930 290" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <path data-edge-from="builders" data-edge-to="checks" data-edge-label="status" data-edge-key="5" data-edge-id="builders-checks" data-composition-points="990,260;990,170" d="M 990 260 L 990 170" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <path data-edge-from="checks" data-edge-to="github" data-edge-label="GitHub API" data-edge-key="6" data-edge-id="checks-github" data-composition-points="930,140;1005,80;40,80;170,290" d="M 930 140 L 998.7530495244557 84.99756038043539 Q 1005 80 997 80 L 48 80 Q 40 80 44.21083691693036 86.8021211735029 L 170 290" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
-        <path data-edge-from="builders" data-edge-to="harmonia" data-edge-label="nar publish" data-edge-key="7" data-edge-id="builders-cache" data-composition-points="990,320;990,410" d="M 990 320 L 990 410" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        <path data-edge-from="harmonia" data-edge-to="eta-host" data-edge-label="substitute" data-edge-key="8" data-edge-id="harmonia-eta" data-composition-points="1050,440;1105,440;1105,280;1160,280" d="M 1050 440 L 1097 440 Q 1105 440 1105 432 L 1105 288 Q 1105 280 1113 280 L 1160 280" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
-        <path data-edge-from="harmonia" data-edge-to="rho-host" data-edge-label="substitute" data-edge-key="9" data-edge-id="harmonia-rho" data-composition-points="1050,440;1105,440;1105,395;1160,395" d="M 1050 440 L 1097 440 Q 1105 440 1105 432 L 1105 403 Q 1105 395 1113 395 L 1160 395" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
-        <path data-edge-from="harmonia" data-edge-to="tau-host" data-edge-label="substitute" data-edge-key="10" data-edge-id="harmonia-tau" data-composition-points="1050,440;1105,440;1105,510;1160,510" d="M 1050 440 L 1097 440 Q 1105 440 1105 448 L 1105 502 Q 1105 510 1113 510 L 1160 510" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+        <path data-edge-from="builders" data-edge-to="niks3" data-edge-label="closure 등록" data-edge-key="7" data-edge-id="builders-cache" data-composition-points="990,320;990,410" d="M 990 320 L 990 410" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path data-edge-from="r2-cache" data-edge-to="eta-host" data-edge-label="substitute" data-edge-key="8" data-edge-id="r2-eta" data-composition-points="1310,440;1350,440;1350,280;1390,280" d="M 1310 440 L 1342 440 Q 1350 440 1350 432 L 1350 288 Q 1350 280 1358 280 L 1390 280" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+        <path data-edge-from="r2-cache" data-edge-to="rho-host" data-edge-label="substitute" data-edge-key="9" data-edge-id="r2-rho" data-composition-points="1310,440;1350,440;1350,395;1390,395" d="M 1310 440 L 1342 440 Q 1350 440 1350 432 L 1350 403 Q 1350 395 1358 395 L 1390 395" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+        <path data-edge-from="r2-cache" data-edge-to="tau-host" data-edge-label="substitute" data-edge-key="10" data-edge-id="r2-tau" data-composition-points="1310,440;1350,440;1350,510;1390,510" d="M 1310 440 L 1342 440 Q 1350 440 1350 448 L 1350 502 Q 1350 510 1358 510 L 1390 510" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
         <path data-edge-from="secrets" data-edge-to="nixbot-master" data-edge-label="OAuth/App" data-edge-key="11" data-edge-id="secrets-master" data-composition-points="600,460;650,460;650,290;700,290" d="M 600 460 L 642 460 Q 650 460 650 452 L 650 298 Q 650 290 658 290 L 700 290" class="a-security" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
+        <path data-edge-from="niks3" data-edge-to="r2-cache" data-edge-label="presigned write" data-edge-key="12" data-edge-id="niks3-r2" data-composition-points="1050,440;1160,440" d="M 1050 440 L 1160 440" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
 
         <!-- Components -->
         <g id="node-github" data-node-id="github" data-node-label="GitHub" tabindex="0" role="button" aria-label="Focus GitHub, App · OAuth · Checks, Architecture component" aria-pressed="false" data-node-kind="external" data-node-sublabel="App · OAuth · Checks" data-node-context="Architecture component">
@@ -3941,48 +3942,48 @@
         <text data-detail="context" x="990" y="154" class="t-muted" font-size="9" text-anchor="middle">buildbot/*</text>
         </g>
 
-        <g id="node-harmonia" data-node-id="harmonia" data-node-label="Harmonia" tabindex="0" role="button" aria-label="Focus Harmonia, psi :5000, psi CI stack" aria-pressed="false" data-node-kind="backend" data-node-sublabel="psi :5000" data-node-context="psi CI stack">
-          <title>Harmonia · psi :5000 · psi CI stack</title>
+        <g id="node-niks3" data-node-id="niks3" data-node-label="niks3" tabindex="0" role="button" aria-label="Focus niks3, psi :5751, psi CI stack" aria-pressed="false" data-node-kind="backend" data-node-sublabel="psi :5751" data-node-context="psi CI stack">
+          <title>niks3 · psi :5751 · psi CI stack</title>
           <rect x="930" y="410" width="120" height="60" rx="6" class="c-mask"/>
           <rect x="930" y="410" width="120" height="60" rx="6" class="c-backend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(936 416) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
-          <text data-detail-anchor x="990" y="438" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Harmonia</text>
-        <text data-detail="context" x="990" y="454" class="t-muted" font-size="9" text-anchor="middle">psi :5000</text>
+          <text data-detail-anchor x="990" y="438" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">niks3</text>
+        <text data-detail="context" x="990" y="454" class="t-muted" font-size="9" text-anchor="middle">psi :5751</text>
         </g>
 
         <g id="node-eta-host" data-node-id="eta-host" data-node-label="eta" tabindex="0" role="button" aria-label="Focus eta, substituter, Architecture component" aria-pressed="false" data-node-kind="backend" data-node-sublabel="substituter" data-node-context="Architecture component">
           <title>eta · substituter · Architecture component</title>
-          <rect x="1160" y="250" width="120" height="60" rx="6" class="c-mask"/>
-          <rect x="1160" y="250" width="120" height="60" rx="6" class="c-backend" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(1166 256) scale(0.6875)">
+          <rect x="1390" y="250" width="120" height="60" rx="6" class="c-mask"/>
+          <rect x="1390" y="250" width="120" height="60" rx="6" class="c-backend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(1396 256) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
-          <text data-detail-anchor x="1220" y="278" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">eta</text>
-        <text data-detail="context" x="1220" y="294" class="t-muted" font-size="9" text-anchor="middle">substituter</text>
+          <text data-detail-anchor x="1450" y="278" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">eta</text>
+        <text data-detail="context" x="1450" y="294" class="t-muted" font-size="9" text-anchor="middle">substituter</text>
         </g>
 
         <g id="node-rho-host" data-node-id="rho-host" data-node-label="rho" tabindex="0" role="button" aria-label="Focus rho, substituter, Architecture component" aria-pressed="false" data-node-kind="backend" data-node-sublabel="substituter" data-node-context="Architecture component">
           <title>rho · substituter · Architecture component</title>
-          <rect x="1160" y="365" width="120" height="60" rx="6" class="c-mask"/>
-          <rect x="1160" y="365" width="120" height="60" rx="6" class="c-backend" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(1166 371) scale(0.6875)">
+          <rect x="1390" y="365" width="120" height="60" rx="6" class="c-mask"/>
+          <rect x="1390" y="365" width="120" height="60" rx="6" class="c-backend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(1396 371) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
-          <text data-detail-anchor x="1220" y="393" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">rho</text>
-        <text data-detail="context" x="1220" y="409" class="t-muted" font-size="9" text-anchor="middle">substituter</text>
+          <text data-detail-anchor x="1450" y="393" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">rho</text>
+        <text data-detail="context" x="1450" y="409" class="t-muted" font-size="9" text-anchor="middle">substituter</text>
         </g>
 
         <g id="node-tau-host" data-node-id="tau-host" data-node-label="tau" tabindex="0" role="button" aria-label="Focus tau, substituter, Architecture component" aria-pressed="false" data-node-kind="backend" data-node-sublabel="substituter" data-node-context="Architecture component">
           <title>tau · substituter · Architecture component</title>
-          <rect x="1160" y="480" width="120" height="60" rx="6" class="c-mask"/>
-          <rect x="1160" y="480" width="120" height="60" rx="6" class="c-backend" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(1166 486) scale(0.6875)">
+          <rect x="1390" y="480" width="120" height="60" rx="6" class="c-mask"/>
+          <rect x="1390" y="480" width="120" height="60" rx="6" class="c-backend" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(1396 486) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
-          <text data-detail-anchor x="1220" y="508" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">tau</text>
-        <text data-detail="context" x="1220" y="524" class="t-muted" font-size="9" text-anchor="middle">substituter</text>
+          <text data-detail-anchor x="1450" y="508" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">tau</text>
+        <text data-detail="context" x="1450" y="524" class="t-muted" font-size="9" text-anchor="middle">substituter</text>
         </g>
 
         <g id="node-secrets" data-node-id="secrets" data-node-label="GitHub secrets" tabindex="0" role="button" aria-label="Focus GitHub secrets, App/OAuth keys, psi CI stack" aria-pressed="false" data-node-kind="security" data-node-sublabel="App/OAuth keys" data-node-context="psi CI stack">
@@ -3995,6 +3996,17 @@
           </g>
           <text data-detail-anchor x="540" y="458" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">GitHub secrets</text>
         <text data-detail="context" x="540" y="474" class="t-muted" font-size="9" text-anchor="middle">App/OAuth keys</text>
+        </g>
+
+        <g id="node-r2-cache" data-node-id="r2-cache" data-node-label="Cloudflare R2" tabindex="0" role="button" aria-label="Focus Cloudflare R2, cache.sjanglab.org, Architecture component" aria-pressed="false" data-node-kind="cloud" data-node-sublabel="cache.sjanglab.org" data-node-context="Architecture component">
+          <title>Cloudflare R2 · cache.sjanglab.org · Architecture component</title>
+          <rect x="1160" y="410" width="150" height="60" rx="6" class="c-mask"/>
+          <rect x="1160" y="410" width="150" height="60" rx="6" class="c-cloud" stroke-width="1.5"/>
+          <g aria-hidden="true" data-semantic-sigil="cloud" class="semantic-sigil s-cloud" transform="translate(1166 416) scale(0.6875)">
+            <path d="M4.3 12.5h7.3a2.4 2.4 0 0 0 .2-4.8 4 4 0 0 0-7.5-1.3A3.1 3.1 0 0 0 4.3 12.5Z"/>
+          </g>
+          <text data-detail-anchor x="1235" y="438" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Cloudflare R2</text>
+        <text data-detail="context" x="1235" y="454" class="t-muted" font-size="9" text-anchor="middle">cache.sjanglab.org</text>
         </g>
 
         <!-- Connection labels -->
@@ -4026,25 +4038,29 @@
           <rect x="493.5" y="60" width="58" height="14" rx="3" class="c-mask"/>
           <text x="522.5" y="70" class="t-messagebus" font-size="8" text-anchor="middle">GitHub API</text>
         </g>
-        <g data-detail="context" data-edge-from="builders" data-edge-to="harmonia" data-edge-label="nar publish" data-edge-key="7" data-edge-id="builders-cache">
-          <rect x="958.6" y="324" width="62.8" height="14" rx="3" class="c-mask"/>
-          <text x="990" y="334" class="t-backend" font-size="8" text-anchor="middle">nar publish</text>
+        <g data-detail="context" data-edge-from="builders" data-edge-to="niks3" data-edge-label="closure 등록" data-edge-key="7" data-edge-id="builders-cache">
+          <rect x="956.2" y="324" width="67.6" height="14" rx="3" class="c-mask"/>
+          <text x="990" y="334" class="t-backend" font-size="8" text-anchor="middle">closure 등록</text>
         </g>
-        <g data-detail="context" data-edge-from="harmonia" data-edge-to="eta-host" data-edge-label="substitute" data-edge-key="8" data-edge-id="harmonia-eta">
-          <rect x="1076" y="340" width="58" height="14" rx="3" class="c-mask"/>
-          <text x="1105" y="350" class="t-messagebus" font-size="8" text-anchor="middle">substitute</text>
+        <g data-detail="context" data-edge-from="r2-cache" data-edge-to="eta-host" data-edge-label="substitute" data-edge-key="8" data-edge-id="r2-eta">
+          <rect x="1321" y="340" width="58" height="14" rx="3" class="c-mask"/>
+          <text x="1350" y="350" class="t-messagebus" font-size="8" text-anchor="middle">substitute</text>
         </g>
-        <g data-detail="context" data-edge-from="harmonia" data-edge-to="rho-host" data-edge-label="substitute" data-edge-key="9" data-edge-id="harmonia-rho">
-          <rect x="1076" y="397.5" width="58" height="14" rx="3" class="c-mask"/>
-          <text x="1105" y="407.5" class="t-messagebus" font-size="8" text-anchor="middle">substitute</text>
+        <g data-detail="context" data-edge-from="r2-cache" data-edge-to="rho-host" data-edge-label="substitute" data-edge-key="9" data-edge-id="r2-rho">
+          <rect x="1321" y="397.5" width="58" height="14" rx="3" class="c-mask"/>
+          <text x="1350" y="407.5" class="t-messagebus" font-size="8" text-anchor="middle">substitute</text>
         </g>
-        <g data-detail="context" data-edge-from="harmonia" data-edge-to="tau-host" data-edge-label="substitute" data-edge-key="10" data-edge-id="harmonia-tau">
-          <rect x="1076" y="455" width="58" height="14" rx="3" class="c-mask"/>
-          <text x="1105" y="465" class="t-messagebus" font-size="8" text-anchor="middle">substitute</text>
+        <g data-detail="context" data-edge-from="r2-cache" data-edge-to="tau-host" data-edge-label="substitute" data-edge-key="10" data-edge-id="r2-tau">
+          <rect x="1321" y="455" width="58" height="14" rx="3" class="c-mask"/>
+          <text x="1350" y="465" class="t-messagebus" font-size="8" text-anchor="middle">substitute</text>
         </g>
         <g data-detail="context" data-edge-from="secrets" data-edge-to="nixbot-master" data-edge-label="OAuth/App" data-edge-key="11" data-edge-id="secrets-master">
           <rect x="623.4" y="355" width="53.199999999999996" height="14" rx="3" class="c-mask"/>
           <text x="650" y="365" class="t-security" font-size="8" text-anchor="middle">OAuth/App</text>
+        </g>
+        <g data-detail="context" data-edge-from="niks3" data-edge-to="r2-cache" data-edge-label="presigned write" data-edge-key="12" data-edge-id="niks3-r2">
+          <rect x="1064" y="420" width="82" height="14" rx="3" class="c-mask"/>
+          <text x="1105" y="430" class="t-backend" font-size="8" text-anchor="middle">presigned write</text>
         </g>
 
         <!-- Legend -->

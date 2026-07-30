@@ -20,13 +20,13 @@ graph LR
   eta -- "인증서 동기화" --> psi & tau
   rho -- "WAL 스트리밍" --> tau
   tau -- "S3 delayed mirror" --> rho
-  psi -- "Harmonia 캐시" --> rho & tau & eta
+  cloudflare -- "R2 캐시" --> psi & rho & tau & eta
 ```
 
 | 호스트 | 위치 | 주요 서비스 |
 |--------|------|------------|
 | **eta** | Vultr VPS | nginx 리버스 프록시, Authentik SSO, Headscale VPN, Vaultwarden, Gatus, Upterm relay, ACME 인증서 |
-| **psi** | KREN 베어메탈 | Nixbot+PostgreSQL+nginx/TLS, Docling (GPU), TEI, MULTI-evolve, Apptainer, db-sync, Harmonia, 16TB NVMe + 60TB HDD |
+| **psi** | KREN 베어메탈 | Nixbot+PostgreSQL+nginx/TLS, niks3 control plane, Docling (GPU), TEI, MULTI-evolve, Apptainer, db-sync, 16TB NVMe + 60TB HDD |
 | **rho** | 랩 내부 베어메탈 | PostgreSQL (프라이머리), Grafana, Prometheus, Loki, Vector, S3 백업 미러 |
 | **tau** | 랩 내부 베어메탈 | Nextcloud, Collabora, n8n, Vaultwarden tailnet proxy, PostgreSQL (레플리카), S3 primary 백업 저장소 |
 

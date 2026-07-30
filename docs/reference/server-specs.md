@@ -15,7 +15,7 @@
 
 - **위치**: KREN 네트워크
 - **공인 IP**: 117.16.251.37
-- **역할**: GPU 연산, Nixbot CI/CD 전체 스택, 생물정보 DB, Nix 바이너리 캐시 (Harmonia)
+- **역할**: GPU 연산, Nixbot CI/CD 전체 스택, 생물정보 DB, Nix 바이너리 캐시 control plane (niks3)
 - **CPU**: AMD Ryzen Threadripper PRO 5965WX, 24 cores
 - **메모리**: 128GB
 - **태그**: `public-ip`, `kren-dns`
