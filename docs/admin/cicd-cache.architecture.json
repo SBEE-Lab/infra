@@ -42,7 +42,7 @@
           "rho-host",
           "tau-host"
         ],
-        "note": "Nixbot은 niks3에 closure를 등록하고, eta/rho/tau는 Cloudflare R2를 Nix substituter로 사용합니다."
+        "note": "Nixbot은 인프라 cache build의 closure를 sjanglab niks3에 등록하고, eta/rho/tau는 Cloudflare R2를 Nix substituter로 사용합니다."
       }
     ]
   },

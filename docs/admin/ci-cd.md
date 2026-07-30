@@ -46,7 +46,7 @@ flowchart LR
 | `github-app-private-key` | GitHub App 인증 |
 | `github-oauth-secret` | 웹 UI 로그인 |
 | `github-webhook-secret` | 웹훅 HMAC 검증 |
-| `niks3-auth-token` | 선택 리포지토리 외부 캐시 푸시 |
+| `niks3-sjanglab-auth-token` | 인프라 cache를 `niks3.sjanglab.org`로 push |
 
 ### GitHub App 설정
 
@@ -85,7 +85,7 @@ Nixbot 관리자를 변경하려면:
 
 ### 바이너리 캐시 푸시
 
-Nixbot은 모든 성공 빌드 결과를 `https://niks3.sjanglab.org`로 push합니다. niks3는 closure metadata와 garbage collection 상태를 psi PostgreSQL에서 추적하고, NAR와 narinfo는 Cloudflare R2에 직접 저장합니다.
+Nixbot은 인프라 cache 대상으로 선택된 성공 build를 `https://niks3.sjanglab.org`로 push합니다. Token은 systemd credential로 전달되어 command line에 노출되지 않습니다. niks3는 closure metadata와 garbage collection 상태를 psi PostgreSQL에서 추적하고 NAR와 narinfo를 Cloudflare R2에 직접 저장합니다.
 
 ## Package 자동 업데이트
 

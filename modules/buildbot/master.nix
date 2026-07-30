@@ -6,11 +6,13 @@
   ...
 }:
 let
-  inherit (inputs.nixbot.lib) interpolate;
   buildbotDomain = "buildbot.sjanglab.org";
 in
 {
-  imports = [ inputs.nixbot.nixosModules.nixbot ];
+  imports = [
+    inputs.nixbot.nixosModules.nixbot
+    ./niks3-routes.nix
+  ];
 
   services.nixbot = {
     enable = true;
@@ -45,33 +47,22 @@ in
 
     outputsPath = "/var/www/buildbot/nix-outputs/";
 
-    postBuildSteps = [
-      {
-        name = "Push selected repositories to niks3 cache";
-        environment = {
-          NIKS3_SERVER_URL = "https://niks3.sjanglab.org";
+    niks3 = {
+      enable = true;
+      package = inputs.niks3.packages.${pkgs.stdenv.hostPlatform.system}.default;
+      routes = {
+        mulatta = {
+          projectPatterns = [ "mulatta/*" ];
+          serverUrl = "https://niks3.mulatta.io";
+          authTokenFile = config.sops.secrets.niks3-mulatta-auth-token.path;
         };
-        command = [
-          "bash"
-          "-c"
-          (interpolate ''
-            set -euo pipefail
-
-            echo "Pushing %(prop:project)s:%(prop:attr)s to niks3 cache..."
-            export NIKS3_AUTH_TOKEN_FILE="$CREDENTIALS_DIRECTORY/niks3-auth-token"
-            niks3 push "%(prop:out_link)s"
-          '')
-        ];
-        warnOnly = true;
-      }
-    ];
-  };
-
-  systemd.services.nixbot = {
-    path = [ inputs.niks3.packages.${pkgs.stdenv.hostPlatform.system}.default ];
-    serviceConfig.LoadCredential = [
-      "niks3-auth-token:${config.sops.secrets.niks3-auth-token.path}"
-    ];
+        sjanglab = {
+          default = true;
+          serverUrl = "https://niks3.sjanglab.org";
+          authTokenFile = config.sops.secrets.niks3-sjanglab-auth-token.path;
+        };
+      };
+    };
   };
 
   sops.secrets = {
@@ -88,9 +79,13 @@ in
       sopsFile = ./secrets.yaml;
       owner = "nixbot";
     };
+    niks3-mulatta-auth-token = {
+      sopsFile = ./secrets.yaml;
+      owner = "nixbot";
+    };
     # PID 1 copies this secret into nixbot's credential directory, while the
-    # niks3 service reads the source file directly.
-    niks3-auth-token = {
+    # sjanglab niks3 service reads the source file directly.
+    niks3-sjanglab-auth-token = {
       sopsFile = ./secrets.yaml;
       owner = "niks3";
     };
