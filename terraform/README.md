@@ -2,7 +2,7 @@
 
 ## State backend
 
-Terragrunt uses PostgreSQL state on rho through `terraform/tunnel.sh`. The `terraform/.envrc` direnv environment loads the backend password from `terraform/secrets.yaml`.
+Terragrunt stores state in the private `sjanglab-terraform-state` Cloudflare R2 bucket. The `terraform/.envrc` direnv environment loads bucket-scoped S3 credentials from `terraform/secrets.yaml`; native S3 lock files serialize state writes.
 
 ## Required Tokens
 

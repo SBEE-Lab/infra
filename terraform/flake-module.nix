@@ -45,16 +45,11 @@
           pkgs.shellcheck
           pkgs.sops
           pkgs.terragrunt
-          pkgs.postgresql_17
           pkgs.vultr-cli
           pkgs.yq-go
           config.packages.terraform
         ];
 
-        PGHOST = "localhost";
-        PGPORT = "15432";
-        PGUSER = "terraform";
-        PGDATABASE = "terraform";
         TG_TF_PATH = "${config.packages.terraform}/bin/tofu";
         TERRAGRUNT_TFPATH = "${config.packages.terraform}/bin/tofu";
       };
