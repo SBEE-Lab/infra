@@ -1,7 +1,8 @@
 locals {
   module_name         = basename(get_terragrunt_dir())
   terraform_state_key = "${local.module_name}/terraform.tfstate"
-  pg_port             = get_env("PGPORT", "15432")
+  state_bucket        = get_env("R2_STATE_BUCKET")
+  state_endpoint      = "https://${get_env("R2_STATE_ACCOUNT_ID")}.r2.cloudflarestorage.com"
 }
 
 terraform {
@@ -15,11 +16,6 @@ terraform {
     execute      = ["rm", "-f", ".terraform.lock.hcl"]
     run_on_error = true
   }
-
-  before_hook "ensure_pg_tunnel" {
-    commands = ["init", "plan", "apply", "destroy", "state"]
-    execute  = ["${get_repo_root()}/terraform/tunnel.sh"]
-  }
 }
 
 generate "backend" {
@@ -27,9 +23,22 @@ generate "backend" {
   if_exists = "overwrite_terragrunt"
   contents  = <<EOF
 terraform {
-  backend "pg" {
-    conn_str    = "postgres://terraform@localhost:${local.pg_port}/terraform?sslmode=disable"
-    schema_name = "${local.module_name}"
+  backend "s3" {
+    bucket = "${local.state_bucket}"
+    key    = "${local.terraform_state_key}"
+    region = "auto"
+
+    endpoints = {
+      s3 = "${local.state_endpoint}"
+    }
+
+    use_lockfile                = true
+    use_path_style              = true
+    skip_credentials_validation = true
+    skip_metadata_api_check     = true
+    skip_region_validation      = true
+    skip_requesting_account_id  = true
+    skip_s3_checksum            = true
   }
 }
 EOF

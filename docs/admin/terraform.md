@@ -4,10 +4,9 @@
 
 ## 백엔드
 
-PostgreSQL을 Terraform state 백엔드로 사용합니다. SSH 터널을 통해 접근합니다.
+비공개 Cloudflare R2 bucket `sjanglab-terraform-state`를 Terraform state 백엔드로 사용합니다. `terraform/.envrc`가 `terraform/secrets.yaml`의 bucket-scoped S3 credential을 환경 변수로 로드하고, OpenTofu native S3 lock file이 동시 쓰기를 막습니다.
 
 ```bash
-# 터널은 자동 생성됨 (terraform/tunnel.sh)
 cd terraform/<module>
 direnv allow ..
 terragrunt init
