@@ -26,7 +26,7 @@ in
       secretKeyFile = config.sops.secrets.niks3-r2-secret-access-key.path;
     };
 
-    apiTokenFile = config.sops.secrets.niks3-auth-token.path;
+    apiTokenFile = config.sops.secrets.niks3-sjanglab-auth-token.path;
     signKeyFiles = [ config.sops.secrets.niks3-signing-key.path ];
     cacheUrl = "https://cache.sjanglab.org";
     serverUrl = "https://niks3.sjanglab.org";

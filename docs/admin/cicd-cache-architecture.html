@@ -3771,7 +3771,7 @@
       <p class="subtitle">GitHub App webhook, eta edge, psi Nixbot, niks3와 R2 substituter</p>
     </div>
 
-    <script id="archify-guided-views-data" type="application/json">[{"id":"webhook","label":"GitHub 웹훅","focus":["github","eta-edge","psi-nginx","nixbot-master","nixbot-db"],"note":"GitHub App webhook은 eta TLS edge를 거쳐 psi Nixbot stack으로 전달됩니다."},{"id":"build","label":"빌드 실행","focus":["nixbot-master","builders","checks","github"],"note":"Nixbot은 allowlist repository의 eval/build effect를 실행하고 GitHub check context를 업데이트합니다."},{"id":"cache","label":"바이너리 캐시","focus":["builders","niks3","r2-cache","eta-host","rho-host","tau-host"],"note":"Nixbot은 niks3에 closure를 등록하고, eta/rho/tau는 Cloudflare R2를 Nix substituter로 사용합니다."}]</script>
+    <script id="archify-guided-views-data" type="application/json">[{"id":"webhook","label":"GitHub 웹훅","focus":["github","eta-edge","psi-nginx","nixbot-master","nixbot-db"],"note":"GitHub App webhook은 eta TLS edge를 거쳐 psi Nixbot stack으로 전달됩니다."},{"id":"build","label":"빌드 실행","focus":["nixbot-master","builders","checks","github"],"note":"Nixbot은 allowlist repository의 eval/build effect를 실행하고 GitHub check context를 업데이트합니다."},{"id":"cache","label":"바이너리 캐시","focus":["builders","niks3","r2-cache","eta-host","rho-host","tau-host"],"note":"Nixbot은 인프라 cache build의 closure를 sjanglab niks3에 등록하고, eta/rho/tau는 Cloudflare R2를 Nix substituter로 사용합니다."}]</script>
     <div class="guided-views no-print" id="guided-views" hidden aria-label="Guided diagram views">
       <button id="guided-view-prev" type="button" aria-label="Previous guided view" title="Previous guided view ([)">&#8592;</button>
       <div class="guided-view-copy">
