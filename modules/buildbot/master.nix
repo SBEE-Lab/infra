@@ -49,7 +49,7 @@ in
       {
         name = "Push selected repositories to niks3 cache";
         environment = {
-          NIKS3_SERVER_URL = "https://niks3.mulatta.io";
+          NIKS3_SERVER_URL = "https://niks3.sjanglab.org";
         };
         command = [
           "bash"
@@ -95,9 +95,11 @@ in
       sopsFile = ./secrets.yaml;
       owner = "nixbot";
     };
+    # PID 1 copies this secret into nixbot's credential directory, while the
+    # niks3 service reads the source file directly.
     niks3-auth-token = {
       sopsFile = ./secrets.yaml;
-      owner = "nixbot";
+      owner = "niks3";
     };
   };
 }
