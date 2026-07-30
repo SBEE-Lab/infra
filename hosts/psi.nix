@@ -37,6 +37,7 @@ in
     ../modules/backup/psi-protected.nix
     ../modules/backup/postgresql.nix
     ../modules/harmonia
+    ../modules/niks3
     ../modules/multievolve
     # ../modules/vllm
     ../modules/biodb
@@ -98,7 +99,10 @@ in
     psiProtected.enable = true;
     postgresql = {
       enable = true;
-      databases = [ "nixbot" ];
+      databases = [
+        "niks3"
+        "nixbot"
+      ];
       startAt = "*-*-* 02:30:00";
     };
   };

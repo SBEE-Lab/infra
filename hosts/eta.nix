@@ -57,6 +57,7 @@ in
     ../modules/authentik
     ../modules/vaultwarden
     ../modules/buildbot/edge-proxy.nix
+    ../modules/niks3/edge-proxy.nix
     ../modules/uptermd
     ../modules/gatus
     ../modules/monitoring/vector
