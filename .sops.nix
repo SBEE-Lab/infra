@@ -40,6 +40,7 @@ let
         "tau"
       ];
       "modules/authentik/secrets.yaml" = [ "eta" ];
+      "modules/stalwart/secrets.yaml" = [ "eta" ];
       "modules/headscale/secrets.yaml" = [ "eta" ];
       "modules/gatus/secrets.yaml" = [
         "eta"

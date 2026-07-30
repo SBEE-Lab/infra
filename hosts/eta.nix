@@ -55,6 +55,7 @@ in
     ../modules/disko/ext4-root.nix
     ../modules/headscale
     ../modules/authentik
+    ../modules/stalwart
     ../modules/vaultwarden
     ../modules/buildbot/edge-proxy.nix
     ../modules/niks3/edge-proxy.nix
