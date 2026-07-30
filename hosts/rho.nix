@@ -55,7 +55,6 @@
     postgresql = {
       enable = true;
       databases = [
-        "terraform"
         "nextcloud"
         "n8n"
       ];
