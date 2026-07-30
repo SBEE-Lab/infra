@@ -155,7 +155,10 @@ in
     systemdStatusExporter.enable = true;
     backups.postgresql = {
       enable = true;
-      databases = [ "stalwart-mail" ];
+      databases = [
+        "authentik"
+        "stalwart-mail"
+      ];
       startAt = "*-*-* 03:30:00";
     };
   };
