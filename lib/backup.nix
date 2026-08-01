@@ -153,6 +153,12 @@ let
       };
     };
 
+    vaultwarden = mkResticContract {
+      host = "eta";
+      name = "vaultwarden";
+      prefix = "eta/vaultwarden";
+    };
+
     postgresql = {
       psi = mkResticContract {
         host = "psi";
@@ -163,6 +169,11 @@ let
         host = "rho";
         name = "postgresql";
         prefix = "rho/postgresql";
+      };
+      eta = mkResticContract {
+        host = "eta";
+        name = "postgresql";
+        prefix = "eta/postgresql";
       };
     };
   };

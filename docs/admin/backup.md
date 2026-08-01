@@ -93,8 +93,9 @@ Streaming replica는 장애 대응용이고 백업으로 간주하지 않습니�
 
 백업 대상:
 
-- rho: `terraform`, `nextcloud`, `n8n`
+- rho: `nextcloud`, `n8n`
 - psi: `nixbot`
+- eta: `authentik`, `stalwart-mail`
 - globals: `pg_dumpall --globals-only`
 - database dump: `pg_dump --format=custom --create --clean --if-exists`
 
@@ -102,22 +103,37 @@ Streaming replica는 장애 대응용이고 백업으로 간주하지 않습니�
 
 - rho: `backups/rho/postgresql/`
 - psi: `backups/psi/postgresql/`
+- eta: `backups/eta/postgresql/`
 
 스케줄과 보관:
 
-- dump + backup: daily (`rho` 04:30, `psi` 02:30)
+- dump + backup: daily (`rho` 04:30, `psi` 02:30, `eta` 03:30)
 - check: monthly, reader credential
 - prune: weekly, pruner credential
 - retention: daily 7, weekly 4, monthly 6
 - restore drill: weekly, latest snapshot에서 `globals.sql`과 custom dump를 복원하고 `pg_restore --list`로 검증
 
+## Stalwart R2 blob 백업
+
+Stalwart 메일 본문과 첨부파일 blob은 Cloudflare R2 `stalwart-mail-blobs` bucket에 저장합니다. PostgreSQL backup은 blob reference와 metadata만 보호하므로, Stalwart 복구에는 R2 blob backup이 함께 필요합니다.
+
+eta는 매일 `stalwart-mail-blobs`에서 `stalwart-mail-blobs-backup`으로 append-only copy를 실행합니다. 이 작업은 `rclone copy --ignore-existing`만 사용하고 `sync`를 사용하지 않습니다. primary bucket에서 삭제된 object를 backup bucket에 전파하지 않기 위해서입니다.
+
+R2 backup bucket은 Terraform에서 `prevent_destroy = true`로 보호합니다. R2 object versioning이 없으므로 retention은 자동 prune 없이 장기 보관으로 둡니다. 공간 회수가 필요하면 Stalwart metadata와 blob reference를 확인한 뒤 수동 절차로만 삭제합니다.
+
+`stalwart-r2-copy` credential은 Stalwart runtime credential, 일반 restic credential과 분리합니다. 권한은 primary bucket read/list와 backup bucket write/list만 허용하고 delete 권한은 주지 않습니다. Git에는 secret placeholder만 둘 수 있으며, 운영 전 실제 Cloudflare R2 token으로 교체해야 합니다.
+
+검증은 월 1회 `stalwart-r2-blob-restore-drill.service`가 수행합니다. backup bucket에서 sample blob을 읽고 primary object와 size를 비교해서 backup object가 실제로 read 가능한지 확인합니다.
+
+rho는 `stalwart-mail-blobs-backup`을 `backups/eta/stalwart-r2-blobs/`로 한 번 더 지연 복사합니다. 이 2차 copy도 `--immutable --min-age 24h`를 사용해서 Cloudflare R2 backup bucket의 삭제나 즉시 변경을 rho RustFS에 전파하지 않습니다.
+
 ## tau→rho delayed mirror
 
 rho가 tau primary RustFS에서 pull 방식으로 secondary RustFS에 복사합니다.
 
-- units: `backup-mirror-psi-protected.service`, `backup-mirror-psi-postgresql.service`, `backup-mirror-rho-postgresql.service`
+- units: `backup-mirror-psi-protected.service`, `backup-mirror-psi-postgresql.service`, `backup-mirror-rho-postgresql.service`, `backup-mirror-eta-postgresql.service`, `backup-mirror-eta-vaultwarden.service`
 - timer: daily, `RandomizedDelaySec=2h`
-- sources: `tau:backups/psi/protected/`, `tau:backups/psi/postgresql/`, `tau:backups/rho/postgresql/`
+- sources: `tau:backups/psi/protected/`, `tau:backups/psi/postgresql/`, `tau:backups/rho/postgresql/`, `tau:backups/eta/postgresql/`, `tau:backups/eta/vaultwarden/`
 - destinations: matching prefixes on rho RustFS
 - rclone options: `copy --immutable --min-age 24h --exclude 'locks/**' --s3-no-check-bucket`
 

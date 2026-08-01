@@ -52,6 +52,7 @@
   services.sbee.backups = {
     primary = {
       psiProtected.enable = true;
+      vaultwarden.enable = true;
       postgresql.enable = true;
     };
   };

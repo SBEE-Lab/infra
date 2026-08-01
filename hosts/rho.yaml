@@ -13,6 +13,8 @@ psi-restic-protected-mirror-secret-key: ENC[AES256_GCM,data:MSR+iuX4IVem8xLBdpwE
 rho-postgresql-repository-password: ENC[AES256_GCM,data:WPy6hUsA/GFVccX4BYwVbR7g4+sbschSVv3D40LUmD7f2xSf14T8tFcYsaDbayIZCicQhDYIFu03IrHuaZys3A==,iv:aawPfRV1Vdx+nuIshL5KZlvxCwX6bPsG2k5gYCzH5/I=,tag:BHKNQj3vki+j2xY2yojGuA==,type:str]
 rho-postgresql-mirror-secret-key: ENC[AES256_GCM,data:8/hj5z4PuhUcDU3dZ9ZnyMhgslvAvey2vpia68cYw5ZRdkvt9HW1QICjp752DsWEnyE48jGJHa1uol54XeQXMg==,iv:c9DFsIDldBayGbyuymm0R9/4sd/BV+2ePOCGud0Rg8I=,tag:R8UbxPSm1MaUsxP/4wLLWw==,type:str]
 psi-postgresql-mirror-secret-key: ENC[AES256_GCM,data:TKHk/cy/l4UWMS1N363iJoEUFMDoibS02rCjoGriL1H32C7wtXF+uf+IegxpRUNvsSnDCtmt/9S8DWytKiayQQ==,iv:rJYi5An+CFg5pVZ/dFo0s36yFQBdVap7mCf0ykiC6wQ=,tag:hI0aO9Py4hhtpqf3jgLGiA==,type:str]
+eta-postgresql-mirror-secret-key: ENC[AES256_GCM,data:Z4wtGSQ=,iv:UGC/aUd8gWs3VXbdGukSFM2zBBbbE3uqdCt/xFaNJls=,tag:wCvfsHv9uTRylFZFCbvpfQ==,type:str]
+eta-vaultwarden-mirror-secret-key: ENC[AES256_GCM,data:1GiU1Kk=,iv:gnBjZEHIZuJICu51K7i70V4w+n08RzbV88t15iM9S+Y=,tag:faT0JRtqBbMjtwWlyPPUgg==,type:str]
 sops:
     age:
         - enc: |
@@ -33,7 +35,7 @@ sops:
             BXRqAiJKxy0c8SB0t1cjMBKb+HxHW9hE++3fdZQrdt3p37oJLuchbw==
             -----END AGE ENCRYPTED FILE-----
           recipient: age1730f3cxdyh56zw8xcvlmpa7u2x7353wu4u0e58kyx24rsefgp98sxehm6s
-    lastmodified: "2026-07-08T16:01:20Z"
-    mac: ENC[AES256_GCM,data:VyaYfOwiKRSShdjIYph2Lw7Bdw6SHE5DcKYAz87/SUYsZushPsxhbm4lx9UAk5urGvR0Tnp0RXiaHnKcwRL3Syf3F6NwfvHubcuf9kuSFs4gEjjcj8xlIQI2gGt4n7CgvoImqUvWtAsB34WBXOfG0ZJ2qMEisnMQQNa0cIsTEys=,iv:7hATQYPgZIY7Ws2rD6wKZrTWfFplNzvR2jnndV5AA4A=,tag:YtoO88L6mnqZlh9U2HOw4g==,type:str]
+    lastmodified: "2026-07-30T20:06:22Z"
+    mac: ENC[AES256_GCM,data:nVaR3TX4G1qUF97QZ2K8yPUp9zkncA4Qi8W68e9SF4FguXmzXK/zeRqEl2qpkaN6CURoU9jNAxK63PwiaVP2bjhesFUZjoKDzJZ24+OKCJLEzlm5vtxvZNcyUc2RQODmFQXq5QMzu58BAa73CDO8FKpnNFT8sKMzdi8kh9l+WKM=,iv:Dgp2VV/6Nh5CSYb698hfX6H3i/euL1NC3VFmc1A3tSk=,tag:1XoHtK2n5zew6PPgDol3FA==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.11.0
