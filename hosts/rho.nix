@@ -9,6 +9,7 @@
     ../modules/postgresql
     ../modules/rustfs
     ../modules/backup/mirror.nix
+    ../modules/backup/stalwart-r2-blobs-mirror.nix
     ../modules/backup/postgresql.nix
     ../modules/monitoring/vector/monitor-systems.nix
     ../modules/monitoring/systemd-status-exporter.nix
@@ -64,6 +65,7 @@
       postgresql.enable = true;
       vaultwarden.enable = true;
     };
+    stalwartR2BlobsMirror.enable = true;
   };
 
   services.sbee.systemdStatusExporter = {

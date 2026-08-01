@@ -93,7 +93,7 @@ Streaming replica는 장애 대응용이고 백업으로 간주하지 않습니�
 
 백업 대상:
 
-- rho: `terraform`, `nextcloud`, `n8n`
+- rho: `nextcloud`, `n8n`
 - psi: `nixbot`
 - eta: `authentik`, `stalwart-mail`
 - globals: `pg_dumpall --globals-only`
@@ -125,13 +125,15 @@ R2 backup bucket은 Terraform에서 `prevent_destroy = true`로 보호합니다.
 
 검증은 월 1회 `stalwart-r2-blob-restore-drill.service`가 수행합니다. backup bucket에서 sample blob을 읽고 primary object와 size를 비교해서 backup object가 실제로 read 가능한지 확인합니다.
 
+rho는 `stalwart-mail-blobs-backup`을 `backups/eta/stalwart-r2-blobs/`로 한 번 더 지연 복사합니다. 이 2차 copy도 `--immutable --min-age 24h`를 사용해서 Cloudflare R2 backup bucket의 삭제나 즉시 변경을 rho RustFS에 전파하지 않습니다.
+
 ## tau→rho delayed mirror
 
 rho가 tau primary RustFS에서 pull 방식으로 secondary RustFS에 복사합니다.
 
-- units: `backup-mirror-psi-protected.service`, `backup-mirror-psi-postgresql.service`, `backup-mirror-rho-postgresql.service`, `backup-mirror-eta-postgresql.service`
+- units: `backup-mirror-psi-protected.service`, `backup-mirror-psi-postgresql.service`, `backup-mirror-rho-postgresql.service`, `backup-mirror-eta-postgresql.service`, `backup-mirror-eta-vaultwarden.service`
 - timer: daily, `RandomizedDelaySec=2h`
-- sources: `tau:backups/psi/protected/`, `tau:backups/psi/postgresql/`, `tau:backups/rho/postgresql/`, `tau:backups/eta/postgresql/`
+- sources: `tau:backups/psi/protected/`, `tau:backups/psi/postgresql/`, `tau:backups/rho/postgresql/`, `tau:backups/eta/postgresql/`, `tau:backups/eta/vaultwarden/`
 - destinations: matching prefixes on rho RustFS
 - rclone options: `copy --immutable --min-age 24h --exclude 'locks/**' --s3-no-check-bucket`
 

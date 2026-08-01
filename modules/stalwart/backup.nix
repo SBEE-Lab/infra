@@ -83,15 +83,18 @@ in
           exit 0
         fi
 
-        primary_size="$(${pkgs.rclone}/bin/rclone lsjson --stat "stalwart_blobs:${primaryBlobBucket}/$object" --s3-no-check-bucket | jq -r .Size)"
         backup_size="$(${pkgs.rclone}/bin/rclone lsjson --stat "stalwart_blobs_backup:${backupBlobBucket}/$object" --s3-no-check-bucket | jq -r .Size)"
-
-        if [ "$primary_size" != "$backup_size" ]; then
-          echo "blob size mismatch for $object: primary=$primary_size backup=$backup_size" >&2
-          exit 1
+        if primary_json="$(${pkgs.rclone}/bin/rclone lsjson --stat "stalwart_blobs:${primaryBlobBucket}/$object" --s3-no-check-bucket 2>/dev/null)"; then
+          primary_size="$(printf '%s' "$primary_json" | jq -r .Size)"
+          if [ "$primary_size" != "$backup_size" ]; then
+            echo "blob size mismatch for $object: primary=$primary_size backup=$backup_size" >&2
+            exit 1
+          fi
+        else
+          echo "primary blob $object is absent; validating retained backup copy only"
         fi
 
-        ${pkgs.rclone}/bin/rclone cat "stalwart_blobs_backup:${backupBlobBucket}/$object" --s3-no-check-bucket | head -c 1 >/dev/null || true
+        ${pkgs.rclone}/bin/rclone cat "stalwart_blobs_backup:${backupBlobBucket}/$object" --s3-no-check-bucket >/dev/null
         echo "verified backup blob sample $object ($backup_size bytes)"
       '';
     };

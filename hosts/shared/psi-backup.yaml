@@ -15,6 +15,7 @@ eta-vaultwarden-writer-secret-key: ENC[AES256_GCM,data:ubjxAIY=,iv:v5DK4+f1Dgrt0
 eta-vaultwarden-reader-secret-key: ENC[AES256_GCM,data:syTQ7G4=,iv:3NjHCGFdZMhBv19p8ewXQRAmggpLE9IluQ2lBw29+Z4=,tag:88xL13SFNwjVDCO/6s9vcw==,type:str]
 eta-vaultwarden-pruner-secret-key: ENC[AES256_GCM,data:UZMC/Hs=,iv:NDX2F16k8WqwUrm6gISWtdKXiREgzbtwW7hAqETtuOg=,tag:JVJaQwO6l4U6x2fq+wBsvw==,type:str]
 eta-vaultwarden-mirror-secret-key: ENC[AES256_GCM,data:AsmEHFw=,iv:QenIA7Xc9ycSdtFn5V40FTyeYDFzJT3wraeQqXLH5WU=,tag:YZFd0fjOB+64kBgtoFMBUA==,type:str]
+eta-stalwart-r2-blobs-mirror-secret-key: ENC[AES256_GCM,data:W2rTvFc=,iv:bZVpUDmP3ef7w1AWfwjv+wPrRvStTIzNKzoDdhDSGZY=,tag:ObNYUROS+v9czQ96Edt9Dg==,type:str]
 sops:
     age:
         - enc: |
@@ -53,7 +54,7 @@ sops:
             0dp2AhwPlqurso+CI67/VLMnfOGtPPyKEeRi+Zg35YQqpMB1EvlM9Q==
             -----END AGE ENCRYPTED FILE-----
           recipient: age1730f3cxdyh56zw8xcvlmpa7u2x7353wu4u0e58kyx24rsefgp98sxehm6s
-    lastmodified: "2026-07-30T20:02:43Z"
-    mac: ENC[AES256_GCM,data:4uEAVFGQhDTJlz6Iv4Y+OhiPNGMPOSLQvwGEs/E+PfDQ//9mayV2I56nIBU4mzmbl18DIgxJ/hnIANU/om9YJg0XJJIOjeJo0QprqJbqYoa55AH84LzNrq7Kqt3zwKXU+Dc5DoDyEtrTGlh7XixZbfj+llWs5QqW5USwzkRKY+4=,iv:jxvMQCCUcjZwfJyq2M+IUSEBwDs06DATV7YFguWZBEg=,tag:shp/wdhcnxja48Lz6ruFOQ==,type:str]
+    lastmodified: "2026-07-30T20:03:36Z"
+    mac: ENC[AES256_GCM,data:PbLuvWKJNVM59T3eMQzkA1xu205DevRCyyISUAB5aFlP21oYM4AeV2/8vu0wZ2KLQy3N5m8QKDjSm1ioGtmITfHUq0o5xufi0W4WMvbbqddzR29GrX28l7z8XfcSHgOfBXJa0RUvYi5f//xtl/J+CCyjpMFMcjhEbjC2lg56FOk=,iv:9Lu9abiG+oNRlGQjp2ARUlXlhRBGjxhancp9DxxAOjc=,tag:WVOaThODjNACBcRBrsAeLg==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.13.2
