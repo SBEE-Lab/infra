@@ -15,6 +15,7 @@ rho-postgresql-mirror-secret-key: ENC[AES256_GCM,data:8/hj5z4PuhUcDU3dZ9ZnyMhgsl
 psi-postgresql-mirror-secret-key: ENC[AES256_GCM,data:TKHk/cy/l4UWMS1N363iJoEUFMDoibS02rCjoGriL1H32C7wtXF+uf+IegxpRUNvsSnDCtmt/9S8DWytKiayQQ==,iv:rJYi5An+CFg5pVZ/dFo0s36yFQBdVap7mCf0ykiC6wQ=,tag:hI0aO9Py4hhtpqf3jgLGiA==,type:str]
 eta-postgresql-mirror-secret-key: ENC[AES256_GCM,data:Z4wtGSQ=,iv:UGC/aUd8gWs3VXbdGukSFM2zBBbbE3uqdCt/xFaNJls=,tag:wCvfsHv9uTRylFZFCbvpfQ==,type:str]
 eta-vaultwarden-mirror-secret-key: ENC[AES256_GCM,data:1GiU1Kk=,iv:gnBjZEHIZuJICu51K7i70V4w+n08RzbV88t15iM9S+Y=,tag:faT0JRtqBbMjtwWlyPPUgg==,type:str]
+pg-documenso-password: ENC[AES256_GCM,data:AGTXf0MGtErSkE8TKZvRXql2gfoKJ5lW+DGgH/3nSMoqKNoLQ/9I6z3sCV11M5FGnsZ1WNwC0Dl+XBMLtlyiig==,iv:o5oH9ezWG06CjD0OfjGK3ibqQv8YfpmJHzjiBGR4EVE=,tag:Ysq/EoTK06/qftHXiTkJRw==,type:str]
 sops:
     age:
         - enc: |

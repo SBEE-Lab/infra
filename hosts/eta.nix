@@ -67,6 +67,7 @@ in
     ../modules/monitoring/systemd-status-exporter.nix
     ../modules/n8n/reverse-proxy.nix
     ../modules/nextcloud/reverse-proxy.nix
+    ../modules/documenso/reverse-proxy.nix
     ../modules/acme/sync.nix
   ];
 

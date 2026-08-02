@@ -32,6 +32,7 @@ in
       "terraform"
       "nextcloud"
       "n8n"
+      "documenso"
     ];
     ensureUsers = [
       {
@@ -51,6 +52,10 @@ in
       }
       {
         name = "n8n";
+        ensureDBOwnership = true;
+      }
+      {
+        name = "documenso";
         ensureDBOwnership = true;
       }
     ];
@@ -78,6 +83,9 @@ in
 
       # n8n database access from tau via wg-admin
       host n8n n8n ${hosts.tau.wg-admin}/32 scram-sha-256
+
+      # Documenso database access from tau via wg-admin
+      host documenso documenso ${hosts.tau.wg-admin}/32 scram-sha-256
     '';
   };
 
@@ -99,6 +107,10 @@ in
     owner = "postgres";
     group = "postgres";
   };
+  sops.secrets.pg-documenso-password = {
+    owner = "postgres";
+    group = "postgres";
+  };
 
   systemd.services.postgresql-setup.postStart =
     let
@@ -117,6 +129,7 @@ in
       TERRAFORM_PW=$(cat ${config.sops.secrets.pg-terraform-password.path})
       NEXTCLOUD_PW=$(cat ${config.sops.secrets.pg-nextcloud-password.path})
       N8N_PW=$(cat ${config.sops.secrets.pg-n8n-password.path})
+      DOCUMENSO_PW=$(cat ${config.sops.secrets.pg-documenso-password.path})
 
       # tau uses this slot for bounded WAL retention across short outages.
       ${psql} -tAc "SELECT pg_create_physical_replication_slot('tau') WHERE NOT EXISTS (SELECT 1 FROM pg_replication_slots WHERE slot_name = 'tau')" -d postgres
@@ -130,6 +143,8 @@ in
         ${psql} -tAc "ALTER USER nextcloud WITH PASSWORD '$NEXTCLOUD_PW'" -d postgres
       ${psql} -tAc "SELECT 1 FROM pg_roles WHERE rolname='n8n'" -d postgres | grep -q 1 && \
         ${psql} -tAc "ALTER USER n8n WITH PASSWORD '$N8N_PW'" -d postgres
+      ${psql} -tAc "SELECT 1 FROM pg_roles WHERE rolname='documenso'" -d postgres | grep -q 1 && \
+        ${psql} -tAc "ALTER USER documenso WITH PASSWORD '$DOCUMENSO_PW'" -d postgres
 
       ${lib.concatMapStringsSep "\n" (mod: ''
         ${psql} -d terraform <<SQL

@@ -51,6 +51,11 @@ locals {
     data.authentik_property_mapping_provider_scope.profile.id,
   ]
 
+  oidc_default_grant_types = [
+    "authorization_code",
+    "refresh_token",
+  ]
+
   oidc_apps = {
     headscale = {
       name            = "Headscale"
@@ -109,6 +114,24 @@ locals {
         [data.authentik_property_mapping_provider_scope.offline_access.id],
       )
     }
+    documenso = {
+      name            = "Documenso"
+      slug            = "documenso"
+      client_id       = "NJ46KMGddzOrzAwiNarftcidtl17wACc6c9AGEa8"
+      client_secret   = data.sops_file.oidc_secrets.data["DOCUMENSO_CLIENT_SECRET"]
+      client_type     = "confidential"
+      sub_mode        = "user_email"
+      meta_launch_url = "https://documenso.sjanglab.org"
+      allowed_redirect_uris = [
+        {
+          matching_mode     = "strict"
+          redirect_uri_type = "authorization"
+          url               = "https://documenso.sjanglab.org/api/auth/callback/oidc"
+        },
+      ]
+      access_policy     = "researchers"
+      property_mappings = local.oidc_default_property_mappings
+    }
   }
 }
 
@@ -132,6 +155,7 @@ resource "authentik_provider_oauth2" "oidc" {
   sub_mode                   = each.value.sub_mode
   issuer_mode                = "per_provider"
   include_claims_in_id_token = true
+  grant_types                = lookup(each.value, "grant_types", local.oidc_default_grant_types)
   signing_key                = data.authentik_certificate_key_pair.self_signed.id
   access_code_validity       = "minutes=1"
   access_token_validity      = "minutes=5"
@@ -162,4 +186,15 @@ resource "authentik_application" "oidc" {
   policy_engine_mode = "any"
   meta_hide          = lookup(each.value, "meta_hide", false)
   meta_launch_url    = each.value.meta_launch_url
+}
+
+resource "authentik_policy_binding" "oidc_app_access" {
+  for_each = {
+    for key, app in local.oidc_apps : key => app
+    if lookup(app, "access_policy", null) != null
+  }
+
+  target = authentik_application.oidc[each.key].uuid
+  policy = authentik_policy_expression.forward_auth[each.value.access_policy].id
+  order  = 0
 }

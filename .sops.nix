@@ -63,6 +63,7 @@ let
       "modules/buildbot/secrets.yaml" = [ "psi" ];
       "modules/monitoring/secrets.yaml" = [ "rho" ];
       "modules/n8n/secrets.yaml" = [ "tau" ];
+      "modules/documenso/secrets.yaml" = [ "tau" ];
       "modules/nextcloud/secrets.yaml" = [ "tau" ];
       "modules/nfs/secrets.yaml" = [ "psi" ];
       "modules/niks3/secrets.yaml" = [ "psi" ];
