@@ -13,6 +13,7 @@ let
 
   systemCollector = config.networking.sbee.hosts.rho.wg-admin;
   isSystemCollector = hostName == "rho";
+  nginxExporter = config.services.prometheus.exporters.nginx;
 
   monitoring = lib.sbee.monitoring;
   sshEvents = [
@@ -107,6 +108,13 @@ in
           type = "file";
           include = [ "/var/log/nginx/access-audit/*.log" ];
           read_from = "end";
+        };
+      }
+      // lib.optionalAttrs nginxExporter.enable {
+        nginx_metrics = {
+          type = "prometheus_scrape";
+          endpoints = [ "http://127.0.0.1:${toString nginxExporter.port}${nginxExporter.telemetryPath}" ];
+          scrape_interval_secs = 15;
         };
       };
 
@@ -242,9 +250,11 @@ in
           inputs = [
             "host_metrics"
             "network_stats"
-          ];
+          ]
+          ++ lib.optional nginxExporter.enable "nginx_metrics";
           source = ''
             .host = "${hostName}"
+            .tags.host = "${hostName}"
           '';
         };
 

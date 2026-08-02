@@ -40,7 +40,10 @@ let
         "tau"
       ];
       "modules/authentik/secrets.yaml" = [ "eta" ];
-      "modules/stalwart/secrets.yaml" = [ "eta" ];
+      "modules/stalwart/secrets.yaml" = [
+        "eta"
+        "rho"
+      ];
       "modules/headscale/secrets.yaml" = [ "eta" ];
       "modules/gatus/secrets.yaml" = [
         "eta"
@@ -56,11 +59,13 @@ let
       ];
       "modules/borgbackup/psi/secrets.yaml" = [ "psi" ];
       "hosts/shared/psi-backup.yaml" = [
+        "eta"
         "psi"
         "rho"
         "tau"
       ];
       "modules/buildbot/secrets.yaml" = [ "psi" ];
+      "modules/container-registry/secrets.yaml" = [ "eta" ];
       "modules/monitoring/secrets.yaml" = [ "rho" ];
       "modules/n8n/secrets.yaml" = [ "tau" ];
       "modules/nextcloud/secrets.yaml" = [ "tau" ];

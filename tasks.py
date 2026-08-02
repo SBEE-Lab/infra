@@ -43,19 +43,9 @@ def deploy(_: Any, hosts: str) -> None:
         data = json.loads(res.stdout)
         path = data["path"]
 
-        send = (
-            "nix flake archive"
-            if any(
-                (
-                    n.get("locked", {}).get("type") == "path"
-                    or n.get("locked", {}).get("url", "").startswith("file:")
-                )
-                for n in data["locks"]["nodes"].values()
-            )
-            else f"nix copy {path}"
-        )
-
-        h.run_local(f"{send} --to ssh://{target}")
+        # Archive realizes the local source path before copying it. `nix copy`
+        # alone fails when metadata computed a store path that is not yet valid.
+        h.run_local(f"nix flake archive --to ssh://{target}")
 
         hostname = h.host
         h.run(f"{command} switch --option accept-flake-config true --flake {path}#{hostname}")

@@ -60,6 +60,7 @@ in
     ../modules/backup/postgresql.nix
     ../modules/backup/vaultwarden.nix
     ../modules/buildbot/edge-proxy.nix
+    ../modules/container-registry
     ../modules/niks3/edge-proxy.nix
     ../modules/uptermd
     ../modules/gatus
