@@ -40,7 +40,10 @@ let
         "tau"
       ];
       "modules/authentik/secrets.yaml" = [ "eta" ];
-      "modules/stalwart/secrets.yaml" = [ "eta" ];
+      "modules/stalwart/secrets.yaml" = [
+        "eta"
+        "rho"
+      ];
       "modules/headscale/secrets.yaml" = [ "eta" ];
       "modules/gatus/secrets.yaml" = [
         "eta"
@@ -56,6 +59,7 @@ let
       ];
       "modules/borgbackup/psi/secrets.yaml" = [ "psi" ];
       "hosts/shared/psi-backup.yaml" = [
+        "eta"
         "psi"
         "rho"
         "tau"
