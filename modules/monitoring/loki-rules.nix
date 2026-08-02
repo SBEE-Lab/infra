@@ -246,6 +246,47 @@ let
             description = "rho Loki has not received nginx access logs for 15 minutes";
           })
           (mkAlert {
+            alert = "ContainerRegistryAuthFailureBurst";
+            expr = ''
+              sum(
+                count_over_time(
+                  {log_type="nginx_access"}
+                  | json
+                  | service = "container-registry"
+                  | request_path =~ "^/auth(/token)?$"
+                  | status = 401
+                [10m])
+              ) > 10
+            '';
+            for = "2m";
+            labels = auditWarning // {
+              host = "eta";
+              service = "container-registry";
+            };
+            summary = "Container Registry authentication failure burst";
+            description = "eta observed more than 10 failed Registry token authentications in 10 minutes";
+          })
+          (mkAlert {
+            alert = "ContainerRegistryRateLimitTriggered";
+            expr = ''
+              sum(
+                count_over_time(
+                  {log_type="nginx_access"}
+                  | json
+                  | service = "container-registry"
+                  | status = 429
+                [5m])
+              ) > 0
+            '';
+            for = "0m";
+            labels = auditWarning // {
+              host = "eta";
+              service = "container-registry";
+            };
+            summary = "Container Registry rate limit triggered";
+            description = "eta rejected Registry traffic because a request or connection limit was exceeded";
+          })
+          (mkAlert {
             alert = "HeadscaleNodeSnapshotsMissing";
             expr = ''
               absent_over_time({log_type="headscale_nodes", event="node_snapshot"}[15m])

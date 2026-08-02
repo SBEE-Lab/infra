@@ -172,6 +172,48 @@ in
               }
 
               {
+                alert = "EtaNginxExporterMissing";
+                expr = ''absent_over_time(nginx_up{host="eta"}[5m])'';
+                for = "2m";
+                labels = opsWarning // {
+                  host = "eta";
+                  service = "nginx";
+                };
+                annotations = appAlertAnnotations // {
+                  summary = "eta nginx metrics missing";
+                  description = "eta has not reported nginx exporter metrics for 5 minutes";
+                };
+              }
+
+              {
+                alert = "EtaNginxUnavailable";
+                expr = ''nginx_up{host="eta"} == 0'';
+                for = "2m";
+                labels = opsCritical // {
+                  host = "eta";
+                  service = "nginx";
+                };
+                annotations = appAlertAnnotations // {
+                  summary = "eta nginx unavailable";
+                  description = "eta nginx exporter cannot read nginx status";
+                };
+              }
+
+              {
+                alert = "EtaNginxConnectionsHigh";
+                expr = ''nginx_connections_active{host="eta"} > 200'';
+                for = "5m";
+                labels = opsWarning // {
+                  host = "eta";
+                  service = "nginx";
+                };
+                annotations = appAlertAnnotations // {
+                  summary = "eta nginx connections high";
+                  description = "eta nginx has {{ $value | humanize }} active connections";
+                };
+              }
+
+              {
                 alert = "PostgresqlExporterMissing";
                 expr = ''absent_over_time(pg_up{host="rho"}[5m])'';
                 for = "2m";
