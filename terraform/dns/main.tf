@@ -95,6 +95,16 @@ resource "cloudflare_dns_record" "niks3" {
   comment = "niks3 binary cache push endpoint (eta edge)"
 }
 
+resource "cloudflare_dns_record" "container_registry" {
+  zone_id = data.sops_file.secrets.data["CLOUDFLARE_ZONE_ID"]
+  name    = "registry.sjanglab.org"
+  content = "141.164.53.203"
+  type    = "A"
+  ttl     = 300
+  proxied = false
+  comment = "Container Registry public endpoint on eta"
+}
+
 resource "cloudflare_dns_record" "buildbot" {
   zone_id = data.sops_file.secrets.data["CLOUDFLARE_ZONE_ID"]
   name    = "buildbot.sjanglab.org"
