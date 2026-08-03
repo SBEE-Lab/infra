@@ -10,14 +10,14 @@ Alertmanager no longer posts directly to Slack.
 This directory has a direnv hook for the flake shell:
 
 ```bash
-cd modules/monitoring/alerts/slack-app
+cd slack/infra-alerts
 direnv allow
 ```
 
 Equivalent command without direnv:
 
 ```bash
-nix develop ../../../..#slack-deploy
+nix develop ../..#slack-deploy
 ```
 
 The shell provides:
@@ -137,7 +137,7 @@ expanding secret state.
 CI may validate static files only:
 
 ```bash
-jq -e . modules/monitoring/alerts/slack-app/slack-app-manifest.json >/dev/null
+jq -e . slack/infra-alerts/slack-app-manifest.json >/dev/null
 ```
 
 Do not put Slack CLI service tokens, app configuration tokens, bot tokens, or

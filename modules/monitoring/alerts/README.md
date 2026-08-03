@@ -4,7 +4,7 @@ This directory declares the Slack-facing alert delivery pieces for the monitorin
 
 ## Layout
 
-- `slack-app/`: Slack app manifest and Slack CLI project for the `SjangLab Infra Alerts` app.
+- `slack/infra-alerts/`: Slack app manifest and Slack CLI project for the `SjangLab Infra Alerts` app.
 - `flake-module.nix`: dev shell with the Slack CLI and manifest validation tools.
 
 The external alert bridge implementation lives under `packages/infra-alert-bridge` and its Cloudflare deployment lives under `terraform/alert-bridge`.
@@ -30,4 +30,4 @@ Rollback checklist:
 2. Keep the healthchecks.io Slack integration in place until bridge healthchecks delivery is confirmed.
 3. Remove `incoming-webhook` scope and SOPS webhook secrets after the rollback window.
 
-See `slack-app/README.md` for Slack app bootstrap and drift checks.
+See `../../../slack/infra-alerts/README.md` for Slack app bootstrap and drift checks.

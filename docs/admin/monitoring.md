@@ -169,10 +169,10 @@ stale PGDATA는 새 replica와 backup 검증 완료 전 삭제하지 않습니�
 
 ### Alert delivery bootstrap
 
-Slack 앱 설정은 `modules/monitoring/alerts/slack-app/slack-app-manifest.json`이 source of truth입니다. `modules/monitoring/alerts/slack-app` 디렉터리에서 direnv를 허용하면 Slack CLI가 포함된 `slack-deploy` shell에 들어갑니다:
+Slack 앱 설정은 `slack/infra-alerts/slack-app-manifest.json`이 source of truth입니다. `slack/infra-alerts` 디렉터리에서 direnv를 허용하면 Slack CLI가 포함된 `slack-deploy` shell에 들어갑니다:
 
 ```bash
-cd modules/monitoring/alerts/slack-app
+cd slack/infra-alerts
 direnv allow
 ```
 
@@ -201,7 +201,7 @@ alertmanager-slack-infra-alerts-webhook: ENC[...]
 alertmanager-slack-infra-audit-webhook: ENC[...]
 ```
 
-자세한 Slack bootstrap/drift check 절차는 `modules/monitoring/alerts/slack-app/README.md`를 봅니다.
+자세한 Slack bootstrap/drift check 절차는 `slack/infra-alerts/README.md`를 봅니다.
 
 ### Alert bridge cutover
 
