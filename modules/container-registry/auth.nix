@@ -42,12 +42,8 @@ let
       }
       {
         match.account = "registry-admin";
-        actions = [
-          "pull"
-          "push"
-          "delete"
-        ];
-        comment = "Human administrators may manage image retention.";
+        actions = [ "*" ];
+        comment = "Human administrators may manage image retention and inspect the catalog.";
       }
       {
         match = { };
