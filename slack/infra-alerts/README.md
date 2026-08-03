@@ -7,17 +7,18 @@ Alertmanager no longer posts directly to Slack.
 
 ## Enter the tool shell
 
-This directory has a direnv hook for the flake shell:
+The shared `slack/.envrc` enters the flake shell for every Slack app:
 
 ```bash
-cd slack/infra-alerts
+cd slack
 direnv allow
+cd infra-alerts
 ```
 
 Equivalent command without direnv:
 
 ```bash
-nix develop ../..#slack-deploy
+nix develop ..#slack-deploy
 ```
 
 The shell provides:

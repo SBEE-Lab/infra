@@ -26,6 +26,15 @@ https://cloud.sjanglab.org/apps/integration_slack/oauth-redirect
 Token rotation is enabled. Nextcloud stores each user's access and refresh
 tokens encrypted in its application configuration.
 
+## Enter the tool shell
+
+The shared `slack/.envrc` provides Slack CLI and `jq` for every app under
+this directory. Run `direnv allow` from `slack/` once, or enter manually:
+
+```bash
+nix develop ..#slack-deploy
+```
+
 ## Validate manifest
 
 ```bash

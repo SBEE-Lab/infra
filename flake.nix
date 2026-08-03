@@ -103,7 +103,7 @@
         ./packages/flake-module.nix
         ./templates/flake-module.nix
         ./terraform/flake-module.nix
-        ./modules/monitoring/alerts/flake-module.nix
+        ./slack/flake-module.nix
       ];
       perSystem =
         { system, ... }:

@@ -1,2 +1,5 @@
 apps.json
 config.json
+apps.dev.json
+cache/
+*.log

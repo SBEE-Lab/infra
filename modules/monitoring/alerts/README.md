@@ -5,7 +5,6 @@ This directory declares the Slack-facing alert delivery pieces for the monitorin
 ## Layout
 
 - `slack/infra-alerts/`: Slack app manifest and Slack CLI project for the `SjangLab Infra Alerts` app.
-- `flake-module.nix`: dev shell with the Slack CLI and manifest validation tools.
 
 The external alert bridge implementation lives under `packages/infra-alert-bridge` and its Cloudflare deployment lives under `terraform/alert-bridge`.
 
