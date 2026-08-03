@@ -25,6 +25,7 @@ let
 in
 {
   imports = [
+    ./declarative-nextcloud-apps.nix
     ../acme/sync.nix
     ../gatus/check.nix
   ];
@@ -40,6 +41,11 @@ in
   acmeSyncer.mkReceiver = [
     { inherit domain; }
   ];
+
+  services.sbee.nextcloudAppStoreApps = {
+    enable = true;
+    apps = [ "integration_slack" ];
+  };
 
   services.nextcloud = {
     enable = true;
