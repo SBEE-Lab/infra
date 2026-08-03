@@ -289,6 +289,8 @@ Selected tailnet-relevant reverse-proxied apps currently emit this raw stream: G
 
 Prometheus sends alerts to Alertmanager on rho. Alertmanager routes operational alerts to the alert bridge for Slack `#infra-alerts`, audit/security alerts to the alert bridge for `#infra-audit`, and the always-firing `Watchdog` alert to healthchecks.io as a dead-man switch. healthchecks.io is attached to its Slack `infra-alerts` integration so rho alerting-path failures notify outside rho.
 
+The Slack app source of truth lives in `../../slack/infra-alerts`. The external bridge implementation lives in `../../packages/infra-alert-bridge`, with Cloudflare deployment in `../../terraform/alert-bridge`. Keep legacy incoming webhook secrets only during the rollback window; remove the Slack app `incoming-webhook` scope and SOPS webhook secrets after the bridge path is stable.
+
 Current Prometheus rule intent:
 
 - `HostMetricsMissing`: critical host metric freshness.
