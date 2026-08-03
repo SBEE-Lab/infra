@@ -61,6 +61,13 @@
     };
 
     # Applications.
+    llm-agents = {
+      url = "github:numtide/llm-agents.nix";
+      inputs.flake-parts.follows = "flake-parts";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.treefmt-nix.follows = "treefmt-nix";
+    };
+
     multievolve-nix = {
       url = "github:SBEE-Lab/multievolve-nix";
       inputs.nixpkgs.follows = "nixpkgs";
