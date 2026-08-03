@@ -7,17 +7,18 @@ Alertmanager no longer posts directly to Slack.
 
 ## Enter the tool shell
 
-This directory has a direnv hook for the flake shell:
+The shared `slack/.envrc` enters the flake shell for every Slack app:
 
 ```bash
-cd modules/monitoring/alerts/slack-app
+cd slack
 direnv allow
+cd infra-alerts
 ```
 
 Equivalent command without direnv:
 
 ```bash
-nix develop ../../../..#slack-deploy
+nix develop ..#slack-deploy
 ```
 
 The shell provides:
@@ -47,7 +48,24 @@ Slack, approve the modal, then paste the challenge code back into the terminal.
 Use `slack-app-manifest.json` as the source of truth for app identity, bot user,
 and OAuth scopes. The Slack CLI reads it through `.slack/hooks.json`.
 
-Initial bootstrap from this directory:
+Do not run `slack app install` until confirming that app does not already
+exist. Without local link state, install can enter app creation flow and create
+a duplicate app.
+
+For an existing app, link it first:
+
+```bash
+slack app link \
+  --team <TEAM_ID> \
+  --app <APP_ID> \
+  --environment deployed
+```
+
+The Slack CLI writes local app link state to ignored files under `.slack/`.
+Repeat this link step on each new checkout or operator machine. For an already
+installed app, manifest drift checks do not require running `slack app install`.
+
+Only when confirming that no app exists, create/install from this directory:
 
 ```bash
 slack app install --team <TEAM_ID> --environment deployed
@@ -55,18 +73,7 @@ slack app install --team <TEAM_ID> --environment deployed
 
 When prompted, create a new deployed app from the local manifest and approve the
 `chat:write` and migration-only `incoming-webhook` scopes for the target
-workspace. The Slack CLI writes local app link state to ignored files under
-`.slack/`.
-
-If the app already exists, link it first, then install/update it:
-
-```bash
-slack app link --team <TEAM_ID> --app <APP_ID> --environment deployed
-slack app install --team <TEAM_ID> --environment deployed
-```
-
-Do not pass `--app <APP_ID>` and `--environment deployed` together to
-`slack app install`; the Slack CLI treats that as a mismatched flag combination.
+workspace.
 
 The install command may still open an authorization prompt or require admin
 approval. App creation/update and installation are Slack CLI assisted, while
@@ -137,7 +144,7 @@ expanding secret state.
 CI may validate static files only:
 
 ```bash
-jq -e . modules/monitoring/alerts/slack-app/slack-app-manifest.json >/dev/null
+jq -e . slack/infra-alerts/slack-app-manifest.json >/dev/null
 ```
 
 Do not put Slack CLI service tokens, app configuration tokens, bot tokens, or

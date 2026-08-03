@@ -1,5 +1,0 @@
-{
-  "hooks": {
-    "get-manifest": "sh -c 'cat slack-app-manifest.json'"
-  }
-}

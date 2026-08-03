@@ -1,6 +1,6 @@
 _: {
   perSystem =
-    { pkgs, config, ... }:
+    { config, pkgs, ... }:
     {
       devShells.slack-deploy = pkgs.mkShellNoCC {
         packages = [
