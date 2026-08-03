@@ -67,6 +67,7 @@ let
       "modules/buildbot/secrets.yaml" = [ "psi" ];
       "modules/container-registry/secrets.yaml" = [ "eta" ];
       "modules/monitoring/secrets.yaml" = [ "rho" ];
+      "modules/hermes-agent/secrets.yaml" = [ "tau" ];
       "modules/n8n/secrets.yaml" = [ "tau" ];
       "modules/nextcloud/secrets.yaml" = [ "tau" ];
       "modules/nfs/secrets.yaml" = [ "psi" ];

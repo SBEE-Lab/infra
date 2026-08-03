@@ -1,0 +1,23 @@
+model:
+  default: gpt-5.5
+  provider: openai-codex
+platform_toolsets:
+  slack:
+    - web
+    - terminal
+    - file
+    - code_execution
+    - skills
+    - todo
+    - memory
+    - session_search
+    - clarify
+    - delegation
+    - cronjob
+    - no_mcp
+platforms:
+  slack:
+    home_channel:
+      platform: slack
+      chat_id: C0BLJF65YG6
+      name: Temporary home
