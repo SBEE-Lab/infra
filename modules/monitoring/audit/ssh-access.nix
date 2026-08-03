@@ -51,7 +51,7 @@ in
       StateDirectoryMode = "0700";
       ExecStart = lib.escapeShellArgs [
         "${python}/bin/python3"
-        ./ssh-access-audit.py
+        ./ssh-access.py
         "--inventory"
         inventory
         "--loki-url"

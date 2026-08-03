@@ -65,7 +65,7 @@ in
     ../modules/uptermd
     ../modules/gatus
     ../modules/monitoring/vector
-    ../modules/monitoring/systemd-status-exporter.nix
+    ../modules/monitoring/exporters/systemd-status.nix
     ../modules/n8n/reverse-proxy.nix
     ../modules/nextcloud/reverse-proxy.nix
     ../modules/acme/sync.nix

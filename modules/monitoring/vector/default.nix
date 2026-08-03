@@ -53,8 +53,8 @@ let
 in
 {
   imports = [
-    ../auditd.nix
-    ../nginx-access-logs.nix
+    ../audit/auditd.nix
+    ../audit/nginx-access-logs.nix
   ];
 
   services.vector = {

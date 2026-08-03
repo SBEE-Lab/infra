@@ -4,7 +4,7 @@
 # - Break-glass: ssh -L 3000:127.0.0.1:3000 rho, then log in as the
 #   local admin account (no auth-proxy header on tunneled requests)
 # - Connects to Loki/Prometheus over localhost; they bind 127.0.0.1 and the
-#   wg-admin ports are ingest-only (see modules/monitoring/ingest-proxy.nix)
+#   wg-admin ports are ingest-only (see modules/monitoring/proxy/ingest.nix)
 { config, ... }:
 let
   lokiUrl = "http://127.0.0.1:3100";

@@ -33,7 +33,7 @@ in
     ../modules/buildbot/master.nix
     ../modules/buildbot/reverse-proxy.nix
     ../modules/monitoring/vector
-    ../modules/monitoring/systemd-status-exporter.nix
+    ../modules/monitoring/exporters/systemd-status.nix
     ../modules/backup/psi-protected.nix
     ../modules/backup/postgresql.nix
     ../modules/niks3

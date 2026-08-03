@@ -5,8 +5,8 @@
 }:
 {
   imports = [
-    ../gatus/check.nix
-    ./loki-rules.nix
+    ../../gatus/check.nix
+    ./rules.nix
   ];
 
   gatusCheck.push = [
@@ -24,7 +24,7 @@
 
       server = {
         # Query API is rho-local only; ingest is re-exposed on wg-admin by
-        # modules/monitoring/ingest-proxy.nix, which path-filters to push.
+        # modules/monitoring/proxy/ingest.nix, which path-filters to push.
         http_listen_address = "127.0.0.1";
         http_listen_port = 3100;
       };
