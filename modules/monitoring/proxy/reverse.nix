@@ -4,12 +4,12 @@
 }:
 let
   inherit (config.networking.sbee) hosts;
-  authentikAuth = import ../authentik/nginx-locations.nix { inherit hosts; };
+  authentikAuth = import ../../authentik/nginx-locations.nix { inherit hosts; };
   loggingDomain = "logging.sjanglab.org";
   certDir = "/var/lib/acme/${loggingDomain}";
 in
 {
-  imports = [ ../acme/sync.nix ];
+  imports = [ ../../acme/sync.nix ];
 
   acmeSyncer.mkReceiver = [
     {

@@ -64,7 +64,7 @@ let
       };
 
   systemdStatusScript = pkgs.writeShellScript "${cfg.host}-systemd-status" ''
-    exec ${pkgs.python3}/bin/python3 ${./systemd-status-exporter.py} \
+    exec ${pkgs.python3}/bin/python3 ${./systemd-status.py} \
       --host ${lib.escapeShellArg cfg.host} \
       --units-json ${lib.escapeShellArg (builtins.toJSON (map normalizeUnit cfg.units))} \
       --systemctl ${pkgs.systemd}/bin/systemctl

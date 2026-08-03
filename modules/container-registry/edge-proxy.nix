@@ -43,7 +43,7 @@ in
 {
   imports = [
     ../acme
-    ../monitoring/nginx-access-logs.nix
+    ../monitoring/audit/nginx-access-logs.nix
   ];
 
   services.sbee.nginxAccessLogs.services.${containerRegistry.domain} = "container-registry";

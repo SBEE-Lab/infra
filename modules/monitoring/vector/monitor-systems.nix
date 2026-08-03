@@ -144,10 +144,10 @@ in
 {
   imports = [
     ./default.nix
-    ../loki.nix
-    ../ingest-proxy.nix
-    ../ssh-access-audit.nix
-    ../tailnet-app-access-audit.nix
+    ../loki
+    ../proxy/ingest.nix
+    ../audit/ssh-access.nix
+    ../audit/tailnet-app-access.nix
     ../grafana
     ../prometheus
     ../../gatus/check.nix
@@ -165,7 +165,7 @@ in
   services.prometheus = {
     enable = true;
     # Query API is rho-local; remote-write ingest is re-exposed on wg-admin
-    # by modules/monitoring/ingest-proxy.nix.
+    # by modules/monitoring/proxy/ingest.nix.
     listenAddress = "127.0.0.1";
 
     # Alertmanager generator URLs must be reachable from browsers, so point
@@ -295,7 +295,7 @@ in
   };
 
   # Prometheus (9090) is re-exposed for remote-write only by
-  # modules/monitoring/ingest-proxy.nix; the vector exporter (9598) has no
+  # modules/monitoring/proxy/ingest.nix; the vector exporter (9598) has no
   # remote consumer and stays bound to localhost.
 
   systemd.tmpfiles.rules = [

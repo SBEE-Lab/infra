@@ -28,7 +28,7 @@ in
       StateDirectoryMode = "0700";
       ExecStart = lib.escapeShellArgs [
         "${python}/bin/python3"
-        ./tailnet-app-access-audit.py
+        ./tailnet-app-access.py
         "--loki-url"
         "http://127.0.0.1:3100"
         "--state"

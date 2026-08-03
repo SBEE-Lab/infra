@@ -12,8 +12,8 @@
     ../modules/backup/stalwart-r2-blobs-mirror.nix
     ../modules/backup/postgresql.nix
     ../modules/monitoring/vector/monitor-systems.nix
-    ../modules/monitoring/systemd-status-exporter.nix
-    ../modules/monitoring/reverse-proxy.nix
+    ../modules/monitoring/exporters/systemd-status.nix
+    ../modules/monitoring/proxy/reverse.nix
     ../modules/gatus/reverse-proxy.nix
   ];
 
