@@ -50,6 +50,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    nix-grpc-store = {
+      url = "github:mulatta/nix-grpc-store/fix-darwin-plugin-loader-suffix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     nixos-images = {
       url = "github:nix-community/nixos-images";
       inputs.nixos-stable.follows = "nixpkgs";
