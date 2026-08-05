@@ -4,21 +4,22 @@
 { config, ... }:
 let
   inherit (config.networking.sbee) hosts;
-  buildbotDomain = "buildbot.sjanglab.org";
+  nixbotDomain = "nixbot.sjanglab.org";
 in
 {
   imports = [ ../acme ];
 
-  services.nginx.virtualHosts.${buildbotDomain} = {
+  services.nginx.virtualHosts.${nixbotDomain} = {
     forceSSL = true;
-    useACMEHost = buildbotDomain;
+    useACMEHost = nixbotDomain;
 
     locations."/" = {
       proxyPass = "https://${hosts.psi.wg-admin}";
       proxyWebsockets = true;
       extraConfig = ''
         proxy_ssl_server_name on;
-        proxy_ssl_name ${buildbotDomain};
+        proxy_ssl_name ${nixbotDomain};
+        proxy_set_header Host ${nixbotDomain};
 
         # GitHub webhook payloads can be large and nixbot log streams use SSE.
         client_max_body_size 25m;
@@ -30,7 +31,7 @@ in
     };
   };
 
-  security.acme.certs.${buildbotDomain} = {
+  security.acme.certs.${nixbotDomain} = {
     dnsProvider = "cloudflare";
     environmentFile = config.sops.secrets.cloudflare-credentials.path;
     webroot = null;

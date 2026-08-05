@@ -61,7 +61,7 @@
       "id": "eta-edge",
       "type": "security",
       "label": "eta edge",
-      "sublabel": "buildbot.sjanglab.org TLS",
+      "sublabel": "nixbot.sjanglab.org TLS",
       "pos": [
         260,
         260

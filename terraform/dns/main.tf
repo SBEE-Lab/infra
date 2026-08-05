@@ -105,15 +105,16 @@ resource "cloudflare_dns_record" "container_registry" {
   comment = "Container Registry public endpoint on eta"
 }
 
-resource "cloudflare_dns_record" "buildbot" {
+resource "cloudflare_dns_record" "nixbot" {
   zone_id = data.sops_file.secrets.data["CLOUDFLARE_ZONE_ID"]
-  name    = "buildbot.sjanglab.org"
+  name    = "nixbot.sjanglab.org"
   content = "141.164.53.203"
   type    = "A"
   ttl     = 300
   proxied = false
   comment = "Nixbot CI/CD edge proxy (eta -> psi)"
 }
+
 
 resource "cloudflare_dns_record" "headscale" {
   zone_id = data.sops_file.secrets.data["CLOUDFLARE_ZONE_ID"]

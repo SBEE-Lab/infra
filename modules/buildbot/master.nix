@@ -6,7 +6,7 @@
   ...
 }:
 let
-  buildbotDomain = "buildbot.sjanglab.org";
+  nixbotDomain = "nixbot.sjanglab.org";
 in
 {
   imports = [
@@ -16,7 +16,7 @@ in
 
   services.nixbot = {
     enable = true;
-    domain = buildbotDomain;
+    domain = nixbotDomain;
     # Public traffic terminates on eta first, then reaches psi's nginx over
     # wg-admin. Generate external URLs with the public HTTPS scheme.
     useHTTPS = true;

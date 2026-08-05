@@ -2,7 +2,7 @@
 # eta provides public ingress; this vhost is the wg-admin upstream.
 { config, ... }:
 let
-  buildbotDomain = "buildbot.sjanglab.org";
+  nixbotDomain = "nixbot.sjanglab.org";
 in
 {
   imports = [ ../gatus/check.nix ];
@@ -17,15 +17,15 @@ in
 
   services.nginx.enable = true;
 
-  services.nginx.virtualHosts.${buildbotDomain} = {
+  services.nginx.virtualHosts.${nixbotDomain} = {
     forceSSL = true;
-    useACMEHost = buildbotDomain;
+    useACMEHost = nixbotDomain;
   };
 
   security.acme = {
     defaults.email = "sjang.bioe@gmail.com";
     acceptTerms = true;
-    certs.${buildbotDomain} = {
+    certs.${nixbotDomain} = {
       dnsProvider = "cloudflare";
       environmentFile = config.sops.secrets.cloudflare-credentials.path;
       group = "nginx";

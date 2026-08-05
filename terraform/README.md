@@ -26,7 +26,7 @@ Terragrunt stores state in the private `sjanglab-terraform-state` Cloudflare R2 
 
 #### Nixbot
 
-- Cloudflare DNS for `buildbot.sjanglab.org` points to eta (`141.164.53.203`), which proxies public traffic to the Nixbot stack on psi over wg-admin.
+- Cloudflare DNS for `nixbot.sjanglab.org` points to eta (`141.164.53.203`), which proxies public traffic to the Nixbot stack on psi over wg-admin.
 
 ### Cloudflare
 

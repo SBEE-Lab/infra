@@ -180,7 +180,7 @@ sops updatekeys hosts/psi.yaml
 | `docling.sjanglab.org` | eta | psi (동기화) |
 | `tei.sjanglab.org` | eta | psi (동기화) |
 | `multievolve.sjanglab.org` | eta | psi (동기화) |
-| `buildbot.sjanglab.org` | eta, psi | eta (public edge), psi (service stack) |
+| `nixbot.sjanglab.org` | eta, psi | eta (public edge), psi (service stack) |
 | `upterm.sjanglab.org` | eta | eta |
 
 인증서 동기화: eta에서 발급 → `acme-sync` 서비스가 rsync로 대상 호스트에 전송 → systemd path unit이 변경 감지 → nginx 자동 리로드. Nixbot은 eta 공개 edge와 psi 서비스 스택 양쪽에서 인증서를 발급합니다.

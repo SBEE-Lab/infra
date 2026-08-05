@@ -2,7 +2,7 @@
 
 ## Nixbot
 
-`https://buildbot.sjanglab.org` — GitHub 연동 Nix CI/CD입니다. 도메인과 check context는 기존 GitHub branch protection을 유지하기 위해 `buildbot` 이름을 계속 사용합니다.
+`https://nixbot.sjanglab.org` — GitHub 연동 Nix CI/CD입니다. 도메인과 check context는 기존 GitHub branch protection을 유지하기 위해 `buildbot` 이름을 계속 사용합니다.
 
 ### 구성
 
@@ -54,8 +54,8 @@ GitHub App 설정은 Nixbot 형식으로 유지해야 합니다.
 
 | 항목 | 값 |
 |------|-----|
-| Webhook URL | `https://buildbot.sjanglab.org/webhooks/github` |
-| OAuth callback | `https://buildbot.sjanglab.org/auth/github/callback` |
+| Webhook URL | `https://nixbot.sjanglab.org/webhooks/github` |
+| OAuth callback | `https://nixbot.sjanglab.org/auth/github/callback` |
 | Repository permissions | Contents: Read & write, Checks: Read & write, Issues: Read & write, Metadata: Read-only, Pull requests: Read & write |
 | Events | Push, Pull request, Check run, Check suite |
 
@@ -72,7 +72,7 @@ Nixbot 관리자를 변경하려면:
 
 ### 빌드/effect 재트리거
 
-실패한 빌드와 effect는 Nixbot 웹 UI에서 수동으로 재트리거할 수 있습니다. `https://buildbot.sjanglab.org`에 GitHub 계정으로 로그인한 뒤, 해당 빌드 페이지에서 재시작 버튼을 클릭합니다.
+실패한 빌드와 effect는 Nixbot 웹 UI에서 수동으로 재트리거할 수 있습니다. `https://nixbot.sjanglab.org`에 GitHub 계정으로 로그인한 뒤, 해당 빌드 페이지에서 재시작 버튼을 클릭합니다.
 
 ### Hercules-style effects
 
