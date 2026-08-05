@@ -64,6 +64,21 @@
         "type": "github"
       }
     },
+    "crane": {
+      "locked": {
+        "lastModified": 1785284101,
+        "narHash": "sha256-ghcXEpYEM4a7pbEkoqbn8c0ptJJqgGzuFiG3T6W5g4I=",
+        "owner": "ipetkov",
+        "repo": "crane",
+        "rev": "756d6d07c3818ea95d1e2cdac63fa7d02fe3e61b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "ipetkov",
+        "repo": "crane",
+        "type": "github"
+      }
+    },
     "disko": {
       "inputs": {
         "nixpkgs": [
@@ -442,6 +457,30 @@
         "type": "github"
       }
     },
+    "rag-nix": {
+      "inputs": {
+        "crane": "crane",
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "treefmt-nix": [
+          "treefmt-nix"
+        ]
+      },
+      "locked": {
+        "lastModified": 1785830820,
+        "narHash": "sha256-yRrirhXt7Q8M/+7DTy1vw1xZO5pPoYYfqiQTBVE4rmI=",
+        "owner": "mulatta",
+        "repo": "rag.nix",
+        "rev": "aaa9d45bf7caded03276cb5fdb533cd6df056b1a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "mulatta",
+        "repo": "rag.nix",
+        "type": "github"
+      }
+    },
     "rhwp-nextcloud": {
       "inputs": {
         "flake-parts": [
@@ -522,6 +561,7 @@
         "nixbot": "nixbot",
         "nixos-images": "nixos-images",
         "nixpkgs": "nixpkgs",
+        "rag-nix": "rag-nix",
         "rhwp-nextcloud": "rhwp-nextcloud",
         "rustfs": "rustfs",
         "sops-nix": "sops-nix",
