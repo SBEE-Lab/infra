@@ -152,6 +152,7 @@ root의 `authorized_keys`에는 관리자 키만 등록됩니다 (`modules/users
 | `hosts/rho.yaml`, `hosts/tau.yaml` | 해당 호스트 | RustFS root credential, host-local backup passwords, PostgreSQL 사용자/복제 암호 |
 | `modules/acme/secrets.yaml` | eta, psi, tau | Cloudflare API 인증 |
 | `modules/buildbot/secrets.yaml` | psi | Nixbot GitHub App/OAuth 시크릿 |
+| `modules/gitea-mq/secrets.yaml` | eta | merge queue GitHub App private key와 webhook secret |
 | `modules/authentik/secrets.yaml` | eta | OIDC 클라이언트 시크릿 |
 
 ### 비밀 편집
@@ -181,6 +182,7 @@ sops updatekeys hosts/psi.yaml
 | `tei.sjanglab.org` | eta | psi (동기화) |
 | `multievolve.sjanglab.org` | eta | psi (동기화) |
 | `nixbot.sjanglab.org` | eta, psi | eta (public edge), psi (service stack) |
+| `mq.sjanglab.org` | eta | eta |
 | `upterm.sjanglab.org` | eta | eta |
 
 인증서 동기화: eta에서 발급 → `acme-sync` 서비스가 rsync로 대상 호스트에 전송 → systemd path unit이 변경 감지 → nginx 자동 리로드. Nixbot은 eta 공개 edge와 psi 서비스 스택 양쪽에서 인증서를 발급합니다.

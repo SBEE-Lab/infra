@@ -95,7 +95,7 @@ Streaming replica는 장애 대응용이고 백업으로 간주하지 않습니�
 
 - rho: `nextcloud`, `n8n`
 - psi: `nixbot`
-- eta: `authentik`, `stalwart-mail`
+- eta: `authentik`, `gitea-mq`, `stalwart-mail`
 - globals: `pg_dumpall --globals-only`
 - database dump: `pg_dump --format=custom --create --clean --if-exists`
 

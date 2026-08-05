@@ -60,6 +60,7 @@ in
     ../modules/backup/postgresql.nix
     ../modules/backup/vaultwarden.nix
     ../modules/buildbot/edge-proxy.nix
+    ../modules/gitea-mq
     ../modules/container-registry
     ../modules/niks3/edge-proxy.nix
     ../modules/uptermd
@@ -160,6 +161,7 @@ in
         enable = true;
         databases = [
           "authentik"
+          "gitea-mq"
           "stalwart-mail"
         ];
         startAt = "*-*-* 03:30:00";

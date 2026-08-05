@@ -33,7 +33,7 @@ resource "github_repository" "nixpkgs" {
     "build-with-buildbot"
   ]
 
-  allow_auto_merge       = false
+  allow_auto_merge       = true
   allow_merge_commit     = true
   allow_rebase_merge     = true
   allow_squash_merge     = true
@@ -77,14 +77,6 @@ resource "github_repository_ruleset" "nixpkgs" {
   rules {
     deletion         = true
     non_fast_forward = true
-
-    pull_request {
-      dismiss_stale_reviews_on_push     = true
-      require_code_owner_review         = false
-      require_last_push_approval        = false
-      required_approving_review_count   = 0
-      required_review_thread_resolution = false
-    }
 
     required_status_checks {
       required_check {
@@ -134,17 +126,13 @@ resource "github_repository_ruleset" "infra" {
     deletion         = true
     non_fast_forward = true
 
-    pull_request {
-      dismiss_stale_reviews_on_push     = true
-      require_code_owner_review         = false
-      require_last_push_approval        = false
-      required_approving_review_count   = 0
-      required_review_thread_resolution = false
-    }
-
     required_status_checks {
       required_check {
         context = "buildbot/nix-eval"
+      }
+
+      required_check {
+        context = "buildbot/nix-build"
       }
     }
   }

@@ -28,6 +28,12 @@
       inputs.treefmt-nix.follows = "treefmt-nix";
     };
 
+    gitea-mq = {
+      url = "github:Mic92/gitea-mq";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.treefmt-nix.follows = "treefmt-nix";
+    };
+
     disko = {
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
