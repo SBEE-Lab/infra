@@ -107,6 +107,8 @@ flowchart LR
 - **Queue policy**: 최대 5개 PR을 한 batch로 검사하고 실패 batch를 분할합니다.
 - **Protection policy**: gitea-mq가 default branch에 `gitea-mq` required check ruleset과 App bypass를 관리합니다.
 
+Default branch의 별도 보호 ruleset은 batch commit에서 실행되는 required checks, 삭제 방지, non-fast-forward 방지만 요구합니다. `pull_request` rule은 검사된 batch commit의 직접 반영을 차단하므로 사용하지 않으며, gitea-mq App도 required checks를 우회하지 않습니다.
+
 GitHub built-in merge queue는 사용하지 않습니다. Nixbot의 `buildbot/nix-eval`과 `buildbot/nix-build` checks가 통과한 merged tree만 gitea-mq가 반영합니다.
 
 관련 시크릿은 `modules/gitea-mq/secrets.yaml`에 sops로 암호화합니다.
