@@ -187,6 +187,29 @@
         "type": "github"
       }
     },
+    "gitea-mq": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "treefmt-nix": [
+          "treefmt-nix"
+        ]
+      },
+      "locked": {
+        "lastModified": 1785382681,
+        "narHash": "sha256-FCQ1eVEOp9CIXv0zMp4pljKW+J9skppa5mJeGIndMn4=",
+        "owner": "Mic92",
+        "repo": "gitea-mq",
+        "rev": "77e86eebeb81ef92ddf5f91dc041082d1fd854d3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Mic92",
+        "repo": "gitea-mq",
+        "type": "github"
+      }
+    },
     "multievolve-nix": {
       "inputs": {
         "nixpkgs": [
@@ -516,6 +539,7 @@
         "disko": "disko",
         "fast-nix-gc": "fast-nix-gc",
         "flake-parts": "flake-parts",
+        "gitea-mq": "gitea-mq",
         "multievolve-nix": "multievolve-nix",
         "niks3": "niks3",
         "nix-index-database": "nix-index-database",

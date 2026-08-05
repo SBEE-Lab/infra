@@ -115,6 +115,15 @@ resource "cloudflare_dns_record" "nixbot" {
   comment = "Nixbot CI/CD edge proxy (eta -> psi)"
 }
 
+resource "cloudflare_dns_record" "merge_queue" {
+  zone_id = data.sops_file.secrets.data["CLOUDFLARE_ZONE_ID"]
+  name    = "mq.sjanglab.org"
+  content = "141.164.53.203"
+  type    = "A"
+  ttl     = 300
+  proxied = false
+  comment = "gitea-mq merge queue on eta"
+}
 
 resource "cloudflare_dns_record" "headscale" {
   zone_id = data.sops_file.secrets.data["CLOUDFLARE_ZONE_ID"]

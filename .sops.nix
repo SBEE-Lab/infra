@@ -51,6 +51,7 @@ let
         "rho"
         "tau"
       ];
+      "modules/gitea-mq/secrets.yaml" = [ "eta" ];
       "modules/vaultwarden/secrets.yaml" = [ "eta" ];
       "modules/tailscale/secrets.yaml" = [
         "psi"

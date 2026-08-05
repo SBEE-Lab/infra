@@ -87,11 +87,35 @@ Nixbot 관리자를 변경하려면:
 
 Nixbot은 인프라 cache 대상으로 선택된 성공 build를 `https://niks3.sjanglab.org`로 push합니다. Token은 systemd credential로 전달되어 command line에 노출되지 않습니다. niks3는 closure metadata와 garbage collection 상태를 psi PostgreSQL에서 추적하고 NAR와 narinfo를 Cloudflare R2에 직접 저장합니다.
 
+## Merge queue
+
+`https://mq.sjanglab.org` — GitHub auto-merge 요청을 default branch별로 직렬화하는 gitea-mq 서비스입니다.
+
+```mermaid
+flowchart LR
+  pr["auto-merge가 활성화된 PR"] --> mq["gitea-mq<br/>eta"]
+  mq --> branch["gitea-mq/batch/*"]
+  branch --> ci["Nixbot required checks"]
+  ci -- "성공" --> main["default branch"]
+  ci -- "실패" --> eject["auto-merge 취소"]
+```
+
+- **Service host**: eta (`gitea-mq.service`)
+- **Public endpoint/TLS**: eta nginx + ACME
+- **DB**: eta PostgreSQL, local peer auth
+- **Repository discovery**: `sbee-mq` GitHub App installation
+- **Queue policy**: 최대 5개 PR을 한 batch로 검사하고 실패 batch를 분할합니다.
+- **Protection policy**: gitea-mq가 default branch에 `gitea-mq` required check ruleset과 App bypass를 관리합니다.
+
+GitHub built-in merge queue는 사용하지 않습니다. Nixbot의 `buildbot/nix-eval`과 `buildbot/nix-build` checks가 통과한 merged tree만 gitea-mq가 반영합니다.
+
+관련 시크릿은 `modules/gitea-mq/secrets.yaml`에 sops로 암호화합니다.
+
 ## Package 자동 업데이트
 
 Nixbot scheduled effect가 매일 03:00 UTC에 `.#updater -- --pr`를 실행합니다. Updater는 `packages/*/nix-update-args` 또는 `packages/*/update.py`를 발견해 package별 update branch와 PR을 만듭니다. 현재 `slack-cli`가 `nix-update`/GitHub releases 기반 업데이트 대상으로 등록되어 있습니다.
 
-생성된 PR에는 `auto-merge` label이 붙고, 기존 auto-merge 워크플로우가 CI 성공 뒤 squash merge합니다.
+생성된 PR에는 `auto-merge` label이 붙고, auto-merge 워크플로우가 CI 성공 뒤 merge commit으로 병합합니다.
 
 ## Flake 입력 자동 업데이트
 
@@ -100,7 +124,7 @@ Dependabot이 매일 `flake.lock`을 검사하여 flake input 최신 커밋 PR�
 ```mermaid
 flowchart LR
   cron["Dependabot<br/>(매일 03:00 KST)"] -- "flake.lock 검사" --> pr["PR 자동 생성<br/>(flake.lock 변경)"]
-  pr -- "auto-merge<br/>(squash)" --> main["main 브랜치"]
+  pr -- "auto-merge<br/>(merge commit)" --> main["main 브랜치"]
   main -- "매일 04:40 KST" --> upgrade["NixOS<br/>system.autoUpgrade"]
   upgrade -- "매월 마지막 토요일" --> reboot["커널 변경<br/>재부팅 확인"]
 ```
@@ -112,9 +136,9 @@ flowchart LR
 | 도구 | Dependabot `nix` ecosystem |
 | 대상 | 루트 `flake.lock` |
 | 그룹 | `flake-inputs` (모든 flake input을 한 PR로 묶음) |
-| 병합 | auto-merge 워크플로우가 PR을 자동 squash 병합 |
+| 병합 | auto-merge 워크플로우와 gitea-mq가 PR을 자동 merge commit으로 병합 |
 
-흐름: flake.lock 변경 → PR 생성 → 자동 squash 병합 → main에 반영 → 각 호스트가 매일 04:40 KST에 `system.autoUpgrade`로 적용. 매월 마지막 토요일에는 `auto-reboot`가 적용된 커널과 부팅 중인 커널을 비교하고, 변경된 경우 24시간 후 재부팅을 예약합니다.
+흐름: flake.lock 변경 → PR 생성 → 자동 merge commit 병합 → main에 반영 → 각 호스트가 매일 04:40 KST에 `system.autoUpgrade`로 적용. 매월 마지막 토요일에는 `auto-reboot`가 적용된 커널과 부팅 중인 커널을 비교하고, 변경된 경우 24시간 후 재부팅을 예약합니다.
 
 > Nixbot은 flake 업데이트와 무관합니다. Nixbot은 PR CI 빌드만 담당하고, flake 입력 업데이트 PR 생성은 Dependabot이 담당합니다.
 
