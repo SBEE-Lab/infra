@@ -84,10 +84,17 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    rhwp = {
+      url = "github:mulatta/rhwp.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.treefmt-nix.follows = "treefmt-nix";
+    };
+
     rhwp-nextcloud = {
       url = "github:mulatta/rhwp-nextcloud";
       inputs.flake-parts.follows = "flake-parts";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.rhwp-nix.follows = "rhwp";
       inputs.treefmt-nix.follows = "treefmt-nix";
     };
   };
