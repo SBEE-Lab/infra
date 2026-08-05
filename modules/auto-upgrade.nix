@@ -24,7 +24,7 @@
       set -euo pipefail
 
       hostname=$(uname -n)
-      p=$(curl -fsSL "https://buildbot.sjanglab.org/nix-outputs/github/SBEE-Lab/infra/main/default.checks.${pkgs.stdenv.buildPlatform.system}.nixos-$hostname")
+      p=$(curl -fsSL "https://nixbot.sjanglab.org/nix-outputs/github/SBEE-Lab/infra/main/default.checks.${pkgs.stdenv.buildPlatform.system}.nixos-$hostname")
 
       if [[ "$(readlink /run/current-system)" == "$p" ]]; then
         echo "Already at $p, nothing to do"
