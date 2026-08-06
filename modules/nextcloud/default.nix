@@ -25,6 +25,7 @@ let
 in
 {
   imports = [
+    ./collabora-fonts.nix
     ./declarative-nextcloud-apps.nix
     ../acme/sync.nix
     ../gatus/check.nix
