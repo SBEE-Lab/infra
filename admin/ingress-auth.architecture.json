@@ -1,0 +1,430 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Ingress와 인증 게이트",
+    "subtitle": "도메인 요청이 eta, Authentik, Headscale, 서비스로 들어가는 경로",
+    "output": "docs/admin/ingress-auth-architecture.html",
+    "visual_preset": "blueprint",
+    "quality_profile": "standard",
+    "views": [
+      {
+        "id": "forward-auth",
+        "label": "Forward Auth",
+        "focus": [
+          "user",
+          "cloudflare",
+          "eta-nginx",
+          "authentik-outpost",
+          "n8n",
+          "grafana",
+          "multievolve"
+        ],
+        "note": "nginx가 outpost에 인증 확인을 요청하고 사용자 헤더를 upstream으로 전달합니다."
+      },
+      {
+        "id": "oidc-apps",
+        "label": "OIDC 앱",
+        "focus": [
+          "user",
+          "eta-nginx",
+          "authentik",
+          "nextcloud",
+          "vaultwarden"
+        ],
+        "note": "Nextcloud와 Vaultwarden은 앱 자체 OIDC provider로 Authentik에 로그인합니다."
+      },
+      {
+        "id": "vpn-acl",
+        "label": "VPN ACL",
+        "focus": [
+          "user",
+          "authentik",
+          "headscale",
+          "tailnet",
+          "docling-tei",
+          "apps"
+        ],
+        "note": "Headscale은 Authentik OIDC와 Terraform ACL policy로 tag별 접근을 허용합니다."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "user",
+      "type": "external",
+      "label": "사용자",
+      "sublabel": "브라우저 · VPN",
+      "pos": [
+        40,
+        292
+      ]
+    },
+    {
+      "id": "cloudflare",
+      "type": "cloud",
+      "label": "Cloudflare",
+      "sublabel": "DNS · ACME",
+      "pos": [
+        210,
+        292
+      ]
+    },
+    {
+      "id": "eta-nginx",
+      "type": "security",
+      "label": "eta nginx",
+      "sublabel": "TLS · reverse proxy",
+      "pos": [
+        390,
+        292
+      ],
+      "size": [
+        140,
+        60
+      ]
+    },
+    {
+      "id": "authentik",
+      "type": "security",
+      "label": "Authentik",
+      "sublabel": "SSO · OAuth2/OIDC",
+      "pos": [
+        595,
+        175
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "authentik-outpost",
+      "type": "security",
+      "label": "Forward Auth",
+      "sublabel": "outpost :9000",
+      "pos": [
+        595,
+        290
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "headscale",
+      "type": "security",
+      "label": "Headscale",
+      "sublabel": "OIDC · ACL DB",
+      "pos": [
+        595,
+        405
+      ],
+      "size": [
+        150,
+        64
+      ]
+    },
+    {
+      "id": "tailnet",
+      "type": "messagebus",
+      "label": "Tailnet",
+      "sublabel": "100.64/10 · Magic DNS",
+      "pos": [
+        855,
+        408
+      ],
+      "size": [
+        150,
+        58
+      ]
+    },
+    {
+      "id": "n8n",
+      "type": "backend",
+      "label": "n8n",
+      "sublabel": "Forward Auth",
+      "pos": [
+        855,
+        250
+      ]
+    },
+    {
+      "id": "grafana",
+      "type": "backend",
+      "label": "Grafana",
+      "sublabel": "Tailnet + Forward Auth",
+      "pos": [
+        855,
+        325
+      ]
+    },
+    {
+      "id": "multievolve",
+      "type": "backend",
+      "label": "MULTI-evolve",
+      "sublabel": "AI tag + auth",
+      "pos": [
+        1055,
+        250
+      ]
+    },
+    {
+      "id": "nextcloud",
+      "type": "backend",
+      "label": "Nextcloud",
+      "sublabel": "OIDC user_oidc",
+      "pos": [
+        805,
+        120
+      ]
+    },
+    {
+      "id": "vaultwarden",
+      "type": "security",
+      "label": "Vaultwarden",
+      "sublabel": "OIDC PKCE",
+      "pos": [
+        985,
+        120
+      ]
+    },
+    {
+      "id": "docling-tei",
+      "type": "backend",
+      "label": "Docling · TEI",
+      "sublabel": "Headscale ACL",
+      "pos": [
+        1125,
+        407
+      ]
+    },
+    {
+      "id": "apps",
+      "type": "backend",
+      "label": "앱 서비스",
+      "sublabel": "tag:apps",
+      "pos": [
+        1125,
+        510
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "eta 공개 엣지",
+      "wraps": [
+        "eta-nginx",
+        "authentik",
+        "authentik-outpost",
+        "headscale"
+      ]
+    },
+    {
+      "kind": "security-group",
+      "label": "인증 결정점",
+      "wraps": [
+        "authentik",
+        "authentik-outpost",
+        "headscale"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "user-dns",
+      "from": "user",
+      "to": "cloudflare",
+      "label": "sjanglab.org",
+      "variant": "emphasis",
+      "labelAt": [
+        185,
+        366
+      ]
+    },
+    {
+      "id": "dns-edge",
+      "from": "cloudflare",
+      "to": "eta-nginx",
+      "label": "HTTPS",
+      "variant": "emphasis"
+    },
+    {
+      "id": "edge-outpost",
+      "from": "eta-nginx",
+      "to": "authentik-outpost",
+      "label": "auth_request",
+      "variant": "security",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "outpost-auth",
+      "from": "authentik-outpost",
+      "to": "authentik",
+      "label": "세션",
+      "variant": "security",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "auth-headscale",
+      "from": "authentik",
+      "to": "headscale",
+      "label": "OIDC",
+      "variant": "security",
+      "fromSide": "left",
+      "toSide": "left",
+      "labelAt": [
+        548,
+        320
+      ],
+      "via": [
+        [
+          555,
+          207
+        ],
+        [
+          555,
+          437
+        ]
+      ]
+    },
+    {
+      "id": "headscale-tailnet",
+      "from": "headscale",
+      "to": "tailnet",
+      "label": "ACL",
+      "variant": "security"
+    },
+    {
+      "id": "edge-nextcloud",
+      "from": "eta-nginx",
+      "to": "nextcloud",
+      "label": "OIDC redirect",
+      "variant": "emphasis",
+      "route": "orthogonal-h",
+      "via": [
+        [
+          555,
+          322
+        ],
+        [
+          555,
+          152
+        ]
+      ],
+      "labelAt": [
+        555,
+        225
+      ]
+    },
+    {
+      "id": "nextcloud-vault",
+      "from": "nextcloud",
+      "to": "vaultwarden",
+      "label": "별도 OIDC",
+      "variant": "security"
+    },
+    {
+      "id": "outpost-n8n",
+      "from": "authentik-outpost",
+      "to": "n8n",
+      "label": "headers",
+      "variant": "security",
+      "route": "orthogonal-h",
+      "labelAt": [
+        825,
+        270
+      ],
+      "fromSide": "right",
+      "toSide": "left",
+      "via": [
+        [
+          800,
+          322
+        ],
+        [
+          800,
+          280
+        ]
+      ]
+    },
+    {
+      "id": "outpost-grafana",
+      "from": "authentik-outpost",
+      "to": "grafana",
+      "label": "headers",
+      "variant": "security",
+      "route": "orthogonal-h",
+      "labelAt": [
+        825,
+        350
+      ],
+      "fromSide": "right",
+      "toSide": "left",
+      "via": [
+        [
+          800,
+          322
+        ],
+        [
+          800,
+          355
+        ]
+      ]
+    },
+    {
+      "id": "n8n-multi",
+      "from": "n8n",
+      "to": "multievolve",
+      "label": "동일 패턴",
+      "variant": "dashed",
+      "labelAt": [
+        1015,
+        324
+      ]
+    },
+    {
+      "id": "tailnet-ai",
+      "from": "tailnet",
+      "to": "docling-tei",
+      "label": "tag:ai",
+      "variant": "emphasis",
+      "labelAt": [
+        1000,
+        480
+      ]
+    },
+    {
+      "id": "tailnet-apps",
+      "from": "tailnet",
+      "to": "apps",
+      "label": "tag:apps",
+      "variant": "emphasis",
+      "route": "orthogonal-h"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "rose",
+      "title": "인증 방식",
+      "items": [
+        "Forward Auth: n8n, Grafana, MULTI-evolve",
+        "OIDC 앱: Nextcloud, Vaultwarden, Headscale",
+        "Nixbot은 GitHub OAuth를 별도 사용"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "접근 경계",
+      "items": [
+        "eta nginx가 public TLS entrypoint",
+        "outpost는 wg-admin :9000에서만 접근",
+        "Tailnet ACL은 tag:ai/tag:apps/tag:monitoring으로 분리"
+      ]
+    }
+  ]
+}
