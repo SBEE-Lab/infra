@@ -7,10 +7,11 @@ import sys
 import time
 import urllib.parse
 import urllib.request
+from collections.abc import Sequence
 from dataclasses import dataclass
 from ipaddress import ip_address, ip_network
 from pathlib import Path
-from typing import NotRequired, Sequence, TypedDict, cast
+from typing import NotRequired, TypedDict, cast
 
 JsonValue = None | bool | int | float | str | list["JsonValue"] | dict[str, "JsonValue"]
 Event = dict[str, JsonValue]

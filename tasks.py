@@ -7,10 +7,11 @@ import re
 import shlex
 import string
 import subprocess
-from datetime import datetime
+import sys
+from datetime import datetime, timezone
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Any, List
+from typing import Any
 
 from deploykit import DeployGroup, DeployHost
 from invoke.tasks import task
@@ -19,7 +20,7 @@ ROOT = Path(__file__).parent.resolve()
 os.chdir(ROOT)
 
 
-def get_hosts(hosts: str) -> List[DeployHost]:
+def get_hosts(hosts: str) -> list[DeployHost]:
     return [DeployHost(h, user="root") for h in hosts.split(",")]
 
 
@@ -70,11 +71,12 @@ def update_sops_files(c: Any) -> None:
     updated_files = []
 
     for i, line in enumerate(lines):
-        if "Syncing keys for file" in line:
-            if i + 1 >= len(lines) or "already up to date" not in lines[i + 1]:
-                filename = line.split("file ")[-1]
-                updated_files.append(filename)
-                print(f"✓ Updated: {filename}")
+        if "Syncing keys for file" in line and (
+            i + 1 >= len(lines) or "already up to date" not in lines[i + 1]
+        ):
+            filename = line.split("file ")[-1]
+            updated_files.append(filename)
+            print(f"✓ Updated: {filename}")
 
     if not updated_files:
         print("✓ All files already up to date")
@@ -412,7 +414,7 @@ def wake(c: Any, host: str) -> None:
         c.run(f"nix run nixpkgs#wakeonlan -- {mac_address}", echo=True)
         print(f"Magic packet sent to {host}!")
 
-    except Exception as e:
+    except (subprocess.CalledProcessError, RuntimeError, OSError) as e:
         print(f"Error: {e}")
         if "nixosConfigurations" in str(e):
             print(f"Make sure {host} is defined in your flake configuration")
@@ -522,7 +524,7 @@ def add_server(c: Any, hostname: str) -> None:
     keys = json.loads(keys)
     if keys["machines"].get(hostname, None):
         print("Configuration already exists")
-        exit(-1)
+        sys.exit(-1)
     keys["machines"][hostname] = ""
     with open(f"{ROOT}/pubkeys.json", "w") as f:
         json.dump(keys, f, indent=2)
@@ -617,13 +619,15 @@ def check_expired_accounts():
 
     expired = []
     expiring = []
-    today = datetime.now().date()
+    today = datetime.now(timezone.utc).date()
 
     # Find all matches
     for match in re.finditer(user_pattern, content, re.DOTALL):
         username = match.group(1)
         expires_str = match.group(2)
-        expires_date = datetime.strptime(expires_str, "%Y-%m-%d").date()
+        expires_date = (
+            datetime.strptime(expires_str, "%Y-%m-%d").replace(tzinfo=timezone.utc).date()
+        )
 
         # Skip if this is inside a comment
         # Check if the line with expires is commented

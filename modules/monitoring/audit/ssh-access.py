@@ -7,10 +7,11 @@ import sys
 import time
 import urllib.parse
 import urllib.request
+from collections.abc import Sequence
 from dataclasses import dataclass
 from ipaddress import IPv4Address, ip_address
 from pathlib import Path
-from typing import NotRequired, Sequence, TypedDict, cast
+from typing import NotRequired, TypedDict, cast
 
 JsonValue = None | bool | int | float | str | list["JsonValue"] | dict[str, "JsonValue"]
 Event = dict[str, JsonValue]
@@ -117,7 +118,7 @@ def parse_emergency_range(raw_range: str) -> EmergencyRange:
     start_ip = ip_address(start)
     end_ip = ip_address(end)
     if not isinstance(start_ip, IPv4Address) or not isinstance(end_ip, IPv4Address):
-        raise ValueError(f"only IPv4 emergency ranges are supported: {raw_range}")
+        raise TypeError(f"only IPv4 emergency ranges are supported: {raw_range}")
     return EmergencyRange(start_ip, end_ip)
 
 

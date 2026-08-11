@@ -141,7 +141,7 @@ _cached_system: str | None = None
 
 def current_system() -> str:
     """Get and cache the current Nix system."""
-    global _cached_system  # noqa: PLW0603
+    global _cached_system
     if _cached_system is None:
         _cached_system = get_nix_system()
     return _cached_system
