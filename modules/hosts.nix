@@ -8,7 +8,13 @@ let
   hostOptions = {
     ipv4 = lib.mkOption {
       type = lib.types.str;
-      description = "Public or private IPv4 address";
+      description = "IPv4 address configured on the host interface";
+    };
+
+    wireguardEndpoint = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      description = "Public IPv4 address used by remote WireGuard peers";
     };
 
     mac = lib.mkOption {
@@ -102,12 +108,13 @@ in
         ];
       };
       psi = {
-        ipv4 = "117.16.251.37";
-        gateway = "117.16.251.254";
+        ipv4 = "10.30.5.21";
+        wireguardEndpoint = "117.16.251.37";
+        gateway = "10.30.5.254";
         mac = "bc:fc:e7:52:e1:ab";
         wg-admin = "10.100.0.2";
         tags = [
-          "public-ip"
+          "nat-behind"
           "kren-dns"
         ];
       };

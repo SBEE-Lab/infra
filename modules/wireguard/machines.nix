@@ -11,7 +11,9 @@ let
     lib.filterAttrs (_n: v: v != null) {
       PublicKey = builtins.readFile (./keys + "/${hostName}_${interface}");
       Endpoint =
-        if ((currentHasTag "public-ip") && (hasTag host "nat-behind")) then
+        if host.wireguardEndpoint != null then
+          "${host.wireguardEndpoint}:${builtins.toString port}"
+        else if ((currentHasTag "public-ip") && (hasTag host "nat-behind")) then
           null
         else
           "${host.ipv4}:${builtins.toString port}";
