@@ -13,3 +13,16 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
+  - package-ecosystem: "npm"
+    directory: "/packages/infra-alert-bridge"
+    schedule:
+      interval: "daily"
+      time: "03:00"
+      timezone: "Asia/Seoul"
+    groups:
+      npm-dependencies:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
