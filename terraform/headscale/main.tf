@@ -84,6 +84,20 @@ locals {
           "tag:apps:443",
         ]
       },
+      # Tailnet limits network reachability; OpenSSH still authenticates the
+      # requested POSIX account and enforces host-local login policy.
+      {
+        action = "accept"
+        src    = ["autogroup:member"]
+        dst    = ["tag:server:10022"]
+      },
+      # nix-grpc-daemon authenticates the admin client certificate with mTLS;
+      # this rule limits which Tailnet identities can reach that listener.
+      {
+        action = "accept"
+        src    = ["group:sjanglab-admins"]
+        dst    = ["tag:ai:50051"]
+      },
     ]
 
     ssh = []

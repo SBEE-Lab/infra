@@ -24,14 +24,13 @@
     sopsFile = ./secrets.yaml;
   };
 
-  # Explicit port allowlist for Headscale users (no trustedInterfaces)
-  # - 80, 443: Web services (Nextcloud on tau)
-  # - 8010: Nixbot (psi, disabled when nginx uses unix socket)
-  # SSH and internal services remain wg-admin only; Grafana is reachable
-  # solely through the Authentik-protected reverse proxy on 443.
+  # Explicit port allowlist for Headscale users (no trustedInterfaces).
+  # Network ACLs control reachability; OpenSSH still authenticates POSIX users
+  # and enforces host-local login policy on port 10022.
   networking.firewall.interfaces.tailscale0.allowedTCPPorts = [
     80
     443
     8010
+    10022
   ];
 }
