@@ -87,6 +87,9 @@ in
 
   networking.hostName = "psi";
 
+  # Avoid repeating cold binary-cache misses between daily Nixbot builds.
+  nix.settings.narinfo-cache-negative-ttl = 24 * 60 * 60;
+
   services.sbee.backups = {
     psiProtected.enable = true;
     postgresql = {
