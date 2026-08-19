@@ -410,11 +410,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1786249295,
-        "narHash": "sha256-Y2mSr+HLKYoOsjiackgilxkHXe8gkJ3z4hFFekjQX3I=",
+        "lastModified": 1786852476,
+        "narHash": "sha256-IM5CYtf86W4w8eUPpKcY/LpdHElmVBtJhaKnoTKxZEA=",
         "owner": "nix-community",
         "repo": "nix-index-database",
-        "rev": "14d55b8069119e3b88da7aa2f6c97f86a2cd3cd6",
+        "rev": "c7962dc97b45129df8d751bedaf37beb5a17706e",
         "type": "github"
       },
       "original": {
@@ -471,10 +471,10 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1786433111,
-        "narHash": "sha256-qlk/fjNz0ap3anP4Nef2LYkLCjBUreiGjbqhnM7e8Hw=",
+        "lastModified": 1786851952,
+        "narHash": "sha256-DHU0xxpZGb6gb3xopHWWJAGyvpaNizx7drBtokiBlXY=",
         "ref": "main",
-        "rev": "8c8461204f0762aceb58bc15bc4ff734177d6dc1",
+        "rev": "d16c04c09df8006f339a5e03803c352835483417",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/SBEE-Lab/nixpkgs"
@@ -745,11 +745,11 @@
         "rust-overlay": "rust-overlay_2"
       },
       "locked": {
-        "lastModified": 1786862331,
-        "narHash": "sha256-0bTnBUQMjhJXYYdFHsqMDrMRq2s9RyUsvBQtNAyQDYo=",
+        "lastModified": 1787162158,
+        "narHash": "sha256-Jl/u/xcxubjHT353PDuoN31BByZYanqCuUJNiqywrHk=",
         "owner": "rustfs",
         "repo": "rustfs",
-        "rev": "a118d7e4fd07be9aa2ccc705f463c639308981a8",
+        "rev": "898aa4db952ddcf49bc534597380e4dd9c35456f",
         "type": "github"
       },
       "original": {
