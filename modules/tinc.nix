@@ -9,4 +9,6 @@
   };
 
   services.tincr.networks.naru.extraConfig = "StrictSubnets = yes";
+
+  networking.firewall.interfaces."tinc.naru".allowedTCPPorts = config.services.openssh.ports;
 }
