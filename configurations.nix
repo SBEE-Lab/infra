@@ -8,6 +8,7 @@ let
     nixpkgs
     authentik-nix
     disko
+    dure
     fast-nix-gc
     sops-nix
     srvos
@@ -94,6 +95,10 @@ let
     srvos.nixosModules.server
     srvos.nixosModules.mixins-terminfo
     srvos.nixosModules.mixins-nix-experimental
+
+    ./modules/tinc.nix
+    dure.nixosModules.naru
+    dure.nixosModules.ca
 
     ./modules/users
     ./modules/bootloader.nix

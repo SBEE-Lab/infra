@@ -41,6 +41,9 @@ in
       };
     };
 
-    networking.firewall.interfaces.wg-admin.allowedTCPPorts = [ 50051 ];
+    networking.firewall.interfaces = {
+      wg-admin.allowedTCPPorts = [ 50051 ];
+      tailscale0.allowedTCPPorts = [ 50051 ];
+    };
   };
 }

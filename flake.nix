@@ -15,6 +15,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    dure = {
+      url = "github:dure-net/dure";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Core modules and system integrations.
     authentik-nix = {
       url = "github:nix-community/authentik-nix";
