@@ -24,7 +24,7 @@ in
     buildSystems = [ "x86_64-linux" ];
     evalWorkerCount = 8;
     evalMaxMemorySize = 8192;
-    buildConcurrency = 8;
+    buildConcurrency = 48;
 
     # Keep buildbot-era check names so existing branch protection rules match.
     statusContextPrefix = "buildbot";
