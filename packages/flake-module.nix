@@ -13,7 +13,7 @@
         slack-cli = pkgs.callPackage ./slack-cli { };
         updater = pkgs.callPackage ./updater { };
       }
-      // lib.optionalAttrs pkgs.stdenv.isLinux {
+      // lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
         installer = pkgs.callPackage ./image-installer { inherit pkgs self; };
         kexec = pkgs.callPackage ./kexec-installer { inherit pkgs self; };
         text-embeddings-inference = pkgs.callPackage ./text-embeddings-inference {
