@@ -212,7 +212,7 @@ def generate_ssh_cert(c: Any, host: str) -> None:
         c.run(
             f"sops --extract '[\"ssh-ca\"]' -d {ROOT}/modules/sshd/ca-keys.yaml > {tmpdir}/ssh-ca"
         )
-        valid_hostnames = f"{h},{h}.r,{h}.l"
+        valid_hostnames = f"{h},{h}.r,{h}.l,{h}.n"
         pubkey_path = f"{tmpdir}/etc/ssh/ssh_host_ed25519_key.pub"
         c.run(f"ssh-keygen -h -s {tmpdir}/ssh-ca -n {valid_hostnames} -I {h} {pubkey_path}")
         signed_key_src = f"{tmpdir}/etc/ssh/ssh_host_ed25519_key-cert.pub"

@@ -451,7 +451,12 @@ in
 
   programs.ssh.knownHosts.ssh-ca = {
     certAuthority = true;
-    hostNames = lib.mapAttrsToList (n: _: n) config.networking.sbee.others;
+    hostNames = lib.concatMap (name: [
+      name
+      "${name}.r"
+      "${name}.l"
+      "${name}.n"
+    ]) (lib.attrNames config.networking.sbee.hosts);
     publicKeyFile = ./certs/ssh-ca.pub;
   };
 
