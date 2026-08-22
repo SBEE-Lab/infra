@@ -14,8 +14,6 @@ let
     lib.filterAttrs (_name: host: builtins.elem "public-ip" host.tags) config.networking.sbee.others
   );
 
-  hasWhitelist = otherPublicIPs != [ ];
-
   ssh = {
     port = 10022;
     maxAuthTries = 3;
@@ -30,11 +28,6 @@ let
     # Exponential backoff: ban doubles per re-offense from base to cap.
     baseBanTime = 300;
     maxBanTime = 604800;
-  };
-
-  rateLimiting = {
-    timeWindow = 60;
-    maxAttempts = 5;
   };
 
   bastionTargets = lib.mapAttrs (_name: host: host.wg-admin) (
@@ -350,6 +343,8 @@ in
     settings = {
       X11Forwarding = false;
       PubkeyAuthentication = true;
+      PasswordAuthentication = false;
+      KbdInteractiveAuthentication = false;
       PermitEmptyPasswords = false;
 
       # VERBOSE records public-key fingerprints but can make fail2ban count
@@ -368,7 +363,8 @@ in
       ClientAliveInterval = ssh.clientAliveInterval;
       ClientAliveCountMax = ssh.clientAliveCountMax;
 
-      # nix-fast-build opens many parallel sessions for build/download
+      # Parallel deployments need capacity without rate-limiting sequential admin connections.
+      MaxStartups = "64:30:256";
       MaxSessions = 64;
 
       Ciphers = [
@@ -495,35 +491,12 @@ in
         };
       };
 
-      # maxretry 3 (not 1): one preauth disconnect from a legit client must not
-      # mean an instant ban. Backoff handles repeat abusers.
-      sshd-aggressive = {
-        settings = {
-          enabled = true;
-          inherit (ssh) port;
-          filter = "sshd[mode=aggressive]";
-          maxretry = fail2ban.maxRetry;
-          findtime = fail2ban.findTime;
-          bantime = fail2ban.baseBanTime;
-          backend = "systemd";
-        };
-      };
     };
   };
 
-  # Spare clients that reach the auth phase then drop (e.g. an unconfirmed
-  # Secretive/Touch-ID prompt) from the aggressive jail. Anonymous floods lack
-  # the "authenticating user" qualifier, so they are still caught.
-  environment.etc."fail2ban/filter.d/sshd.local" = lib.mkIf isBastion {
-    text = ''
-      [Definition]
-      ignoreregex = ^(?:Connection closed|Disconnected) by authenticating user \S+ <HOST> port \d+(?: \[preauth\])?\s*$
-    '';
-  };
-
   # ========== firewall ==========
-  # Bastion: SSH exposed to internet with rate limiting
-  # Non-bastion: SSH only via WireGuard (wg-admin)
+  # Bastion: SSH exposed to internet and protected by public-key authentication.
+  # Non-bastion: SSH only via WireGuard (wg-admin).
   networking.firewall = {
     enable = true;
   }
@@ -531,38 +504,6 @@ in
     if isBastion then
       {
         allowedTCPPorts = [ ssh.port ];
-
-        extraCommands = ''
-          ${lib.optionalString hasWhitelist ''
-            ${lib.concatMapStringsSep "\n" (ip: ''
-              iptables -I INPUT -s ${ip} -p tcp --dport ${toString ssh.port} -j ACCEPT
-            '') otherPublicIPs}
-          ''}
-
-          iptables -A INPUT ! -s 10.0.0.0/8 -p tcp --dport ${toString ssh.port} \
-            -m state --state NEW -m recent --set --name SSH
-          iptables -A INPUT ! -s 10.0.0.0/8 -p tcp --dport ${toString ssh.port} \
-            -m state --state NEW -m recent --update \
-            --seconds ${toString rateLimiting.timeWindow} \
-            --hitcount ${toString rateLimiting.maxAttempts} \
-            --name SSH -j DROP
-        '';
-
-        extraStopCommands = ''
-          ${lib.optionalString hasWhitelist ''
-            ${lib.concatMapStringsSep "\n" (ip: ''
-              iptables -D INPUT -s ${ip} -p tcp --dport ${toString ssh.port} -j ACCEPT 2>/dev/null || true
-            '') otherPublicIPs}
-          ''}
-
-          iptables -D INPUT ! -s 10.0.0.0/8 -p tcp --dport ${toString ssh.port} \
-            -m state --state NEW -m recent --set --name SSH 2>/dev/null || true
-          iptables -D INPUT ! -s 10.0.0.0/8 -p tcp --dport ${toString ssh.port} \
-            -m state --state NEW -m recent --update \
-            --seconds ${toString rateLimiting.timeWindow} \
-            --hitcount ${toString rateLimiting.maxAttempts} \
-            --name SSH -j DROP 2>/dev/null || true
-        '';
       }
     else
       {

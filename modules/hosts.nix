@@ -83,7 +83,10 @@ in
       lib.mapAttrsToList (
         name: host:
         lib.optionalAttrs (host.wg-admin != null) {
-          ${host.wg-admin} = [ name ];
+          ${host.wg-admin} = [
+            name
+            "${name}.sjanglab.org"
+          ];
         }
       ) config.networking.sbee.hosts
     );
