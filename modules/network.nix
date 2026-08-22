@@ -47,6 +47,10 @@ in
         address = [ "${cfg.ipv4}/${subnet}" ];
         routes = [ { Gateway = "${cfg.gateway}"; } ];
         dns = nameservers;
+        networkConfig = {
+          LLDP = true;
+          EmitLLDP = true;
+        };
       };
     }
     // lib.mapAttrs (_: wgCfg: {

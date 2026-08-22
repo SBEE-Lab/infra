@@ -24,6 +24,12 @@ def get_hosts(hosts: str) -> list[DeployHost]:
     return [DeployHost(h, user="root") for h in hosts.split(",")]
 
 
+def inventory_hostnames(hosts: str = "") -> list[str]:
+    if hosts:
+        return [host.strip() for host in hosts.split(",") if host.strip()]
+    return sorted(path.stem for path in (ROOT / "hosts").glob("*.nix"))
+
+
 @task
 def deploy(_: Any, hosts: str) -> None:
     """
@@ -159,6 +165,46 @@ def fast_nix_gc(_: Any, hosts: str) -> None:
         "&& echo 'Triggered fast-nix-gc.service' "
         "|| { echo 'Failed to trigger fast-nix-gc.service' >&2; exit 1; }"
     )
+
+
+@task
+def update_host_info(c: Any, hosts: str = "") -> None:
+    """Regenerate hardware reports for comma-separated hosts or the full inventory."""
+    output_dir = ROOT / "docs" / "hosts"
+    script = ROOT / "docs" / "generate-host-info.sh"
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    with c.cd(str(output_dir)):
+        for host in inventory_hostnames(hosts):
+            c.run(f"{shlex.quote(str(script))} {shlex.quote(host)}")
+
+
+@task
+def update_lldp_info(c: Any, hosts: str = "") -> None:
+    """Regenerate the LLDP graph for comma-separated hosts or the full inventory."""
+    output_dir = ROOT / "docs" / "hosts"
+    collect_script = ROOT / "docs" / "get-lldp-neighbors.sh"
+    graph_script = ROOT / "docs" / "generate-lldp-graph.sh"
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    with TemporaryDirectory(prefix="lldp-", dir=output_dir) as lldp_dir, c.cd(lldp_dir):
+        for host in inventory_hostnames(hosts):
+            c.run(f"{shlex.quote(str(collect_script))} {shlex.quote(host)}")
+        c.run(shlex.quote(str(graph_script)))
+
+
+@task
+def update_network_topology(c: Any) -> None:
+    """Regenerate logical network topology from evaluated NixOS configuration."""
+    script = ROOT / "docs" / "generate-network-topology.py"
+    output = ROOT / "docs" / "admin" / "network-topology.md"
+    temporary_output = output.with_suffix(".md.tmp")
+
+    try:
+        c.run(f"{shlex.quote(str(script))} > {shlex.quote(str(temporary_output))}")
+        temporary_output.replace(output)
+    finally:
+        temporary_output.unlink(missing_ok=True)
 
 
 @task
