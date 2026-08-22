@@ -60,7 +60,7 @@ Available tasks:
   fast-nix-gc                      Trigger fast-nix-gc systemd service on remote hosts without waiting for GC completion
   generate-admin-wireguard-key     Generate an admin WireGuard key and client config
   generate-password                Generate password hashes for users i.e. for root in ./hosts/$HOSTNAME.yaml
-  generate-ssh-cert                Generate ssh cert for host, i.e. inv generate-ssh-cert bill
+  generate-ssh-cert                Generate SSH host certificate with optional DNS aliases
   generate-wireguard-key           Generate wireguard private key for a given hostname (wg-admin)
   install                          format disks and install nixos, i.e.: inv install --machine rho --hostname root@rho.sbee.lab
   install-ssh-hostkeys             Install ssh host keys stored in sops files on a remote host, i.e. inv install-ssh-hostkeys --machine rho --hostname rho
@@ -72,6 +72,9 @@ Available tasks:
   shutdown                         Shutdown a remote host, i.e. inv shutdown --host rho
   start-service                    Start a service on a remote host, i.e. inv start-service --host rho --service nginx
   stop-service                     Stop a service on a remote host, i.e. inv stop-service --host rho --service nginx
+  update-host-info                 Regenerate hardware reports for comma-separated hosts or the full inventory
+  update-lldp-info                 Regenerate the LLDP graph for comma-separated hosts or the full inventory
+  update-network-topology          Regenerate logical network topology from evaluated NixOS configuration
   update-sops-files                Update all sops yaml files according to .sops.nix rules
   wake                             Wake up a remote host using Wake-on-LAN, i.e, inv wake --host rho
 

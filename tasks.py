@@ -24,6 +24,12 @@ def get_hosts(hosts: str) -> list[DeployHost]:
     return [DeployHost(h, user="root") for h in hosts.split(",")]
 
 
+def inventory_hostnames(hosts: str = "") -> list[str]:
+    if hosts:
+        return [host.strip() for host in hosts.split(",") if host.strip()]
+    return sorted(path.stem for path in (ROOT / "hosts").glob("*.nix"))
+
+
 @task
 def deploy(_: Any, hosts: str) -> None:
     """
@@ -162,6 +168,46 @@ def fast_nix_gc(_: Any, hosts: str) -> None:
 
 
 @task
+def update_host_info(c: Any, hosts: str = "") -> None:
+    """Regenerate hardware reports for comma-separated hosts or the full inventory."""
+    output_dir = ROOT / "docs" / "hosts"
+    script = ROOT / "docs" / "generate-host-info.sh"
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    with c.cd(str(output_dir)):
+        for host in inventory_hostnames(hosts):
+            c.run(f"{shlex.quote(str(script))} {shlex.quote(host)}")
+
+
+@task
+def update_lldp_info(c: Any, hosts: str = "") -> None:
+    """Regenerate the LLDP graph for comma-separated hosts or the full inventory."""
+    output_dir = ROOT / "docs" / "hosts"
+    collect_script = ROOT / "docs" / "get-lldp-neighbors.sh"
+    graph_script = ROOT / "docs" / "generate-lldp-graph.sh"
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    with TemporaryDirectory(prefix="lldp-", dir=output_dir) as lldp_dir, c.cd(lldp_dir):
+        for host in inventory_hostnames(hosts):
+            c.run(f"{shlex.quote(str(collect_script))} {shlex.quote(host)}")
+        c.run(shlex.quote(str(graph_script)))
+
+
+@task
+def update_network_topology(c: Any) -> None:
+    """Regenerate logical network topology from evaluated NixOS configuration."""
+    script = ROOT / "docs" / "generate-network-topology.py"
+    output = ROOT / "docs" / "admin" / "network-topology.md"
+    temporary_output = output.with_suffix(".md.tmp")
+
+    try:
+        c.run(f"{shlex.quote(str(script))} > {shlex.quote(str(temporary_output))}")
+        temporary_output.replace(output)
+    finally:
+        temporary_output.unlink(missing_ok=True)
+
+
+@task
 def generate_password(c: Any, user: str = "root") -> None:
     """
     Generate password hashes for users i.e. for root in ./hosts/$HOSTNAME.yaml
@@ -177,9 +223,9 @@ def generate_password(c: Any, user: str = "root") -> None:
 
 
 @task
-def generate_ssh_cert(c: Any, host: str) -> None:
+def generate_ssh_cert(c: Any, host: str, aliases: str = "") -> None:
     """
-    Generate ssh cert for host, i.e. inv generate-ssh-cert bill
+    Generate an SSH host certificate, optionally adding comma-separated DNS aliases.
     """
     h = host
     sops_file = f"{ROOT}/hosts/{host}.yaml"
@@ -212,7 +258,8 @@ def generate_ssh_cert(c: Any, host: str) -> None:
         c.run(
             f"sops --extract '[\"ssh-ca\"]' -d {ROOT}/modules/sshd/ca-keys.yaml > {tmpdir}/ssh-ca"
         )
-        valid_hostnames = f"{h},{h}.r,{h}.l,{h}.n"
+        ssh_aliases = [alias.strip() for alias in aliases.split(",") if alias.strip()]
+        valid_hostnames = ",".join([h, f"{h}.r", f"{h}.l", f"{h}.n", *ssh_aliases])
         pubkey_path = f"{tmpdir}/etc/ssh/ssh_host_ed25519_key.pub"
         c.run(f"ssh-keygen -h -s {tmpdir}/ssh-ca -n {valid_hostnames} -I {h} {pubkey_path}")
         signed_key_src = f"{tmpdir}/etc/ssh/ssh_host_ed25519_key-cert.pub"

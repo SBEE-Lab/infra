@@ -19,19 +19,16 @@ A:
 - `allowedHosts`에 해당 호스트가 포함되어 있는지 확인합니다
 - eta 외 서버는 `jump.sjanglab.org`를 경유하는 ProxyJump가 필요합니다 ([SSH 접속](../dev/ssh-access.md) 참조)
 
-**Q: eta에 SSH 접속 시 자주 차단됩니다.**
+**Q: eta SSH 연결이 거부되거나 느립니다.**
 
-A: eta(점프 호스트)는 인터넷에 노출되어 있어 두 단계 방어가 적용됩니다.
+A:
 
-| 방어 | 조건 | 차단 시간 |
-|------|------|-----------|
-| iptables Rate limiting | 60초 내 5회 초과 시도 | 즉시 DROP |
-| fail2ban `sshd` | 10분 내 일반 SSH 인증 실패 3회 | 기본 5분 |
-| fail2ban `sshd-aggressive` | 10분 내 aggressive 필터 일치 3회 | 기본 5분 |
+- `ssh -o ControlMaster=no -o ControlPath=none eta`로 multiplex 문제를 배제합니다
+- `fail2ban-client status sshd`에서 인증 실패 차단 여부를 확인합니다
+- eta의 `sshd`는 `MaxStartups 64:30:256`으로 동시 미인증 연결을 제한하지만, 정상적인 순차 연결 횟수는 제한하지 않습니다
+- WireGuard와 독립된 장애 대응은 공인 `jump.sjanglab.org:10022`(`ssh eta`)를 사용합니다
 
-관리자/root 포함 모든 계정에 동일하게 적용됩니다. 반복 차단 시 차단 시간이 지수 증가하여 최대 7일까지 늘어납니다. 내부 네트워크(`10.0.0.0/8`)와 다른 호스트의 공인 IP는 화이트리스트로 제외됩니다.
-
-Rate limiting은 NEW 연결만 카운트하므로, `ControlMaster` 없이 ProxyJump를 통해 여러 호스트에 동시 접속하면 각각 새로운 연결로 카운트됩니다. 여러 SSH 작업을 병렬로 실행하면 5회를 초과할 수 있으므로, [SSH 접속](../dev/ssh-access.md)의 `ControlMaster` 설정을 반드시 사용하세요.
+eta는 공개키 인증만 허용합니다. 일반 `sshd` fail2ban jail은 10분 내 인증 실패 3회를 기본 5분 차단하며, 반복 차단 시간은 최대 7일까지 증가합니다.
 
 ## 서비스
 

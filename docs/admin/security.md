@@ -31,30 +31,25 @@ flowchart LR
   eta -- "wg-admin" --> tau["tau<br/>10.100.0.4"]
 ```
 
-### SSH 속도 제한
+### SSH 연결 보호
 
-eta에 적용되는 방어 계층:
+eta는 공개키 인증만 허용합니다. 순차 연결 횟수 기반 방화벽 제한은 정상적인 관리자 접속과 병렬 배포를 차단하므로 사용하지 않습니다.
 
 ```mermaid
 flowchart TD
-  conn["SSH 연결 시도"] --> ipt{"iptables<br/>60초 내 NEW 5회 초과?"}
-  ipt -- "초과" --> drop["즉시 DROP"]
-  ipt -- "통과" --> sshd["sshd 인증"]
+  conn["SSH 연결 시도"] --> startup{"sshd MaxStartups<br/>동시 미인증 연결 용량"}
+  startup -- "용량 초과" --> shed["확률적 연결 거부"]
+  startup -- "통과" --> sshd["공개키 인증"]
   sshd -- "성공" --> ok["접속 허용"]
-  sshd -- "실패" --> log["sshd 로그 기록"]
-  log --> f1["fail2ban sshd<br/>10분 내 3회 → 기본 5분 차단"]
-  log --> f2["fail2ban aggressive<br/>10분 내 3회 → 기본 5분 차단"]
+  sshd -- "실패" --> f2b["fail2ban sshd"]
 ```
 
-iptables(연결 빈도)와 fail2ban(인증 실패 로그)은 **독립적인 병렬 계층**입니다. iptables는 TCP 연결 시점에 즉시 판단하고, fail2ban은 sshd 로그를 감시하여 사후 차단합니다.
-
-| 계층 | 조건 | 차단 |
+| 계층 | 설정 | 목적 |
 |------|------|------|
-| iptables | 60초 내 NEW 연결 5회 초과 | 즉시 DROP |
-| fail2ban `sshd` | 10분 내 일반 SSH 인증 실패 3회 | 기본 5분 |
-| fail2ban `sshd-aggressive` | 10분 내 aggressive 필터 일치 3회 | 기본 5분 |
+| OpenSSH | `MaxStartups 64:30:256` | 병렬 배포를 수용하면서 동시 미인증 연결 폭주 제한 |
+| fail2ban `sshd` | 10분 내 인증 실패 3회, 기본 5분 차단 | 반복 인증 공격 차단 |
 
-재차 차단되는 IP는 전체 jail 이력을 기준으로 차단 시간이 지수 증가하며 최대 7일까지 늘어납니다. 화이트리스트는 `10.0.0.0/8` 내부 네트워크와 다른 호스트의 공인 IP입니다.
+재차 차단되는 IP는 전체 jail 이력을 기준으로 차단 시간이 지수 증가하며 최대 7일까지 늘어납니다. 단순 TCP 연결 종료를 공격으로 간주하는 aggressive jail은 사용하지 않습니다.
 
 ### WireGuard VPN 분리
 

@@ -22,62 +22,41 @@ cat ~/.ssh/id_ed25519.pub  # 이 내용을 관리자에게 전달
 
 ## 접속 방법
 
-모든 SSH 접속은 점프 호스트(`jump.sjanglab.org`)를 경유합니다. 포트는 `10022`입니다.
+외부에서는 공인 점프 호스트(`jump.sjanglab.org`)를 통해 접속합니다. 모든 SSH 서버의 포트는 `10022`입니다.
 
 ```mermaid
 flowchart LR
   user["로컬 PC"] -- "SSH :10022" --> eta["eta<br/>jump.sjanglab.org"]
-  eta -- "ProxyJump<br/>wg-admin" --> psi["psi .2"]
-  eta -- "ProxyJump<br/>wg-admin" --> rho["rho .3"]
-  eta -- "ProxyJump<br/>wg-admin" --> tau["tau .4"]
+  eta -- "ProxyJump<br/>wg-admin 이름 해석" --> psi["psi"]
+  eta -- "ProxyJump<br/>wg-admin 이름 해석" --> rho["rho"]
+  eta -- "ProxyJump<br/>wg-admin 이름 해석" --> tau["tau"]
 ```
 
 ```bash
 # eta (점프 호스트) 직접 접속
 ssh -p 10022 <username>@jump.sjanglab.org
 
-# 다른 호스트는 eta를 경유 (ProxyJump)
-ssh -p 10022 -J <username>@jump.sjanglab.org:10022 <username>@10.100.0.2
+# 다른 호스트는 eta를 경유합니다. 대상 FQDN은 eta에서 해석됩니다.
+ssh -p 10022 -J <username>@jump.sjanglab.org:10022 <username>@psi.sjanglab.org
 ```
 
-## SSH 설정 권장 사항
+## 공용 SSH 설정 { #public-ssh-config }
 
-`~/.ssh/config`:
+인프라 저장소가 Doctor cluster와 같은 방식으로 공용 SSH 설정 생성기를 제공합니다. `<username>`은 서버 계정명으로 바꿉니다.
 
-```
-Host eta psi rho tau
-    User <username>
-    Port 10022
-    IdentityFile ~/.ssh/id_ed25519
-    ControlMaster auto
-    ControlPath ~/.ssh/sockets/%r@%h-%p
-    ControlPersist 600
-
-Host eta
-    HostName jump.sjanglab.org
-
-Host psi
-    HostName 10.100.0.2
-    ProxyJump eta
-
-Host rho
-    HostName 10.100.0.3
-    ProxyJump eta
-
-Host tau
-    HostName 10.100.0.4
-    ProxyJump eta
+```bash
+./docs/gen-ssh-config.sh <username>
 ```
 
-설정 후 `ssh psi`로 바로 접속할 수 있습니다. `mkdir -p ~/.ssh/sockets`로 소켓 디렉토리를 미리 생성하세요.
+출력을 검토한 뒤 `~/.ssh/config`에 추가합니다. 생성기는 GitHub의 `hosts/*.nix`에서 호스트 목록을 읽고, 공인 eta와 나머지 호스트의 `${host}.sjanglab.org` FQDN 및 ProxyJump를 출력합니다. 대상 FQDN은 eta의 `/etc/hosts`에서 WireGuard 주소로 해석됩니다. WireGuard 주소, 개인 `IdentityFile`, Secretive, multiplex 설정은 포함하지 않습니다.
 
-`ControlMaster`/`ControlPersist`는 첫 연결의 소켓을 10분간 유지하여, 이후 같은 호스트로의 SSH/SCP/rsync가 재인증 없이 즉시 연결됩니다. ProxyJump 경유 시 특히 유용합니다.
+`ssh eta`는 WireGuard와 독립적인 공인 장애 대응 경로입니다. 연결 장애를 진단할 때는 `-o ControlMaster=no -o ControlPath=none`으로 multiplex를 배제하세요.
 
 ## 서버별 접근
 
 | 호스트 | IP (wg-admin) | 접근 방식 | 비고 |
 |--------|--------------|----------|------|
-| eta | — | 점프 호스트 (`jump.sjanglab.org`) | Rate limiting 적용 |
+| eta | 10.100.0.1 | 공인 점프 호스트 | 공개키 인증 |
 | psi | 10.100.0.2 | ProxyJump (eta 경유) | GPU 연산 서버 |
 | rho | 10.100.0.3 | ProxyJump (eta 경유) | DB/모니터링 |
 | tau | 10.100.0.4 | ProxyJump (eta 경유) | 앱 서버 |

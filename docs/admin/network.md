@@ -1,54 +1,16 @@
 # 네트워크
 
-## 3계층 네트워크 개요
+NixOS host inventory와 WireGuard peer 설정을 평가한 최신 구성은 [자동 생성 논리 네트워크 토폴로지](network-topology.md)에서 확인합니다. 설정 변경 후 `inv update-network-topology`으로 갱신합니다.
 
-```mermaid
-graph TB
-  internet["인터넷"]
+## 논리 네트워크 개요
 
-  subgraph public["공인 IP (외부 노출)"]
-    eta_pub["eta<br/>141.164.53.203"]
-    psi_pub["psi<br/>117.16.251.37"]
-  end
-
-  subgraph wg["wg-admin (10.100.0.0/24)"]
-    direction LR
-    eta_wg["eta .1"]
-    psi_wg["psi .2"]
-    rho_wg["rho .3"]
-    tau_wg["tau .4"]
-  end
-
-  subgraph hs["Headscale (100.64.0.0/10)"]
-    direction LR
-    users["사용자 VPN 클라이언트"]
-  end
-
-  internet -- "80, 443, 10022, 2323" --> eta_pub
-  eta_pub --- eta_wg
-  psi_pub --- psi_wg
-  eta_wg --- psi_wg
-  eta_wg --- rho_wg
-  eta_wg --- tau_wg
-  users -- "Magic DNS" --> eta_wg
-  users -- "Magic DNS" --> psi_wg
-  users -- "Magic DNS" --> tau_wg
-```
+Underlay host grouping, NAT gateway, `wg-admin` peer 관계와 평가된 주소는 [자동 생성 논리 네트워크 토폴로지](network-topology.md)를 source of truth로 사용합니다. 이 문서는 각 레이어의 운영 정책을 설명합니다.
 
 | 레이어 | 기술 | 용도 | 대역 |
 |--------|------|------|------|
+| Underlay | VPS, KREN, 연구실 NAT | 호스트의 물리 IPv4 연결 | 네트워크별 상이 |
 | WireGuard | `wg-admin` | 인프라 관리 (SSH, DB, 모니터링) | `10.100.0.0/24` |
 | Headscale | Tailscale 호환 | 사용자 서비스 접근 | `100.64.0.0/10` |
-| 공인 IP | nginx 리버스 프록시 | 외부 노출 (eta public edge, psi는 wg-admin 백엔드) | `141.164.53.203`, `117.16.251.37` |
-
-## 호스트 목록
-
-| 호스트 | 공인 IP | wg-admin IP | 게이트웨이 | 위치 |
-|--------|---------|-------------|-----------|------|
-| **eta** | 141.164.53.203 | 10.100.0.1 | 141.164.52.1 | Vultr VPS |
-| **psi** | 117.16.251.37 | 10.100.0.2 | 117.16.251.254 | KREN 네트워크 |
-| **rho** | 10.80.169.39 | 10.100.0.3 | 10.80.169.254 | 랩 내부 (NAT) |
-| **tau** | 10.80.169.40 | 10.100.0.4 | 10.80.169.254 | 랩 내부 (NAT) |
 
 ## WireGuard (`wg-admin`)
 
@@ -59,7 +21,7 @@ graph TB
 - 대역: `10.100.0.0/24`
 - PersistentKeepalive: 25초
 
-NAT 뒤 호스트(rho, tau)는 엔드포인트가 없으며, 공인 IP 호스트(eta, psi)에 먼저 연결합니다.
+rho와 tau는 공개 WireGuard endpoint가 없으며, 공인 eta 또는 KREN NAT로 공개된 psi endpoint에 먼저 연결합니다.
 
 ## Headscale (사용자 VPN)
 
@@ -120,7 +82,7 @@ Headscale은 `policy.mode = "database"`로 동작합니다. ACL 변경 후 즉�
 
 | 호스트 | 외부 개방 포트 | wg-admin 개방 포트 |
 |--------|--------------|-------------------|
-| eta | 80, 443, 10022 (SSH + Rate limiting), 2323 (Upterm relay) | 10022, 8000 (Vaultwarden), 8081 (Gatus) |
+| eta | 80, 443, 10022 (공개키 SSH), 2323 (Upterm relay) | 10022, 8000 (Vaultwarden), 8081 (Gatus) |
 | psi | — | 80/443 (Nixbot upstream), 10022, 5751 (niks3 API), 5432 (Nixbot/niks3 PostgreSQL), 9201/9202 (TEI metrics) |
 | rho | — | 10022, 5432 (PostgreSQL), 3000 (Grafana) |
 | tau | — | 10022, 5678 (n8n 웹훅) |

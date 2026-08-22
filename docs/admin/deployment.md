@@ -51,7 +51,10 @@ nix build .#nixosConfigurations.psi.config.system.build.toplevel
 |--------|------|
 | `inv deploy --hosts <host>` | 원격 배포 |
 | `inv add-server --hostname <name>` | 새 서버 추가 |
-| `inv generate-ssh-cert <host>` | SSH 인증서 생성 |
+| `inv generate-ssh-cert <host> [--aliases <dns,...>]` | SSH 인증서 생성. eta 재발급 시 `--aliases jump.sjanglab.org` 지정 |
 | `inv generate-wireguard-key --hostname <host>` | WireGuard 키 생성 |
 | `inv generate-password --user <name>` | 비밀번호 해시 생성 |
+| `inv update-host-info [--hosts <host,...>]` | 호스트 하드웨어 보고서 갱신 |
+| `inv update-lldp-info [--hosts <host,...>]` | LLDP 네트워크 그래프 갱신 |
+| `inv update-network-topology` | NixOS 설정에서 논리 네트워크 토폴로지 갱신 |
 | `inv expired-accounts` | 만료 계정 확인 |
