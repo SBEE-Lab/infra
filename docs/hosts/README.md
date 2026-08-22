@@ -10,7 +10,7 @@
 
 ## 하드웨어 보고서
 
-저장소 devShell에서 전체 inventory를 갱신합니다. 대상은 [공용 SSH 설정](../dev/ssh-access.md#%EA%B3%B5%EC%9A%A9-ssh-%EC%84%A4%EC%A0%95)에 등록되어 있어야 하며 원격 `sudo` 권한이 필요합니다.
+저장소 devShell에서 전체 inventory를 갱신합니다. 대상은 [공용 SSH 설정](../dev/ssh-access.md#public-ssh-config)에 등록되어 있어야 하며 원격 `sudo` 권한이 필요합니다.
 
 ```bash
 nix develop

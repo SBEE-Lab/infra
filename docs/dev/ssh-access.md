@@ -40,7 +40,7 @@ ssh -p 10022 <username>@jump.sjanglab.org
 ssh -p 10022 -J <username>@jump.sjanglab.org:10022 <username>@psi.sjanglab.org
 ```
 
-## 공용 SSH 설정
+## 공용 SSH 설정 { #public-ssh-config }
 
 인프라 저장소가 Doctor cluster와 같은 방식으로 공용 SSH 설정 생성기를 제공합니다. `<username>`은 서버 계정명으로 바꿉니다.
 

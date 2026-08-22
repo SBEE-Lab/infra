@@ -22,6 +22,7 @@ ssh "$target" -- "nix-shell -p hwloc -p dmidecode --run 'sudo lstopo /tmp/$hostn
 scp "$target:/tmp/$hostname.lstopo.svg" "$lstopo"
 ssh "$target" -- "sudo rm /tmp/$hostname.lstopo.svg"
 printf '```
+
 ![hardware topology](%s)
 ' "$lstopo" >>"$report"
 echo "wrote $report" >&2

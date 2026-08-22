@@ -6,7 +6,12 @@
       docsFiles = fileset.unions [
         ../zensical.toml
         (fileset.fileFilter (
-          file: file.hasExt "md" || file.hasExt "css" || file.hasExt "html" || file.hasExt "json"
+          file:
+          file.hasExt "md"
+          || file.hasExt "css"
+          || file.hasExt "html"
+          || file.hasExt "json"
+          || file.hasExt "svg"
         ) ../docs)
       ];
     in
