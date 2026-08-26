@@ -126,7 +126,7 @@ in
 
   services.tei = {
     enable = true;
-    listenAddress = "127.0.0.1";
+    listenAddress = "::";
     openFirewall = false;
     models = {
       embed = {
@@ -161,11 +161,17 @@ in
     extraFlags = [ "--no-shutdown-on-error" ];
   };
 
-  networking.firewall.interfaces."wg-admin".allowedTCPPorts = [
-    9201 # TEI embed Prometheus metrics
-    9202 # TEI rerank Prometheus metrics
-    9835 # nvidia-gpu exporter
-  ];
+  networking.firewall = {
+    interfaces."wg-admin".allowedTCPPorts = [
+      8201 # TEI embed API and Prometheus metrics
+      8202 # TEI rerank API and Prometheus metrics
+      9835 # nvidia-gpu exporter
+    ];
+    extraCommands = ''
+      iptables -A nixos-fw -i tinc.naru -s 10.208.0.6 -p tcp --dport 8201 -j nixos-fw-accept
+      ip6tables -A nixos-fw -i tinc.naru -s fdec:ca5f:90ad:b0c7:d0dc:cc85:1781:f55e -p tcp --dport 8201 -j nixos-fw-accept
+    '';
+  };
 
   programs.singularity = {
     enable = true;
