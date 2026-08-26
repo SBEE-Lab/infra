@@ -65,16 +65,6 @@ let
       target = "https://${hosts.psi.wg-admin}/";
       hostname = "multievolve.sjanglab.org";
     }
-    {
-      service = "tei-embed";
-      target = "https://${hosts.psi.wg-admin}/health/embed";
-      hostname = "tei.sjanglab.org";
-    }
-    {
-      service = "tei-rerank";
-      target = "https://${hosts.psi.wg-admin}/health/rerank";
-      hostname = "tei.sjanglab.org";
-    }
   ];
 
   blackboxTcpTargets = [
@@ -261,7 +251,7 @@ in
         scrape_interval = "30s";
         static_configs = [
           {
-            targets = [ "${hosts.psi.wg-admin}:9201" ];
+            targets = [ "${hosts.psi.wg-admin}:8201" ];
             labels = {
               host = "psi";
               service = "tei-embed";
@@ -269,7 +259,7 @@ in
             };
           }
           {
-            targets = [ "${hosts.psi.wg-admin}:9202" ];
+            targets = [ "${hosts.psi.wg-admin}:8202" ];
             labels = {
               host = "psi";
               service = "tei-rerank";

@@ -9,7 +9,6 @@ let
     "multievolve.sjanglab.org" = "multievolve";
     "n8n.sjanglab.org" = "n8n";
     "status.sjanglab.org" = "gatus";
-    "tei.sjanglab.org" = "tei";
     "vault.sjanglab.org" = "vaultwarden";
   };
   serviceMappings = lib.concatStringsSep "\n" (

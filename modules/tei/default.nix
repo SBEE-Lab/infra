@@ -8,9 +8,15 @@
 }:
 let
   cfg = config.services.tei;
-  domain = "tei.sjanglab.org";
-  certDir = "/var/lib/acme/${domain}";
-  wgAdminAddr = config.networking.sbee.currentHost.wg-admin;
+  healthHost =
+    if cfg.listenAddress == "::" then
+      "[::1]"
+    else if cfg.listenAddress == "0.0.0.0" then
+      "127.0.0.1"
+    else if lib.hasInfix ":" cfg.listenAddress then
+      "[${cfg.listenAddress}]"
+    else
+      cfg.listenAddress;
 
   modelType = lib.types.submodule {
     options = {
@@ -84,10 +90,7 @@ let
   };
 in
 {
-  imports = [
-    ../acme/sync.nix
-    ../gatus/check.nix
-  ];
+  imports = [ ../gatus/check.nix ];
 
   options.services.tei = {
     enable = lib.mkEnableOption "Text Embeddings Inference embedding and reranking services";
@@ -168,79 +171,11 @@ in
       {
         name = "TEI";
         group = "ai";
-        checks =
-          (map (model: {
-            url = "http://${cfg.listenAddress}:${toString model.port}/health";
-          }) (builtins.attrValues enabledModels))
-          ++ [
-            { url = "https://${domain}/health/embed"; }
-            { url = "https://${domain}/health/rerank"; }
-          ];
+        checks = map (model: {
+          url = "http://${healthHost}:${toString model.port}/health";
+        }) (builtins.attrValues enabledModels);
       }
     ];
-
-    acmeSyncer.mkReceiver = [
-      { inherit domain; }
-    ];
-
-    services.nginx = {
-      enable = true;
-      virtualHosts.${domain} = {
-        forceSSL = true;
-        sslCertificate = "${certDir}/fullchain.pem";
-        sslCertificateKey = "${certDir}/key.pem";
-        extraConfig = ''
-          access_log /var/log/nginx/access-audit/tei.log nginx_access_json;
-        '';
-
-        locations."/embed/" = {
-          proxyPass = "http://127.0.0.1:8201/";
-          extraConfig = ''
-            client_max_body_size 100M;
-            proxy_read_timeout 300s;
-          '';
-        };
-        locations."/rerank/" = {
-          proxyPass = "http://127.0.0.1:8202/";
-          extraConfig = ''
-            client_max_body_size 100M;
-            proxy_read_timeout 300s;
-          '';
-        };
-        locations."= /health/embed".proxyPass = "http://127.0.0.1:8201/health";
-        locations."= /health/rerank".proxyPass = "http://127.0.0.1:8202/health";
-      };
-
-      virtualHosts.tei-embed-metrics = {
-        serverName = "tei-embed-metrics.internal";
-        listen = [
-          {
-            addr = wgAdminAddr;
-            port = 9201;
-          }
-        ];
-        locations."= /metrics" = {
-          proxyPass = "http://127.0.0.1:8201/metrics";
-          extraConfig = "access_log off;";
-        };
-        locations."/".extraConfig = "return 403;";
-      };
-
-      virtualHosts.tei-rerank-metrics = {
-        serverName = "tei-rerank-metrics.internal";
-        listen = [
-          {
-            addr = wgAdminAddr;
-            port = 9202;
-          }
-        ];
-        locations."= /metrics" = {
-          proxyPass = "http://127.0.0.1:8202/metrics";
-          extraConfig = "access_log off;";
-        };
-        locations."/".extraConfig = "return 403;";
-      };
-    };
 
     systemd.services = lib.mapAttrs' (
       name: model: lib.nameValuePair "tei-${name}" (mkTeiService name model)
