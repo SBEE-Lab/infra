@@ -1,4 +1,8 @@
-{ config, ... }:
+{
+  config,
+  pkgs,
+  ...
+}:
 {
   imports = [
     ../acme
@@ -112,6 +116,35 @@
 
       # ACL policy is managed by terraform/headscale through the Headscale API.
       policy.mode = "database";
+    };
+  };
+
+  # Headscale fetches OIDC discovery during startup, so service ordering alone
+  # cannot protect a configuration switch while Authentik is still warming up.
+  systemd.services.headscale = {
+    after = [
+      "authentik.service"
+      "nginx.service"
+    ];
+    wants = [
+      "authentik.service"
+      "nginx.service"
+    ];
+    serviceConfig = {
+      ExecStartPre = pkgs.writeShellScript "headscale-wait-for-oidc" ''
+        url=https://auth.sjanglab.org/application/o/headscale/.well-known/openid-configuration
+
+        for attempt in $(${pkgs.coreutils}/bin/seq 1 45); do
+          if ${pkgs.curl}/bin/curl --fail --silent --max-time 2 "$url" >/dev/null; then
+            exit 0
+          fi
+          ${pkgs.coreutils}/bin/sleep 2
+        done
+
+        echo "OIDC discovery endpoint did not become ready after 45 attempts: $url" >&2
+        exit 1
+      '';
+      TimeoutStartSec = "4min";
     };
   };
 
