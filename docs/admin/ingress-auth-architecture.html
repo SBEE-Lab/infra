@@ -3771,7 +3771,7 @@
       <p class="subtitle">도메인 요청이 eta, Authentik, Headscale, 서비스로 들어가는 경로</p>
     </div>
 
-    <script id="archify-guided-views-data" type="application/json">[{"id":"forward-auth","label":"Forward Auth","focus":["user","cloudflare","eta-nginx","authentik-outpost","n8n","grafana","multievolve"],"note":"nginx가 outpost에 인증 확인을 요청하고 사용자 헤더를 upstream으로 전달합니다."},{"id":"oidc-apps","label":"OIDC 앱","focus":["user","eta-nginx","authentik","nextcloud","vaultwarden"],"note":"Nextcloud와 Vaultwarden은 앱 자체 OIDC provider로 Authentik에 로그인합니다."},{"id":"vpn-acl","label":"VPN ACL","focus":["user","authentik","headscale","tailnet","docling-tei","apps"],"note":"Headscale은 Authentik OIDC와 Terraform ACL policy로 tag별 접근을 허용합니다."}]</script>
+    <script id="archify-guided-views-data" type="application/json">[{"id":"forward-auth","label":"Forward Auth","focus":["user","cloudflare","eta-nginx","authentik-outpost","n8n","grafana","multievolve"],"note":"nginx가 outpost에 인증 확인을 요청하고 사용자 헤더를 upstream으로 전달합니다."},{"id":"oidc-apps","label":"OIDC 앱","focus":["user","eta-nginx","authentik","nextcloud","vaultwarden"],"note":"Nextcloud와 Vaultwarden은 앱 자체 OIDC provider로 Authentik에 로그인합니다."},{"id":"vpn-acl","label":"VPN ACL","focus":["user","authentik","headscale","tailnet","docling","apps"],"note":"Headscale은 Authentik OIDC와 Terraform ACL policy로 tag별 접근을 허용합니다."}]</script>
     <div class="guided-views no-print" id="guided-views" hidden aria-label="Guided diagram views">
       <button id="guided-view-prev" type="button" aria-label="Previous guided view" title="Previous guided view ([)">&#8592;</button>
       <div class="guided-view-copy">
@@ -3857,7 +3857,7 @@
         <path data-edge-from="authentik-outpost" data-edge-to="n8n" data-edge-label="headers" data-edge-key="8" data-edge-id="outpost-n8n" data-composition-points="745,322;800,322;800,280;855,280" d="M 745 322 L 792 322 Q 800 322 800 314 L 800 288 Q 800 280 808 280 L 855 280" class="a-security" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
         <path data-edge-from="authentik-outpost" data-edge-to="grafana" data-edge-label="headers" data-edge-key="9" data-edge-id="outpost-grafana" data-composition-points="745,322;800,322;800,355;855,355" d="M 745 322 L 792 322 Q 800 322 800 330 L 800 347 Q 800 355 808 355 L 855 355" class="a-security" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
         <path data-edge-from="n8n" data-edge-to="multievolve" data-edge-label="동일 패턴" data-edge-key="10" data-edge-id="n8n-multi" data-composition-points="975,280;1055,280" d="M 975 280 L 1055 280" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
-        <path data-edge-from="tailnet" data-edge-to="docling-tei" data-edge-label="tag:ai" data-edge-key="11" data-edge-id="tailnet-ai" data-composition-points="1005,437;1125,437" d="M 1005 437 L 1125 437" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        <path data-edge-from="tailnet" data-edge-to="docling" data-edge-label="tag:ai" data-edge-key="11" data-edge-id="tailnet-ai" data-composition-points="1005,437;1125,437" d="M 1005 437 L 1125 437" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <path data-edge-from="tailnet" data-edge-to="apps" data-edge-label="tag:apps" data-edge-key="12" data-edge-id="tailnet-apps" data-composition-points="1005,437;1065,437;1065,540;1125,540" d="M 1005 437 L 1057 437 Q 1065 437 1065 445 L 1065 532 Q 1065 540 1073 540 L 1125 540" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
 
         <!-- Components -->
@@ -4002,14 +4002,14 @@
         <text data-detail="context" x="1045" y="164" class="t-muted" font-size="9" text-anchor="middle">OIDC PKCE</text>
         </g>
 
-        <g id="node-docling-tei" data-node-id="docling-tei" data-node-label="Docling · TEI" tabindex="0" role="button" aria-label="Focus Docling · TEI, Headscale ACL, Architecture component" aria-pressed="false" data-node-kind="backend" data-node-sublabel="Headscale ACL" data-node-context="Architecture component">
-          <title>Docling · TEI · Headscale ACL · Architecture component</title>
+        <g id="node-docling" data-node-id="docling" data-node-label="Docling" tabindex="0" role="button" aria-label="Focus Docling, Headscale ACL, Architecture component" aria-pressed="false" data-node-kind="backend" data-node-sublabel="Headscale ACL" data-node-context="Architecture component">
+          <title>Docling · Headscale ACL · Architecture component</title>
           <rect x="1125" y="407" width="120" height="60" rx="6" class="c-mask"/>
           <rect x="1125" y="407" width="120" height="60" rx="6" class="c-backend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(1131 413) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
-          <text data-detail-anchor x="1185" y="435" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Docling · TEI</text>
+          <text data-detail-anchor x="1185" y="435" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Docling</text>
         <text data-detail="context" x="1185" y="451" class="t-muted" font-size="9" text-anchor="middle">Headscale ACL</text>
         </g>
 
@@ -4069,7 +4069,7 @@
           <rect x="988.4" y="314" width="53.199999999999996" height="14" rx="3" class="c-mask"/>
           <text x="1015" y="324" class="t-messagebus" font-size="8" text-anchor="middle">동일 패턴</text>
         </g>
-        <g data-detail="context" data-edge-from="tailnet" data-edge-to="docling-tei" data-edge-label="tag:ai" data-edge-key="11" data-edge-id="tailnet-ai">
+        <g data-detail="context" data-edge-from="tailnet" data-edge-to="docling" data-edge-label="tag:ai" data-edge-key="11" data-edge-id="tailnet-ai">
           <rect x="980.6" y="470" width="38.8" height="14" rx="3" class="c-mask"/>
           <text x="1000" y="480" class="t-backend" font-size="8" text-anchor="middle">tag:ai</text>
         </g>

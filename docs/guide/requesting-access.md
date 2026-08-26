@@ -21,7 +21,7 @@ SBEE Lab Slack에서 인프라 관리자에게 DM으로 요청합니다. Slack�
 | 역할 | 사용 가능한 서비스 |
 |------|-------------------|
 | **관리자** | 전체 서비스 |
-| **연구원** | Nextcloud, Vaultwarden, n8n, Docling, TEI, MULTI-evolve |
+| **연구원** | Nextcloud, Vaultwarden, n8n, Docling, MULTI-evolve |
 | **학생** | Nextcloud, Vaultwarden |
 
 ## 계정 생성 후

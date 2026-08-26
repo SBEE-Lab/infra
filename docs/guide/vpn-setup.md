@@ -122,7 +122,7 @@ VPN 연결 후 Magic DNS로 내부 서비스에 접근할 수 있습니다. Next
 ```mermaid
 flowchart LR
   user["사용자<br/>Tailscale VPN"] --> hs["Headscale<br/>hs.sjanglab.org"]
-  hs --> psi["psi (100.64.0.1)<br/>Docling · TEI · MULTI-evolve"]
+  hs --> psi["psi (100.64.0.1)<br/>Docling · MULTI-evolve"]
   hs --> tau["tau (100.64.0.3)<br/>Nextcloud · n8n · Vaultwarden"]
   internet["VPN 없는 사용자"] --> eta_edge["eta public edge<br/>Nextcloud"]
   eta_edge --> tau
@@ -135,7 +135,6 @@ flowchart LR
 | `vault.sjanglab.org` | 100.64.0.3 | tau | Vaultwarden |
 | `n8n.sjanglab.org` | 100.64.0.3 | tau | n8n |
 | `docling.sjanglab.org` | 100.64.0.1 | psi | Docling |
-| `tei.sjanglab.org` | 100.64.0.1 | psi | TEI |
 | `multievolve.sjanglab.org` | 100.64.0.1 | psi | MULTI-evolve |
 | `upterm.sjanglab.org` | 141.164.53.203 | eta | Upterm relay |
 

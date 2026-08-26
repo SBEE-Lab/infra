@@ -30,7 +30,6 @@ flowchart LR
 | [Vaultwarden](vaultwarden.md) | `vault.sjanglab.org` | VPN 필수 | OIDC |
 | [n8n](n8n.md) | `n8n.sjanglab.org` | VPN 필수 | Forward Auth |
 | [Docling](docling.md) | `docling.sjanglab.org` | VPN 필수 | Headscale ACL |
-| [TEI](tei.md) | `tei.sjanglab.org` | VPN 필수 | Headscale ACL |
 | [MULTI-evolve](multievolve.md) | `multievolve.sjanglab.org` | VPN 필수 | Headscale ACL + Forward Auth |
 | [Upterm](upterm.md) | `upterm.sjanglab.org` | 공개 relay | GitHub user allow-list |
 
@@ -44,7 +43,6 @@ Nextcloud와 Upterm relay는 VPN 없이도 접근 가능합니다. Vaultwarden�
 | Vaultwarden | O | O | O |
 | n8n | O | O | X |
 | Docling | O | O | X |
-| TEI | O | O | X |
 | MULTI-evolve | O | O | X |
 | Upterm | O | O | O |
 
