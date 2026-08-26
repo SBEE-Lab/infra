@@ -42,7 +42,7 @@
           "authentik",
           "headscale",
           "tailnet",
-          "docling-tei",
+          "docling",
           "apps"
         ],
         "note": "Headscale은 Authentik OIDC와 Terraform ACL policy로 tag별 접근을 허용합니다."
@@ -191,9 +191,9 @@
       ]
     },
     {
-      "id": "docling-tei",
+      "id": "docling",
       "type": "backend",
-      "label": "Docling · TEI",
+      "label": "Docling",
       "sublabel": "Headscale ACL",
       "pos": [
         1125,
@@ -390,7 +390,7 @@
     {
       "id": "tailnet-ai",
       "from": "tailnet",
-      "to": "docling-tei",
+      "to": "docling",
       "label": "tag:ai",
       "variant": "emphasis",
       "labelAt": [

@@ -16,7 +16,6 @@ SBEE Lab의 NixOS 기반 연구 인프라 문서입니다.
 | Vaultwarden | [vault.sjanglab.org](https://vault.sjanglab.org) | 비밀번호 관리 | VPN 필수 |
 | n8n | [n8n.sjanglab.org](https://n8n.sjanglab.org) | 워크플로우 자동화 | VPN 필수 |
 | Docling | [docling.sjanglab.org](https://docling.sjanglab.org) | 문서 변환 | VPN 필수 |
-| TEI | [tei.sjanglab.org](https://tei.sjanglab.org) | 임베딩/리랭킹 API | VPN 필수 |
 | MULTI-evolve | [multievolve.sjanglab.org](https://multievolve.sjanglab.org) | 연구자용 Streamlit UI | VPN 필수 |
 | Upterm | [upterm.sjanglab.org](https://upterm.sjanglab.org) | 임시 터미널 공유 | 공개 relay |
 

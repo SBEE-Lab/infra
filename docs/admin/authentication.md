@@ -14,7 +14,8 @@
 | n8n | Forward Auth | 관리자/연구원용 워크플로우 UI (Headscale ACL + Forward Auth 이중 보호) |
 | Grafana | Forward Auth | Tailnet에서만 접근 가능한 관리자 대시보드 |
 | Gatus | 없음 | Tailnet에서만 접근 가능한 공개 상태 페이지 (Authentik dashboard tile만 표시) |
-| Docling/TEI | Headscale ACL | 연구자/관리자용 AI API |
+| Docling | Headscale ACL | 연구자/관리자용 AI API |
+| TEI | Naru/WireGuard source allowlist | malt ai-memory embedding과 관리망 모니터링 |
 | MULTI-evolve | Headscale ACL + Forward Auth | 연구자/관리자용 Streamlit UI |
 | Nixbot | GitHub OAuth | CI/CD 대시보드 접근 |
 

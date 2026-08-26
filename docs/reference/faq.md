@@ -38,7 +38,7 @@ A: `https://cloud.sjanglab.org` 도메인으로 접속해야 합니다. 직접 I
 
 **Q: AI API 요청이 느립니다.**
 
-A: 첫 요청 시 모델을 VRAM에 로딩하거나 컨테이너가 워밍업되는 시간이 필요합니다. Docling/TEI/MULTI-evolve는 psi GPU를 공유하므로 동시에 큰 작업이 돌면 느려질 수 있습니다.
+A: Docling이나 MULTI-evolve는 첫 요청에서 모델 적재나 워밍업이 필요할 수 있습니다. TEI는 모델을 상시 적재하지만 세 서비스가 psi GPU를 공유하므로 동시에 큰 작업이 돌면 느려질 수 있습니다.
 
 **Q: n8n에서 외부 웹훅이 작동하지 않습니다.**
 

@@ -174,7 +174,6 @@ sops updatekeys hosts/psi.yaml
 | `cloud.sjanglab.org` | eta | tau (동기화) |
 | `n8n.sjanglab.org` | eta | tau (동기화) |
 | `docling.sjanglab.org` | eta | psi (동기화) |
-| `tei.sjanglab.org` | eta | psi (동기화) |
 | `multievolve.sjanglab.org` | eta | psi (동기화) |
 | `nixbot.sjanglab.org` | eta, psi | eta (public edge), psi (service stack) |
 | `mq.sjanglab.org` | eta | eta |
