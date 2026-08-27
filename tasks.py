@@ -648,7 +648,7 @@ def add_server(c: Any, hostname: str) -> None:
     )
 
 
-def check_expired_accounts():
+def check_expired_accounts() -> dict[str, Any]:
     """
     Check for expired student accounts and return the data
     """
