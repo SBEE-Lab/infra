@@ -83,6 +83,55 @@ Nixbot 관리자를 변경하려면:
 | `docs-pages` | `main` push | `.#docs` 결과를 `gh-pages` 브랜치로 force-push합니다. GitHub Pages source는 `terraform/github/repo.tf`에서 `gh-pages` `/`로 관리합니다. |
 | `update-packages` | 매일 03:00 UTC | `.#updater -- --pr`를 실행해 updateable package별 PR을 생성합니다. |
 
+### GitHub Actions release runner
+
+`psi`에는 Docker/BuildKit 및 GPU 검증이 필요한 신뢰된 release workflow 전용 GitHub Actions runner 구성이 있습니다. Runner는 NixOS의 `services.github-runners` systemd service와 dynamic user로 직접 실행되며, k3s Pod나 Docker container 안에서 실행되지 않습니다. Dockerfile의 각 build step은 BuildKit이 별도 container root filesystem에서 실행합니다.
+
+Runner configuration은 `hosts/psi.nix`의 `services.github-runners.release-runner`에 있습니다. 기본 labels는 `self-hosted`, `Linux`, `X64`와 다음 custom labels입니다.
+
+- `psi`
+- `gpu`
+- `trusted-release`
+- `container-release`
+
+Workflow는 네 custom labels를 모두 지정해야 합니다.
+
+```yaml
+runs-on: [self-hosted, psi, gpu, trusted-release, container-release]
+```
+
+Runner는 host Docker socket을 사용할 수 있으므로 사실상 `psi`의 root와 동등한 권한을 가집니다. Runner group에는 fork/PR workflow를 허용하지 않고, protected branch나 수동 승인된 release workflow만 허용합니다. Runner에는 release Registry의 push-only credential만 workflow secret으로 제공하고 삭제 권한이 있는 Registry 관리자 credential이나 GitHub App private key는 제공하지 않습니다.
+
+#### 최초 활성화
+
+1. GitHub `SBEE-Lab` organization settings에서 `release-runner` runner group을 만듭니다.
+
+1. Group repository access를 `SBEE-Lab/containers` 등 명시적으로 승인한 release repository로 제한합니다.
+
+1. Organization을 resource owner로 하는 fine-grained PAT를 만들고 Organization permissions의 `Self-hosted runners`를 read/write로 설정합니다. Workflow repository의 contents 권한은 필요하지 않습니다.
+
+1. Token을 출력하거나 저장소에 평문으로 기록하지 말고 다음 명령으로 `hosts/psi.yaml`에 추가합니다.
+
+   ```console
+   sops hosts/psi.yaml
+   ```
+
+   추가할 key는 다음과 같습니다.
+
+   ```yaml
+   github-actions-runner-token: github_pat_...
+   ```
+
+1. Configuration을 검증하고 배포합니다.
+
+   ```console
+   nix build .#nixosConfigurations.psi.config.system.build.toplevel
+   inv deploy --hosts psi
+   systemctl status github-runner-release-runner.service
+   ```
+
+Runner는 persistent registration을 사용하지만 systemd service를 재구성할 때 work directory를 정리합니다. BuildKit의 local/Registry cache와 workflow 자체 cleanup은 별도로 관리합니다. PAT를 갱신하면 sops-nix가 runner service를 재시작하고 재등록합니다.
+
 ### 바이너리 캐시 푸시
 
 Nixbot은 인프라 cache 대상으로 선택된 성공 build를 `https://niks3.sjanglab.org`로 push합니다. Token은 systemd credential로 전달되어 command line에 노출되지 않습니다. niks3는 closure metadata와 garbage collection 상태를 psi PostgreSQL에서 추적하고 NAR와 narinfo를 Cloudflare R2에 직접 저장합니다.
