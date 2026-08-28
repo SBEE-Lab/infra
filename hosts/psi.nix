@@ -91,6 +91,55 @@ in
   # Avoid repeating cold binary-cache misses between daily Nixbot builds.
   nix.settings.narinfo-cache-negative-ttl = 24 * 60 * 60;
 
+  sops.secrets.github-actions-runner-token = {
+    mode = "0400";
+    restartUnits = [ "github-runner-release-runner.service" ];
+  };
+
+  services.github-runners.release-runner = {
+    enable = true;
+    url = "https://github.com/SBEE-Lab";
+    name = "release-runner";
+    runnerGroup = "release-runner";
+    tokenFile = config.sops.secrets.github-actions-runner-token.path;
+    tokenType = "access";
+    replace = true;
+    ephemeral = false;
+    extraLabels = [
+      "psi"
+      "gpu"
+      "trusted-release"
+      "container-release"
+    ];
+    extraPackages = with pkgs; [
+      buildkit
+      cosign
+      curl
+      docker-buildx
+      docker-client
+      jq
+      skopeo
+      syft
+      zstd
+    ];
+    extraEnvironment = {
+      DOCKER_BUILDKIT = "1";
+      DOCKER_HOST = "unix:///run/docker.sock";
+      DOCKER_CLI_PLUGIN_EXTRA_DIRS = "${pkgs.docker-buildx}/libexec/docker/cli-plugins";
+    };
+    serviceOverrides = {
+      # Docker socket access is equivalent to root on psi. Restrict this runner
+      # group to trusted release workflows and never run fork or PR code here.
+      PrivateUsers = false;
+      SupplementaryGroups = [ "docker" ];
+    };
+  };
+
+  systemd.services.github-runner-release-runner = {
+    requires = [ "docker.service" ];
+    after = [ "docker.service" ];
+  };
+
   services.sbee.backups = {
     psiProtected.enable = true;
     postgresql = {
