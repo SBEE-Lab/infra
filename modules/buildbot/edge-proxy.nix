@@ -7,11 +7,8 @@ let
   nixbotDomain = "nixbot.sjanglab.org";
 in
 {
-  imports = [ ../acme ];
-
+  services.sbee.nginx.edgeVhosts.${nixbotDomain} = { };
   services.nginx.virtualHosts.${nixbotDomain} = {
-    forceSSL = true;
-    useACMEHost = nixbotDomain;
 
     locations."/" = {
       proxyPass = "https://${hosts.psi.wg-admin}";
@@ -31,10 +28,4 @@ in
     };
   };
 
-  security.acme.certs.${nixbotDomain} = {
-    dnsProvider = "cloudflare";
-    environmentFile = config.sops.secrets.cloudflare-credentials.path;
-    webroot = null;
-    group = "nginx";
-  };
 }

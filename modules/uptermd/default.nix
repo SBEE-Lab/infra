@@ -1,11 +1,11 @@
-{ config, ... }:
+_:
 let
   domain = "upterm.sjanglab.org";
   port = 2323;
 in
 {
+  services.sbee.nginx.edgeVhosts.${domain} = { };
   imports = [
-    ../acme
     ../gatus/check.nix
   ];
 
@@ -20,16 +20,7 @@ in
     ];
   };
 
-  security.acme.certs.${domain} = {
-    dnsProvider = "cloudflare";
-    environmentFile = config.sops.secrets.cloudflare-credentials.path;
-    webroot = null;
-    group = "nginx";
-  };
-
   services.nginx.virtualHosts.${domain} = {
-    forceSSL = true;
-    useACMEHost = domain;
     locations."/".root = ./site;
   };
 

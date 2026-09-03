@@ -4,8 +4,8 @@
   ...
 }:
 {
+  services.sbee.nginx.edgeVhosts."hs.sjanglab.org" = { };
   imports = [
-    ../acme
     ../gatus/check.nix
     ./tag-sync.nix
     ./audit.nix
@@ -153,17 +153,9 @@
   };
 
   # ACME certificate
-  security.acme.certs."hs.sjanglab.org" = {
-    dnsProvider = "cloudflare";
-    environmentFile = config.sops.secrets.cloudflare-credentials.path;
-    webroot = null;
-    group = "nginx";
-  };
 
   # Nginx reverse proxy
   services.nginx.virtualHosts."hs.sjanglab.org" = {
-    forceSSL = true;
-    useACMEHost = "hs.sjanglab.org";
 
     locations."/" = {
       proxyPass = "http://127.0.0.1:8080";

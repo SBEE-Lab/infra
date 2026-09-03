@@ -22,8 +22,8 @@ let
   '';
 in
 {
+  services.sbee.nginx.edgeVhosts.${domain} = { };
   imports = [
-    ../acme
     ../gatus/check.nix
   ];
 
@@ -40,8 +40,6 @@ in
   '';
 
   services.nginx.virtualHosts.${domain} = {
-    forceSSL = true;
-    useACMEHost = domain;
 
     extraConfig = ''
       access_log /var/log/nginx/access-audit/nextcloud-edge.log nginx_access_json;

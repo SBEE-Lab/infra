@@ -10,9 +10,9 @@ let
   githubAppId = 4495517;
 in
 {
+  services.sbee.nginx.edgeVhosts.${domain} = { };
   imports = [
     inputs.gitea-mq.nixosModules.default
-    ../acme
     ../gatus/check.nix
   ];
 
@@ -46,8 +46,6 @@ in
   };
 
   services.nginx.virtualHosts.${domain} = {
-    forceSSL = true;
-    useACMEHost = domain;
     locations."/" = {
       proxyPass = "http://127.0.0.1:${toString port}";
       extraConfig = ''
@@ -57,13 +55,6 @@ in
         proxy_set_header X-Forwarded-Proto $scheme;
       '';
     };
-  };
-
-  security.acme.certs.${domain} = {
-    dnsProvider = "cloudflare";
-    environmentFile = config.sops.secrets.cloudflare-credentials.path;
-    webroot = null;
-    group = "nginx";
   };
 
   sops.secrets = {

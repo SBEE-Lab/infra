@@ -9,8 +9,8 @@ let
   n8nDomain = "n8n.sjanglab.org";
 in
 {
+  services.sbee.nginx.edgeVhosts.${n8nDomain} = { };
   imports = [
-    ../acme
     ../acme/sync.nix
     ../gatus/check.nix
   ];
@@ -34,16 +34,8 @@ in
 
   # ACME certificate (DNS challenge via Cloudflare)
   # Also synced to tau for split DNS access
-  security.acme.certs.${n8nDomain} = {
-    dnsProvider = "cloudflare";
-    environmentFile = config.sops.secrets.cloudflare-credentials.path;
-    webroot = null;
-    group = "nginx";
-  };
 
   services.nginx.virtualHosts.${n8nDomain} = {
-    forceSSL = true;
-    useACMEHost = n8nDomain;
 
     # UI blocked - use Tailscale for direct access via split DNS
     locations."/" = {
