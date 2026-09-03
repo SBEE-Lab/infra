@@ -44,6 +44,26 @@ resource "cloudflare_dns_record" "eta" {
   comment = "Jumphost server (eta)"
 }
 
+locals {
+  edge_hosts = toset([
+    "psi",
+    "rho",
+    "tau",
+  ])
+}
+
+resource "cloudflare_dns_record" "edge_host" {
+  for_each = local.edge_hosts
+
+  zone_id = data.sops_file.secrets.data["CLOUDFLARE_ZONE_ID"]
+  name    = "${each.key}.sjanglab.org"
+  content = "141.164.53.203"
+  type    = "A"
+  ttl     = 300
+  proxied = false
+  comment = "${each.key} access through eta edge"
+}
+
 resource "cloudflare_dns_record" "mail" {
   zone_id = data.sops_file.secrets.data["CLOUDFLARE_ZONE_ID"]
   name    = "mail.sjanglab.org"
