@@ -1,6 +1,5 @@
 # Public Docker/OCI Registry and token-auth endpoint on eta.
 {
-  config,
   containerRegistry,
   ...
 }:
@@ -41,8 +40,8 @@ let
   };
 in
 {
+  services.sbee.nginx.edgeVhosts.${containerRegistry.domain} = { };
   imports = [
-    ../acme
     ../monitoring/audit/nginx-access-logs.nix
   ];
 
@@ -63,8 +62,6 @@ in
     '';
 
     virtualHosts.${containerRegistry.domain} = {
-      forceSSL = true;
-      useACMEHost = containerRegistry.domain;
 
       extraConfig = ''
         add_header Strict-Transport-Security "max-age=31536000" always;
@@ -119,10 +116,4 @@ in
     scrapeUri = "http://127.0.0.1:${toString nginxStatusPort}/nginx_status";
   };
 
-  security.acme.certs.${containerRegistry.domain} = {
-    dnsProvider = "cloudflare";
-    environmentFile = config.sops.secrets.cloudflare-credentials.path;
-    webroot = null;
-    group = "nginx";
-  };
 }

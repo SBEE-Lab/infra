@@ -62,6 +62,7 @@ in
     ../modules/buildbot/edge-proxy.nix
     ../modules/gitea-mq
     ../modules/container-registry
+    ../modules/nginx/edge.nix
     ../modules/niks3/edge-proxy.nix
     ../modules/uptermd
     ../modules/gatus
@@ -112,32 +113,13 @@ in
   disko.rootDisk = "/dev/vda";
 
   # ACME certificates for internal services
-  security.acme.certs."status.sjanglab.org" = {
-    dnsProvider = "cloudflare";
-    environmentFile = config.sops.secrets.cloudflare-credentials.path;
-    webroot = null;
-    group = "acme";
-  };
 
-  security.acme.certs."logging.sjanglab.org" = {
-    dnsProvider = "cloudflare";
-    environmentFile = config.sops.secrets.cloudflare-credentials.path;
-    webroot = null;
-    group = "acme";
-  };
-
-  security.acme.certs."multievolve.sjanglab.org" = {
-    dnsProvider = "cloudflare";
-    environmentFile = config.sops.secrets.cloudflare-credentials.path;
-    webroot = null;
-    group = "acme";
-  };
-
-  security.acme.certs."vault.sjanglab.org" = {
-    dnsProvider = "cloudflare";
-    environmentFile = config.sops.secrets.cloudflare-credentials.path;
-    webroot = null;
-    group = "acme";
+  services.sbee.nginx.localCertificates = {
+    "docling.sjanglab.org".group = "acme";
+    "logging.sjanglab.org".group = "acme";
+    "multievolve.sjanglab.org".group = "acme";
+    "status.sjanglab.org".group = "acme";
+    "vault.sjanglab.org".group = "acme";
   };
 
   networking.hostName = "eta";

@@ -5,11 +5,8 @@ let
   domain = "niks3.sjanglab.org";
 in
 {
-  imports = [ ../acme ];
-
+  services.sbee.nginx.edgeVhosts.${domain} = { };
   services.nginx.virtualHosts.${domain} = {
-    forceSSL = true;
-    useACMEHost = domain;
 
     locations."/" = {
       proxyPass = "http://${hosts.psi.wg-admin}:5751";
@@ -24,10 +21,4 @@ in
     };
   };
 
-  security.acme.certs.${domain} = {
-    dnsProvider = "cloudflare";
-    environmentFile = config.sops.secrets.cloudflare-credentials.path;
-    webroot = null;
-    group = "nginx";
-  };
 }
