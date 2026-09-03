@@ -210,7 +210,6 @@
               python3.pkgs.bcrypt
 
               # nix tools
-              nixVersions.latest
               nixos-rebuild
               nixos-anywhere
 
