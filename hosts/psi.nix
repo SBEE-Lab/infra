@@ -24,6 +24,7 @@ let
 in
 {
   imports = [
+    ../modules/nix-grpc-store.nix
     ../modules/disko/xfs-root.nix
     ../modules/disko/xfs-mdadm.nix
     ../modules/disko/xfs-project-quota.nix

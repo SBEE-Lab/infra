@@ -80,7 +80,6 @@ let
     ./modules/hosts.nix
     ./modules/network.nix
     ./modules/nix-daemon.nix
-    ./modules/nix-grpc-store.nix
     ./modules/nix-index.nix
     ./modules/packages.nix
     ./modules/register-flake.nix
