@@ -113,7 +113,6 @@ in
     ];
     extraPackages = with pkgs; [
       buildkit
-      cosign
       curl
       docker-buildx
       docker-client
