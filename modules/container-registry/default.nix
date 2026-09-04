@@ -116,7 +116,7 @@ in
     script = lib.mkForce ''
       trap '${config.systemd.package}/bin/systemctl start docker-registry.service || true' EXIT
       ${config.systemd.package}/bin/systemctl stop docker-registry.service
-      ${config.services.dockerRegistry.package}/bin/registry garbage-collect ${config.services.dockerRegistry.configFile}
+      ${config.services.dockerRegistry.package}/bin/registry garbage-collect --delete-untagged ${config.services.dockerRegistry.configFile}
     '';
   };
 
