@@ -1,0 +1,314 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "관측과 감사 파이프라인",
+    "subtitle": "Vector, Prometheus, Loki, Grafana, Gatus, alert bridge",
+    "output": "docs/admin/observability-architecture.html",
+    "visual_preset": "blueprint",
+    "quality_profile": "standard",
+    "views": [
+      {
+        "id": "logs",
+        "label": "로그/감사",
+        "focus": [
+          "hosts",
+          "vector",
+          "loki",
+          "grafana",
+          "audit"
+        ],
+        "note": "sshd, nginx, Authentik, Headscale, PostgreSQL 감사 이벤트는 Loki에서 조회합니다."
+      },
+      {
+        "id": "metrics",
+        "label": "메트릭/상태",
+        "focus": [
+          "hosts",
+          "exporters",
+          "prometheus",
+          "grafana",
+          "gatus"
+        ],
+        "note": "호스트/exporter 메트릭은 Prometheus와 Gatus 상태 점검으로 수집됩니다."
+      },
+      {
+        "id": "alerts",
+        "label": "알림 전달",
+        "focus": [
+          "prometheus",
+          "alertmanager",
+          "bridge",
+          "slack",
+          "healthchecks"
+        ],
+        "note": "Alertmanager는 Cloudflare Worker bridge와 healthchecks.io를 통해 Slack으로 전달합니다."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "hosts",
+      "type": "backend",
+      "label": "각 호스트",
+      "sublabel": "eta/psi/rho/tau",
+      "pos": [
+        50,
+        330
+      ]
+    },
+    {
+      "id": "vector",
+      "type": "messagebus",
+      "label": "Vector",
+      "sublabel": "logs · metrics",
+      "pos": [
+        245,
+        250
+      ]
+    },
+    {
+      "id": "exporters",
+      "type": "backend",
+      "label": "Exporters",
+      "sublabel": "postgres · gpu · blackbox",
+      "pos": [
+        245,
+        410
+      ]
+    },
+    {
+      "id": "audit",
+      "type": "security",
+      "label": "감사 이벤트",
+      "sublabel": "auth/ssh/headscale",
+      "pos": [
+        245,
+        105
+      ]
+    },
+    {
+      "id": "loki",
+      "type": "database",
+      "label": "Loki",
+      "sublabel": "rho :3100",
+      "pos": [
+        500,
+        205
+      ]
+    },
+    {
+      "id": "prometheus",
+      "type": "database",
+      "label": "Prometheus",
+      "sublabel": "rho :9090",
+      "pos": [
+        500,
+        405
+      ]
+    },
+    {
+      "id": "grafana",
+      "type": "backend",
+      "label": "Grafana",
+      "sublabel": "logging.sjanglab.org",
+      "pos": [
+        740,
+        300
+      ]
+    },
+    {
+      "id": "gatus",
+      "type": "backend",
+      "label": "Gatus",
+      "sublabel": "status.sjanglab.org",
+      "pos": [
+        740,
+        480
+      ]
+    },
+    {
+      "id": "alertmanager",
+      "type": "backend",
+      "label": "Alertmanager",
+      "sublabel": "rho",
+      "pos": [
+        740,
+        120
+      ]
+    },
+    {
+      "id": "bridge",
+      "type": "cloud",
+      "label": "Alert Bridge",
+      "sublabel": "Cloudflare Worker/D1",
+      "pos": [
+        980,
+        120
+      ]
+    },
+    {
+      "id": "slack",
+      "type": "external",
+      "label": "Slack",
+      "sublabel": "#infra-alerts/audit",
+      "pos": [
+        1190,
+        120
+      ]
+    },
+    {
+      "id": "healthchecks",
+      "type": "cloud",
+      "label": "healthchecks.io",
+      "sublabel": "watchdog",
+      "pos": [
+        980,
+        260
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "rho 관측 스택",
+      "wraps": [
+        "loki",
+        "prometheus",
+        "grafana",
+        "alertmanager"
+      ]
+    },
+    {
+      "kind": "security-group",
+      "label": "감사/알림 경계",
+      "wraps": [
+        "audit",
+        "loki",
+        "alertmanager",
+        "bridge",
+        "slack"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "hosts-vector",
+      "from": "hosts",
+      "to": "vector",
+      "label": "journald",
+      "variant": "dashed"
+    },
+    {
+      "id": "hosts-exporters",
+      "from": "hosts",
+      "to": "exporters",
+      "label": "metrics",
+      "variant": "dashed"
+    },
+    {
+      "id": "audit-vector",
+      "from": "audit",
+      "to": "vector",
+      "label": "classified",
+      "variant": "security",
+      "labelAt": [
+        305,
+        179
+      ]
+    },
+    {
+      "id": "vector-loki",
+      "from": "vector",
+      "to": "loki",
+      "label": "logs",
+      "variant": "emphasis"
+    },
+    {
+      "id": "vector-prom",
+      "from": "vector",
+      "to": "prometheus",
+      "label": "remote write",
+      "variant": "emphasis"
+    },
+    {
+      "id": "exporters-prom",
+      "from": "exporters",
+      "to": "prometheus",
+      "label": "scrape",
+      "variant": "emphasis"
+    },
+    {
+      "id": "loki-grafana",
+      "from": "loki",
+      "to": "grafana",
+      "label": "LogQL",
+      "variant": "emphasis"
+    },
+    {
+      "id": "prom-grafana",
+      "from": "prometheus",
+      "to": "grafana",
+      "label": "PromQL",
+      "variant": "emphasis"
+    },
+    {
+      "id": "hosts-gatus",
+      "from": "hosts",
+      "to": "gatus",
+      "label": "push/smoke",
+      "variant": "dashed",
+      "route": "orthogonal-h"
+    },
+    {
+      "id": "prom-alert",
+      "from": "prometheus",
+      "to": "alertmanager",
+      "label": "rules",
+      "variant": "security"
+    },
+    {
+      "id": "am-bridge",
+      "from": "alertmanager",
+      "to": "bridge",
+      "label": "webhook",
+      "variant": "security"
+    },
+    {
+      "id": "bridge-slack",
+      "from": "bridge",
+      "to": "slack",
+      "label": "threaded alerts",
+      "variant": "emphasis"
+    },
+    {
+      "id": "am-health",
+      "from": "alertmanager",
+      "to": "healthchecks",
+      "label": "watchdog",
+      "variant": "dashed"
+    },
+    {
+      "id": "bridge-health",
+      "from": "bridge",
+      "to": "healthchecks",
+      "label": "heartbeat",
+      "variant": "dashed",
+      "labelAt": [
+        1040,
+        194
+      ]
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "대시보드",
+      "items": [
+        "Infrastructure/Hosts/Apps/Jobs/Access/AI/PostgreSQL",
+        "고카디널리티 값은 Loki JSON 필드로 보존",
+        "시크릿과 인증 헤더는 수집하지 않음"
+      ]
+    }
+  ]
+}
