@@ -7,16 +7,16 @@
 
 buildGoModule rec {
   pname = "slack-cli";
-  version = "4.6.0";
+  version = "4.7.0";
 
   src = fetchFromGitHub {
     owner = "slackapi";
     repo = "slack-cli";
     rev = "v${version}";
-    hash = "sha256-KMkzI9Cfbq9/se6RFVr2kocNEk4eAnuOeXOnHlGtues=";
+    hash = "sha256-dSHl3u60WQHj8icfe9ZShh431/IfV25D8l5pZISMOhU=";
   };
 
-  vendorHash = "sha256-Rir4CEVNWcKSwrYDM5O7ywgbTAQeUJmhgVMTR+IOla4=";
+  vendorHash = "sha256-RI0j2+9S6kxHALEztV7hnY8NNR5xwUWgG4YHGGXZZiA=";
 
   subPackages = [ "." ];
 
