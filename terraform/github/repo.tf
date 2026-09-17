@@ -74,6 +74,12 @@ resource "github_repository_ruleset" "nixpkgs" {
     bypass_mode = "always"
   }
 
+  bypass_actors {
+    actor_id    = local.sbee_mq_app_id
+    actor_type  = "Integration"
+    bypass_mode = "always"
+  }
+
   rules {
     deletion         = true
     non_fast_forward = true
@@ -122,6 +128,12 @@ resource "github_repository_ruleset" "infra" {
     bypass_mode = "always"
   }
 
+  bypass_actors {
+    actor_id    = local.sbee_mq_app_id
+    actor_type  = "Integration"
+    bypass_mode = "always"
+  }
+
   rules {
     deletion         = true
     non_fast_forward = true
@@ -151,6 +163,12 @@ resource "github_repository_ruleset" "user_branches" {
     }
   }
 
+  bypass_actors {
+    actor_id    = local.sbee_mq_app_id
+    actor_type  = "Integration"
+    bypass_mode = "always"
+  }
+
   rules {
     deletion         = false
     non_fast_forward = false
@@ -169,6 +187,8 @@ resource "github_repository_ruleset" "user_branches" {
 }
 
 locals {
+  sbee_mq_app_id = 4495517
+
   labels = {
     bug = {
       color       = "d73a4a"
