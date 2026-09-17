@@ -1,18 +1,18 @@
-{ lib, pkgs, ... }:
+{ lib, pkgs }:
 let
-  koreanOfficeFonts = with pkgs; [
+  fonts = with pkgs; [
     nanum
     noto-fonts-cjk-sans
     noto-fonts-cjk-serif
   ];
-  collaboraFontCache = pkgs.makeFontsCache {
-    fontDirectories = koreanOfficeFonts;
+  cache = pkgs.makeFontsCache {
+    fontDirectories = fonts;
   };
-  collaboraFontconfig = pkgs.writeText "collabora-fonts.conf" ''
+  file = pkgs.writeText "collabora-fonts.conf" ''
     <?xml version="1.0"?>
     <fontconfig>
-      ${lib.concatMapStringsSep "\n" (font: "<dir>${font}</dir>") koreanOfficeFonts}
-      <cachedir>${collaboraFontCache}</cachedir>
+      ${lib.concatMapStringsSep "\n" (font: "<dir>${font}</dir>") fonts}
+      <cachedir>${cache}</cachedir>
       <cachedir>/tmp/fontconfig-cache</cachedir>
       <alias><family>Malgun Gothic</family><prefer><family>Noto Sans CJK KR</family></prefer></alias>
       <alias><family>맑은 고딕</family><prefer><family>Noto Sans CJK KR</family></prefer></alias>
@@ -26,12 +26,5 @@ let
   '';
 in
 {
-  systemd.services = {
-    coolwsd-systemplate-setup.path = [ pkgs.cpio ];
-
-    coolwsd = {
-      environment.FONTCONFIG_FILE = collaboraFontconfig;
-      restartTriggers = [ collaboraFontconfig ];
-    };
-  };
+  inherit cache file fonts;
 }

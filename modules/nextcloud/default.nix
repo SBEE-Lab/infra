@@ -8,7 +8,6 @@
 let
   inherit (config.networking.sbee) hosts;
   domain = "cloud.sjanglab.org";
-  collaboraPort = 9980;
   whiteboardPort = 3002;
   certDir = "/var/lib/acme/${domain}";
   rhwp-viewer = inputs.rhwp-nextcloud.packages.${pkgs.stdenv.hostPlatform.system}.rhwp-viewer;
@@ -25,7 +24,7 @@ let
 in
 {
   imports = [
-    ./collabora-fonts.nix
+    ./collabora
     ./declarative-nextcloud-apps.nix
     ../acme/sync.nix
     ../gatus/check.nix
@@ -109,33 +108,6 @@ in
     secrets = [ config.sops.secrets.whiteboard-jwt.path ];
   };
 
-  # Collabora Online for document editing
-  services.collabora-online = {
-    enable = true;
-    port = collaboraPort;
-    settings = {
-      # Public URL for discovery/browser access
-      server_name = domain;
-      # Allow Nextcloud to connect
-      storage.wopi."@allow" = true;
-      # Disable SSL termination (nginx handles it)
-      ssl = {
-        enable = false;
-        termination = true;
-      };
-      # Allow same-host connections
-      net.post_allow.host = [
-        "127\\.0\\.0\\.1"
-        "::1"
-      ];
-    };
-    aliasGroups = [
-      {
-        host = "https://${domain}:443";
-      }
-    ];
-  };
-
   # Nginx with certificate from eta (synced via rsync)
   services.nginx = {
     enable = true;
@@ -147,35 +119,13 @@ in
         access_log /var/log/nginx/access-audit/nextcloud.log nginx_access_json;
       '';
 
-      # Collabora Online proxy paths
-      locations = {
-        # Static files
-        "^~ /browser" = {
-          proxyPass = "http://127.0.0.1:${toString collaboraPort}";
-          proxyWebsockets = true;
-        };
-        # WOPI discovery and capabilities
-        "^~ /hosting/discovery" = {
-          proxyPass = "http://127.0.0.1:${toString collaboraPort}";
-        };
-        "^~ /hosting/capabilities" = {
-          proxyPass = "http://127.0.0.1:${toString collaboraPort}";
-        };
-        # All Collabora /cool/ paths including WebSocket (/cool/*/ws)
-        # Must use ^~ to prevent Nextcloud's static file regex from intercepting
-        "^~ /cool/" = {
-          proxyPass = "http://127.0.0.1:${toString collaboraPort}";
-          proxyWebsockets = true;
-        };
-        # Whiteboard WebSocket server
-        "/whiteboard/" = {
-          proxyPass = "http://127.0.0.1:${toString whiteboardPort}/";
-          proxyWebsockets = true;
-          extraConfig = ''
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header Host $host;
-          '';
-        };
+      locations."/whiteboard/" = {
+        proxyPass = "http://127.0.0.1:${toString whiteboardPort}/";
+        proxyWebsockets = true;
+        extraConfig = ''
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header Host $host;
+        '';
       };
     };
   };

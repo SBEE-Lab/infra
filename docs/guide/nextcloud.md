@@ -30,6 +30,8 @@ Authentik SSO로 로그인합니다. 첫 접속 시 "Authentik으로 로그인" 
 - **Collabora Online** — 브라우저에서 Writer, Calc, Impress 편집
 - **Whiteboard** — 실시간 협업 화이트보드
 
+Nextcloud에서 새로 만든 스프레드시트는 `Malgun Gothic`을 기본 글꼴로 사용합니다. 외부에서 업로드한 문서는 원래 글꼴과 서식을 유지하며 자동 변환하지 않습니다.
+
 ## 클라이언트 앱
 
 데스크톱 동기화가 필요하면 [Nextcloud 클라이언트](https://nextcloud.com/install/#install-clients)를 설치합니다.
