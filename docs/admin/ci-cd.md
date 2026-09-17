@@ -104,9 +104,9 @@ Runner는 host Docker socket을 사용할 수 있으므로 사실상 `psi`의 ro
 
 #### 최초 활성화
 
-1. GitHub `SBEE-Lab` organization settings에서 `release-runner` runner group을 만듭니다.
+1. `terraform/github/runners.tf`로 `release-runner` group의 접근 정책을 관리합니다. Import block은 기존 group ID `3`을 state에 편입하므로 group을 새로 만들지 않습니다.
 
-1. Group repository access를 `SBEE-Lab/containers` 등 명시적으로 승인한 release repository로 제한합니다.
+1. `terraform/github`에서 `terragrunt plan`을 확인한 뒤 `terragrunt apply`합니다. 저장소는 `SBEE-Lab/containers`, workflow는 `.github/workflows/release.yaml@refs/heads/main`만 허용합니다. 두 허용 목록을 모두 설정해야 작업을 받을 수 있습니다. 다른 리소스의 예상치 못한 변경은 적용하지 않습니다.
 
 1. Organization을 resource owner로 하는 fine-grained PAT를 만들고 Organization permissions의 `Self-hosted runners`를 read/write로 설정합니다. Workflow repository의 contents 권한은 필요하지 않습니다.
 
