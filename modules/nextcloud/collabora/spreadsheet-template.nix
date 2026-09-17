@@ -69,7 +69,10 @@ in
     requires = [ "nextcloud-setup.service" ];
     after = [ "nextcloud-setup.service" ];
     restartTriggers = [ koreanSpreadsheetTemplate ];
-    path = [ pkgs.findutils ];
+    path = [
+      pkgs.diffutils
+      pkgs.findutils
+    ];
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
