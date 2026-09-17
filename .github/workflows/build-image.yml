@@ -18,13 +18,19 @@ jobs:
         run: |
           nix build .#kexec
           cp result/*.tar.gz nixos-kexec.tar.gz
+      - name: Build ephemeral kexec
+        run: |
+          nix build .#ephemeral-kexec
+          cp result/*.tar.gz nixos-ephemeral-kexec.tar.gz
       - name: Get commit info
         id: commit
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: nixos-kexec.tar.gz
+          files: |
+            nixos-kexec.tar.gz
+            nixos-ephemeral-kexec.tar.gz
           tag_name: ${{ github.ref_name }}
           name: "Release ${{ github.ref_name }}"
           body: |
@@ -36,5 +42,6 @@ jobs:
 
             **Files:**
             - `nixos-kexec.tar.gz` - Kexec tarball for nixos-anywhere
+            - `nixos-ephemeral-kexec.tar.gz` - Kexec tarball with runtime WireGuard handoff
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

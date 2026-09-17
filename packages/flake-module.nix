@@ -14,6 +14,7 @@
         updater = pkgs.callPackage ./updater { };
       }
       // lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
+        ephemeral-kexec = pkgs.callPackage ./ephemeral-kexec-installer { inherit pkgs self; };
         installer = pkgs.callPackage ./image-installer { inherit pkgs self; };
         kexec = pkgs.callPackage ./kexec-installer { inherit pkgs self; };
         text-embeddings-inference = pkgs.callPackage ./text-embeddings-inference {

@@ -5,13 +5,14 @@
   ...
 }:
 let
-  commonModules = {
+  modules = {
     imports = [
       self.inputs.nixos-images.nixosModules.kexec-installer
       self.inputs.nixos-images.nixosModules.noninteractive
       ../image-installer/nix-settings.nix
+      ./module.nix
       {
-        system.kexec-installer.name = "nixos-kexec-installer-noninteractive";
+        system.kexec-installer.name = "nixos-ephemeral-kexec-installer";
         services.openssh.ports = [ 10022 ];
         # noninteractive provides its own size-optimized ZFS kernel module
         # and userspace. Listing zfs here would also load the full NixOS ZFS
@@ -25,4 +26,4 @@ let
     ];
   };
 in
-(pkgs.nixos commonModules).config.system.build.kexecInstallerTarball
+(pkgs.nixos modules).config.system.build.kexecInstallerTarball

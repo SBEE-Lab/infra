@@ -145,6 +145,255 @@ def install(c: Any, machine: str, hostname: str, extra_args: str = "") -> None:
         )
 
 
+EPHEMERAL_KEXEC_ADDRESS = "10.100.0.240"
+EPHEMERAL_KEXEC_ENDPOINT = "141.164.53.203:51820"
+EPHEMERAL_KEXEC_ETA_PUBLIC_KEY = "3fJoR3zVE9zpfKEXqvavLksOlWeFxqZd3f2fFUOkW1Y="
+EPHEMERAL_KEXEC_URL = (
+    "https://github.com/SBEE-Lab/infra/releases/download/v1.0.1/nixos-ephemeral-kexec.tar.gz"
+)
+
+
+@task
+def ephemeral_kexec_install(
+    c: Any,
+    machine: str,
+    hostname: str,
+    configuration: str = "",
+    extra_args: str = "",
+    kexec_url: str = EPHEMERAL_KEXEC_URL,
+) -> None:
+    """Install through a temporary WireGuard peer on eta."""
+    configuration = configuration or machine
+    source_target = hostname if "@" in hostname else f"root@{hostname}"
+    installer_target = f"root@{EPHEMERAL_KEXEC_ADDRESS}"
+
+    ask = input(
+        f"Are you sure you want to install .#{configuration} on {hostname} "
+        "through an ephemeral kexec tunnel? [y/N] "
+    )
+    if ask != "y":
+        return
+
+    with (
+        TemporaryDirectory(prefix="ephemeral-kexec-") as runtime_dir,
+        TemporaryDirectory(prefix="nixos-anywhere-") as extra_files,
+    ):
+        runtime = Path(runtime_dir)
+        private_key = runtime / "private-key"
+        public_key = runtime / "public-key"
+
+        generate_key = (
+            "umask 077; "
+            f"wg genkey > {shlex.quote(str(private_key))}; "
+            f"wg pubkey < {shlex.quote(str(private_key))} "
+            f"> {shlex.quote(str(public_key))}"
+        )
+        c.run(
+            "nix shell --inputs-from . nixpkgs#wireguard-tools -c sh -c "
+            f"{shlex.quote(generate_key)}",
+            hide=True,
+        )
+        peer_public_key = public_key.read_text().strip()
+        public_key.unlink()
+        if not re.fullmatch(r"[A-Za-z0-9+/]{43}=", peer_public_key):
+            raise RuntimeError("wg generated an invalid public key")
+
+        host_key_result = c.run(
+            f"ssh {shlex.quote(source_target)} cat /etc/ssh/ssh_host_ed25519_key.pub",
+            hide=True,
+        )
+        host_key = host_key_result.stdout.strip().split()
+        if len(host_key) < 2 or host_key[0] != "ssh-ed25519":
+            raise RuntimeError(f"could not read the SSH host key from {hostname}")
+        known_hosts = runtime / "known_hosts"
+        known_hosts.write_text(f"[{EPHEMERAL_KEXEC_ADDRESS}]:10022 {host_key[0]} {host_key[1]}\n")
+        known_hosts.chmod(0o600)
+
+        (runtime / "wg-install.netdev").write_text(
+            "\n".join(
+                [
+                    "[NetDev]",
+                    "Name=wg-install",
+                    "Kind=wireguard",
+                    "",
+                    "[WireGuard]",
+                    "PrivateKeyFile=/run/systemd/network/wg-install.key",
+                    "",
+                    "[WireGuardPeer]",
+                    f"PublicKey={EPHEMERAL_KEXEC_ETA_PUBLIC_KEY}",
+                    f"Endpoint={EPHEMERAL_KEXEC_ENDPOINT}",
+                    "AllowedIPs=10.100.0.1/32",
+                    "PersistentKeepalive=25",
+                    "",
+                ]
+            )
+        )
+        (runtime / "wg-install.network").write_text(
+            "\n".join(
+                [
+                    "[Match]",
+                    "Name=wg-install",
+                    "",
+                    "[Network]",
+                    f"Address={EPHEMERAL_KEXEC_ADDRESS}/32",
+                    "",
+                ]
+            )
+        )
+        private_key.chmod(0o400)
+        (runtime / "wg-install.netdev").chmod(0o600)
+        (runtime / "wg-install.network").chmod(0o600)
+
+        remote_runtime = "/run/ephemeral-kexec"
+        stage_command = (
+            "set -eu; "
+            f"rm -rf {remote_runtime}; install -d -m 0700 {remote_runtime}; "
+            f"tar -C {remote_runtime} -xf -; "
+            f"chown root:root {remote_runtime} {remote_runtime}/*; "
+            f"chmod 0700 {remote_runtime}; "
+            f"chmod 0400 {remote_runtime}/private-key; "
+            f"chmod 0600 {remote_runtime}/wg-install.netdev "
+            f"{remote_runtime}/wg-install.network"
+        )
+        c.run(
+            f"tar -C {shlex.quote(runtime_dir)} -cf - private-key "
+            "wg-install.netdev wg-install.network "
+            f"| ssh {shlex.quote(source_target)} {shlex.quote(stage_command)}",
+            hide=True,
+        )
+
+        lease_id = "".join(random.choices(string.ascii_lowercase + string.digits, k=12))
+        lease_unit = f"ephemeral-kexec-{lease_id}"
+        lease_dir = "/run/ephemeral-kexec-lease"
+        lease_lock = "/run/lock/ephemeral-kexec.lock"
+        eta_cleanup = (
+            f"exec 9>{lease_lock}; flock -x 9; "
+            f"current=$(cat {lease_dir}/id 2>/dev/null || true); "
+            f'if test "$current" = {shlex.quote(lease_id)}; then '
+            f"wg set wg-admin peer {shlex.quote(peer_public_key)} remove && "
+            f"rm -rf {lease_dir}; fi"
+        )
+        eta_reserve_cleanup = (
+            f"wg set wg-admin peer {shlex.quote(peer_public_key)} remove || true; "
+            f"rm -rf {lease_dir}"
+        )
+        eta_reserve = (
+            "set -eu; "
+            f"exec 9>{lease_lock}; flock -x 9; "
+            f"if wg show wg-admin allowed-ips | tr ', ' '\\n' | "
+            f"grep -Fqx {EPHEMERAL_KEXEC_ADDRESS}/32; then "
+            f"echo '{EPHEMERAL_KEXEC_ADDRESS}/32 is already assigned on eta' >&2; "
+            "exit 1; fi; "
+            f"if ! mkdir -m 0700 {lease_dir}; then "
+            "echo 'another ephemeral kexec lease is active' >&2; exit 1; fi; "
+            f"trap {shlex.quote(eta_reserve_cleanup)} EXIT; "
+            f"printf '%s\\n' {shlex.quote(lease_id)} > {lease_dir}/id; "
+            f"printf '%s\\n' {shlex.quote(peer_public_key)} > {lease_dir}/peer; "
+            f"wg set wg-admin peer {shlex.quote(peer_public_key)} "
+            f"allowed-ips {EPHEMERAL_KEXEC_ADDRESS}/32; "
+            f"systemd-run --quiet --unit={lease_unit} --on-active=6h "
+            f"/bin/sh -c {shlex.quote(eta_cleanup)}; "
+            "trap - EXIT"
+        )
+        eta_release = (
+            "set +e; "
+            f"systemctl stop {lease_unit}.timer; "
+            f"{eta_cleanup}; "
+            f"systemctl reset-failed {lease_unit}.timer {lease_unit}.service"
+        )
+
+        eta_registered = False
+        handoff_started = False
+        install_succeeded = False
+        try:
+            c.run(
+                f"ssh eta {shlex.quote(f'sudo sh -c {shlex.quote(eta_reserve)}')}",
+                hide=True,
+            )
+            eta_registered = True
+
+            activate_command = (
+                "set -eu; "
+                "install -d -m 0755 /run/systemd/network; "
+                f"install -m 0644 {remote_runtime}/wg-install.netdev "
+                "/run/systemd/network/10-wg-install.netdev; "
+                f"install -m 0644 {remote_runtime}/wg-install.network "
+                "/run/systemd/network/10-wg-install.network; "
+                f"install -o systemd-network -g systemd-network -m 0400 "
+                f"{remote_runtime}/private-key /run/systemd/network/wg-install.key; "
+                "networkctl reload; "
+                "for attempt in $(seq 1 15); do "
+                "networkctl status wg-install >/dev/null 2>&1 && exit 0; "
+                "sleep 1; done; "
+                "echo 'wg-install did not become ready' >&2; exit 1"
+            )
+            c.run(
+                f"ssh {shlex.quote(source_target)} {shlex.quote(activate_command)}",
+                hide=True,
+            )
+
+            target_ssh_options = (
+                "-o ProxyJump=eta "
+                "-o StrictHostKeyChecking=yes "
+                f"-o UserKnownHostsFile={shlex.quote(str(known_hosts))} "
+                "-o BatchMode=yes"
+            )
+            c.run(
+                f"ssh -p 10022 {target_ssh_options} {installer_target} true",
+                hide=True,
+            )
+
+            decrypt_host_keys(c, machine, extra_files)
+            handoff_started = True
+            c.run(
+                "nix run github:nix-community/nixos-anywhere#nixos-anywhere -- "
+                f"--flake .#{shlex.quote(configuration)} "
+                f"--kexec {shlex.quote(kexec_url)} "
+                "--ssh-port 10022 "
+                "--post-kexec-ssh-port 10022 "
+                "--ssh-option ProxyJump=eta "
+                "--ssh-option StrictHostKeyChecking=yes "
+                f"--ssh-option UserKnownHostsFile={shlex.quote(str(known_hosts))} "
+                "--ssh-option BatchMode=yes "
+                "--build-on remote "
+                f"--extra-files {shlex.quote(extra_files)} "
+                f"{extra_args} "
+                f"{installer_target}",
+                echo=True,
+            )
+            install_succeeded = True
+        finally:
+            cleanup_immediately = install_succeeded or not handoff_started
+            if cleanup_immediately:
+                if eta_registered:
+                    c.run(
+                        f"ssh eta {shlex.quote(f'sudo sh -c {shlex.quote(eta_release)}')}",
+                        hide=True,
+                        warn=True,
+                    )
+
+                cleanup_command = (
+                    "networkctl delete wg-install >/dev/null 2>&1 || true; "
+                    "rm -f /run/systemd/network/10-wg-install.netdev "
+                    "/run/systemd/network/10-wg-install.network "
+                    "/run/systemd/network/wg-install.key; "
+                    f"rm -rf {remote_runtime}; "
+                    "networkctl reload >/dev/null 2>&1 || true"
+                )
+                c.run(
+                    "ssh -o ConnectTimeout=3 "
+                    f"{shlex.quote(source_target)} {shlex.quote(cleanup_command)}",
+                    hide=True,
+                    warn=True,
+                )
+            elif eta_registered:
+                print(
+                    "Installation failed after the kexec handoff started. "
+                    f"Recovery SSH remains available for up to 6 hours at "
+                    f"ssh -J eta -p 10022 {installer_target}"
+                )
+
+
 @task
 def cleanup_gcroots(_: Any, hosts: str) -> None:
     """
