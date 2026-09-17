@@ -2,7 +2,7 @@
   systemd.network.networks = {
     "10-ethernet".extraConfig = ''
       [Match]
-      Type = ether
+      MACAddress = 9c:6b:00:9e:fa:de 9c:6b:00:9e:f8:ef
       [Network]
       Address = 10.80.169.64/24
       Gateway = 10.80.169.254

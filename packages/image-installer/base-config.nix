@@ -13,8 +13,11 @@ in
 
   networking.firewall.enable = false;
 
-  # The installer should not import stale ZFS root pools from disks it inspects.
-  boot.zfs.forceImportRoot = false;
+  boot = {
+    supportedFilesystems = [ "zfs" ];
+    # The installer should not import stale ZFS root pools from disks it inspects.
+    zfs.forceImportRoot = false;
+  };
 
   networking.usePredictableInterfaceNames = false;
   systemd.network.enable = true;

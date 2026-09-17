@@ -9,6 +9,7 @@ let
     imports = [
       self.inputs.nixos-images.nixosModules.kexec-installer
       self.inputs.nixos-images.nixosModules.noninteractive
+      ../image-installer/nix-settings.nix
       {
         system.kexec-installer.name = "nixos-kexec-installer-noninteractive";
         services.openssh.ports = [ 10022 ];
@@ -16,6 +17,7 @@ let
           "ext4"
           "xfs"
           "btrfs"
+          "zfs"
         ];
       }
     ];
