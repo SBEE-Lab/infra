@@ -16,7 +16,6 @@
 | Gatus | 없음 | Tailnet에서만 접근 가능한 공개 상태 페이지 (Authentik dashboard tile만 표시) |
 | Docling | Headscale ACL | 연구자/관리자용 AI API |
 | TEI | Naru/WireGuard source allowlist | malt ai-memory embedding과 관리망 모니터링 |
-| MULTI-evolve | Headscale ACL + Forward Auth | 연구자/관리자용 Streamlit UI |
 | Nixbot | GitHub OAuth | CI/CD 대시보드 접근 |
 
 ### RAGFlow UI-only residue cleanup

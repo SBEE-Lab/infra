@@ -60,11 +60,6 @@ let
       target = "https://${hosts.psi.wg-admin}/health";
       hostname = "docling.sjanglab.org";
     }
-    {
-      service = "multievolve";
-      target = "https://${hosts.psi.wg-admin}/";
-      hostname = "multievolve.sjanglab.org";
-    }
   ];
 
   blackboxTcpTargets = [

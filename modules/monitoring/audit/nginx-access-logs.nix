@@ -6,7 +6,6 @@ let
     "cloud.sjanglab.org" = "nextcloud";
     "docling.sjanglab.org" = "docling";
     "logging.sjanglab.org" = "grafana";
-    "multievolve.sjanglab.org" = "multievolve";
     "n8n.sjanglab.org" = "n8n";
     "status.sjanglab.org" = "gatus";
     "vault.sjanglab.org" = "vaultwarden";

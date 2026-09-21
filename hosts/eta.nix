@@ -98,12 +98,6 @@ in
       remoteHost = hosts.rho.wg-admin;
     }
     {
-      domain = "multievolve.sjanglab.org";
-      serviceName = "acme-sync-multievolve-to-psi";
-      remoteUser = "acme-sync-multievolve";
-      remoteHost = hosts.psi.wg-admin;
-    }
-    {
       domain = "vault.sjanglab.org";
       serviceName = "acme-sync-vaultwarden-to-tau";
       remoteUser = "acme-sync-vaultwarden";
@@ -118,7 +112,6 @@ in
   services.sbee.nginx.localCertificates = {
     "docling.sjanglab.org".group = "acme";
     "logging.sjanglab.org".group = "acme";
-    "multievolve.sjanglab.org".group = "acme";
     "status.sjanglab.org".group = "acme";
     "vault.sjanglab.org".group = "acme";
   };

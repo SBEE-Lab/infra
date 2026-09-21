@@ -24,7 +24,6 @@
 | **invoke** | Python 태스크 러너 (`tasks.py`) |
 | **Magic DNS** | Tailscale/Headscale의 자동 DNS 해석 기능 |
 | **MCP** | Model Context Protocol. AI 도구가 외부 서비스와 통신하는 프로토콜 |
-| **MULTI-evolve** | 연구자용 GPU 기반 Streamlit 애플리케이션 |
 | **n8n** | 노코드 워크플로우 자동화 플랫폼 |
 | **Nextcloud** | 자체 호스팅 파일 동기화, 캘린더, 문서 협업 플랫폼 |
 | **NixOS** | 선언적 Linux 배포판 |

@@ -17,8 +17,7 @@
           "eta-nginx",
           "authentik-outpost",
           "n8n",
-          "grafana",
-          "multievolve"
+          "grafana"
         ],
         "note": "nginx가 outpost에 인증 확인을 요청하고 사용자 헤더를 upstream으로 전달합니다."
       },
@@ -158,16 +157,6 @@
       "pos": [
         855,
         325
-      ]
-    },
-    {
-      "id": "multievolve",
-      "type": "backend",
-      "label": "MULTI-evolve",
-      "sublabel": "AI tag + auth",
-      "pos": [
-        1055,
-        250
       ]
     },
     {
@@ -377,17 +366,6 @@
       ]
     },
     {
-      "id": "n8n-multi",
-      "from": "n8n",
-      "to": "multievolve",
-      "label": "동일 패턴",
-      "variant": "dashed",
-      "labelAt": [
-        1015,
-        324
-      ]
-    },
-    {
       "id": "tailnet-ai",
       "from": "tailnet",
       "to": "docling",
@@ -412,7 +390,7 @@
       "dot": "rose",
       "title": "인증 방식",
       "items": [
-        "Forward Auth: n8n, Grafana, MULTI-evolve",
+        "Forward Auth: n8n, Grafana",
         "OIDC 앱: Nextcloud, Vaultwarden, Headscale",
         "Nixbot은 GitHub OAuth를 별도 사용"
       ]

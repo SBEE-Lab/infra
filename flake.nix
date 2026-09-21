@@ -84,12 +84,6 @@
     };
 
     # Applications.
-    multievolve-nix = {
-      url = "github:SBEE-Lab/multievolve-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.treefmt-nix.follows = "treefmt-nix";
-    };
-
     niks3 = {
       url = "github:Mic92/niks3";
       inputs.nixpkgs.follows = "nixpkgs";

@@ -38,7 +38,6 @@ in
     ../modules/backup/psi-protected.nix
     ../modules/backup/postgresql.nix
     ../modules/niks3
-    ../modules/multievolve
     # ../modules/vllm
     ../modules/biodb
     ../modules/biodb/databases.nix

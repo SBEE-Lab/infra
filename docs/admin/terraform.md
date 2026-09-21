@@ -47,7 +47,6 @@ terragrunt plan
 | `n8n.sjanglab.org` | `sjanglab-admins`, `sjanglab-researchers` |
 | `status.sjanglab.org` | 인증 없음 (Authentik dashboard tile만 관리) |
 | `logging.sjanglab.org` | `sjanglab-admins` |
-| `multievolve.sjanglab.org` | `sjanglab-admins`, `sjanglab-researchers` |
 
 Nextcloud 연동은 양쪽으로 나뉩니다. Authentik의 OAuth2 provider/application과 claim mapping은 `terraform/authentik/oidc.tf`가 관리하고, Nextcloud 내부 `user_oidc` provider 설정은 `modules/nextcloud/default.nix`의 `nextcloud-oidc-authentik.service`가 `occ user_oidc:provider`로 관리합니다.
 

@@ -47,11 +47,9 @@ Terraform이 `terraform/authentik/users.yaml`의 그룹 membership으로 생성�
 | 태그 | 소유 그룹 | 설명 |
 |------|----------|------|
 | `tag:server` | `sjanglab-admins` | 서버 노드 |
-| `tag:ai` | `sjanglab-admins` | AI/GPU 서비스 (Docling, MULTI-evolve†) |
+| `tag:ai` | `sjanglab-admins` | AI/GPU 서비스 (Docling) |
 | `tag:apps` | `sjanglab-admins` | 앱 서비스 (Nextcloud, n8n, Vaultwarden) |
 | `tag:monitoring` | `sjanglab-admins` | 모니터링 (Grafana) |
-
-> †MULTI-evolve는 Streamlit 앱이지만 psi에 배치되어 네트워크 수준에서는 `tag:ai`로 보호됩니다. n8n과 MULTI-evolve는 Authentik Forward Auth에서 관리자/연구원만 허용합니다.
 
 ### ACL 정책 관리 { #acl-policy }
 

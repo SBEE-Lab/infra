@@ -248,30 +248,6 @@
         "type": "github"
       }
     },
-    "multievolve-nix": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ],
-        "treefmt-nix": [
-          "treefmt-nix"
-        ],
-        "uv2nix-env": "uv2nix-env"
-      },
-      "locked": {
-        "lastModified": 1785941230,
-        "narHash": "sha256-t4aG6B5sZWm01JmXh7yaKZHFJknPpTEx16vqKGE7NJI=",
-        "owner": "SBEE-Lab",
-        "repo": "multievolve-nix",
-        "rev": "06e8bd875ba1ec906cb63c26ec6a2d2f9769d0d4",
-        "type": "github"
-      },
-      "original": {
-        "owner": "SBEE-Lab",
-        "repo": "multievolve-nix",
-        "type": "github"
-      }
-    },
     "niks3": {
       "inputs": {
         "nixpkgs": [
@@ -448,38 +424,6 @@
         "type": "github"
       }
     },
-    "pyproject-build-systems_2": {
-      "inputs": {
-        "nixpkgs": [
-          "multievolve-nix",
-          "uv2nix-env",
-          "nixpkgs"
-        ],
-        "pyproject-nix": [
-          "multievolve-nix",
-          "uv2nix-env",
-          "pyproject-nix"
-        ],
-        "uv2nix": [
-          "multievolve-nix",
-          "uv2nix-env",
-          "uv2nix"
-        ]
-      },
-      "locked": {
-        "lastModified": 1782093830,
-        "narHash": "sha256-6gmEVe69+KlRkZD4PEEV5xAlB9CB0Y9TiuEgQjDrKTQ=",
-        "owner": "pyproject-nix",
-        "repo": "build-system-pkgs",
-        "rev": "430680a19bc85a3bda55f12e4cc1a1aadcf2e478",
-        "type": "github"
-      },
-      "original": {
-        "owner": "pyproject-nix",
-        "repo": "build-system-pkgs",
-        "type": "github"
-      }
-    },
     "pyproject-nix": {
       "inputs": {
         "nixpkgs": [
@@ -493,28 +437,6 @@
         "owner": "pyproject-nix",
         "repo": "pyproject.nix",
         "rev": "1b1485546d85f6f6c7aadb10c4923dbc09633263",
-        "type": "github"
-      },
-      "original": {
-        "owner": "pyproject-nix",
-        "repo": "pyproject.nix",
-        "type": "github"
-      }
-    },
-    "pyproject-nix_2": {
-      "inputs": {
-        "nixpkgs": [
-          "multievolve-nix",
-          "uv2nix-env",
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1782808548,
-        "narHash": "sha256-9+XcLOzFo3tXSgH5xpd5g2i65cx4q6zvfNVEMV7hyEs=",
-        "owner": "pyproject-nix",
-        "repo": "pyproject.nix",
-        "rev": "4de7c126c1a3e76e9ec9e3ced900aaa6d8847757",
         "type": "github"
       },
       "original": {
@@ -581,7 +503,6 @@
         "fast-nix-gc": "fast-nix-gc",
         "flake-parts": "flake-parts",
         "gitea-mq": "gitea-mq",
-        "multievolve-nix": "multievolve-nix",
         "niks3": "niks3",
         "nix-grpc-store": "nix-grpc-store",
         "nix-index-database": "nix-index-database",
@@ -794,61 +715,6 @@
         "owner": "pyproject-nix",
         "repo": "uv2nix",
         "rev": "7f9c6b613d2e749e54854b1d60ab6a2192db889e",
-        "type": "github"
-      },
-      "original": {
-        "owner": "pyproject-nix",
-        "repo": "uv2nix",
-        "type": "github"
-      }
-    },
-    "uv2nix-env": {
-      "inputs": {
-        "nixpkgs": [
-          "multievolve-nix",
-          "nixpkgs"
-        ],
-        "pyproject-build-systems": "pyproject-build-systems_2",
-        "pyproject-nix": "pyproject-nix_2",
-        "treefmt-nix": [
-          "multievolve-nix",
-          "treefmt-nix"
-        ],
-        "uv2nix": "uv2nix_2"
-      },
-      "locked": {
-        "lastModified": 1782880978,
-        "narHash": "sha256-MewckjJGV0DV2X070b6T93FctV0D0DkDAg7aFfGXa8I=",
-        "owner": "mulatta",
-        "repo": "uv2nix-env",
-        "rev": "67a987d1ef13a7313dbbeea364ec71a443c3e8ce",
-        "type": "github"
-      },
-      "original": {
-        "owner": "mulatta",
-        "repo": "uv2nix-env",
-        "type": "github"
-      }
-    },
-    "uv2nix_2": {
-      "inputs": {
-        "nixpkgs": [
-          "multievolve-nix",
-          "uv2nix-env",
-          "nixpkgs"
-        ],
-        "pyproject-nix": [
-          "multievolve-nix",
-          "uv2nix-env",
-          "pyproject-nix"
-        ]
-      },
-      "locked": {
-        "lastModified": 1782810559,
-        "narHash": "sha256-loy132LKn8QfiPbFJhdTjm+yZG3zklyOQhVabLyx2l4=",
-        "owner": "pyproject-nix",
-        "repo": "uv2nix",
-        "rev": "2f698e4b5a3c6004edaf051543542f18a36afe77",
         "type": "github"
       },
       "original": {

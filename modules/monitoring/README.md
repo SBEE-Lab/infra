@@ -283,7 +283,7 @@ Raw nginx/app access:
 sum by (host, service, ingress_network) (count_over_time({log_type="nginx_access"}[1h]))
 ```
 
-Selected tailnet-relevant reverse-proxied apps currently emit this raw stream: Grafana/logging, Gatus/status, n8n, Nextcloud, Vaultwarden, Docling, and MULTI-evolve.
+Selected tailnet-relevant reverse-proxied apps currently emit this raw stream: Grafana/logging, Gatus/status, n8n, Nextcloud, Vaultwarden, and Docling.
 
 ## Alerting state
 

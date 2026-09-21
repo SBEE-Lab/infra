@@ -154,7 +154,6 @@ while IFS='|' read -r app external_host policy_key; do
 done <<'EOF'
 n8n|https://n8n.sjanglab.org|researchers
 logging|https://logging.sjanglab.org|admins
-multievolve|https://multievolve.sjanglab.org|researchers
 EOF
 
 while IFS='|' read -r key name; do
