@@ -41,5 +41,5 @@
   '';
 
   # Forward audit logs to journald for Vector to collect
-  services.journald.audit = true;
+  services.journald.settings.Journal.Audit = true;
 }
