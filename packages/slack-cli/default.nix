@@ -5,25 +5,25 @@
   fetchFromGitHub,
 }:
 
-buildGoModule rec {
+buildGoModule (finalAttrs: {
   pname = "slack-cli";
-  version = "4.7.0";
+  version = "4.8.0";
 
   src = fetchFromGitHub {
     owner = "slackapi";
     repo = "slack-cli";
-    rev = "v${version}";
-    hash = "sha256-dSHl3u60WQHj8icfe9ZShh431/IfV25D8l5pZISMOhU=";
+    rev = "v${finalAttrs.version}";
+    hash = "sha256-+50WpEYV6mohRW6jqsNLgzIQs7poRQNqH5v1bpaPCOE=";
   };
 
-  vendorHash = "sha256-RI0j2+9S6kxHALEztV7hnY8NNR5xwUWgG4YHGGXZZiA=";
+  vendorHash = "sha256-pneSwkRDSbGfTUTmIDOkkvVHH/W1qukGYURdIKdgU9U=";
 
   subPackages = [ "." ];
 
   ldflags = [
     "-s"
     "-w"
-    "-X github.com/slackapi/slack-cli/internal/version.Version=v${version}"
+    "-X github.com/slackapi/slack-cli/internal/version.Version=v${finalAttrs.version}"
   ];
 
   doCheck = false;
@@ -46,9 +46,9 @@ buildGoModule rec {
   meta = {
     description = "Slack command-line interface";
     homepage = "https://github.com/slackapi/slack-cli";
-    changelog = "https://github.com/slackapi/slack-cli/releases/tag/v${version}";
+    changelog = "https://github.com/slackapi/slack-cli/releases/tag/v${finalAttrs.version}";
     license = lib.licenses.asl20;
     mainProgram = "slack";
     maintainers = [ ];
   };
-}
+})
