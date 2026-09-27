@@ -505,11 +505,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1789076807,
-        "narHash": "sha256-+Tdke/vWUoizDn4E5tJPs44OSY55GHH35Yr3YmEjk5Q=",
+        "lastModified": 1789993770,
+        "narHash": "sha256-hIlcfd0P5+68GAcFY2vsldj7hzINzYcxKbbwFc8Y6dM=",
         "owner": "mulatta",
         "repo": "rhwp-nextcloud",
-        "rev": "2040d78803bb22fae28cad1e7bd893e4cb436942",
+        "rev": "436d2e2d2d376d3ccaf79e1c1f6c1f3721bf3e27",
         "type": "github"
       },
       "original": {
