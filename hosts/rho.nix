@@ -8,6 +8,7 @@
     ../modules/tailscale
     ../modules/postgresql
     ../modules/rustfs
+    ../modules/neko
     ../modules/backup/mirror.nix
     ../modules/backup/stalwart-r2-blobs-mirror.nix
     ../modules/backup/postgresql.nix
