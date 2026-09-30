@@ -52,6 +52,27 @@ locals {
   ]
 
   oidc_apps = {
+    neko = {
+      name            = "Neko"
+      slug            = "neko"
+      client_id       = "neko-rho"
+      client_secret   = data.sops_file.neko_secrets.data["NEKO_OAUTH_CLIENT_SECRET"]
+      client_type     = "confidential"
+      grant_types     = ["authorization_code", "refresh_token"]
+      sub_mode        = "hashed_user_id"
+      meta_launch_url = "https://neko.sjanglab.org"
+      allowed_redirect_uris = [
+        {
+          matching_mode     = "strict"
+          redirect_uri_type = "authorization"
+          url               = "https://neko.sjanglab.org/api/oauth/callback"
+        },
+      ]
+      property_mappings = concat(
+        local.oidc_default_property_mappings,
+        [authentik_property_mapping_provider_scope.neko_role.id],
+      )
+    }
     headscale = {
       name            = "Headscale"
       slug            = "headscale"
@@ -129,6 +150,7 @@ resource "authentik_provider_oauth2" "oidc" {
   client_id                  = each.value.client_id
   client_secret              = each.value.client_secret
   client_type                = each.value.client_type
+  grant_types                = lookup(each.value, "grant_types", null)
   sub_mode                   = each.value.sub_mode
   issuer_mode                = "per_provider"
   include_claims_in_id_token = true
