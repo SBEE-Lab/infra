@@ -16,6 +16,7 @@
       // lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
         installer = pkgs.callPackage ./image-installer { inherit pkgs self; };
         kexec = pkgs.callPackage ./kexec-installer { inherit pkgs self; };
+        neko-image = pkgs.callPackage ./neko-image { };
         text-embeddings-inference = pkgs.callPackage ./text-embeddings-inference {
           cudaSupport = false;
         };
