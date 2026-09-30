@@ -403,10 +403,10 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1789892136,
-        "narHash": "sha256-NVtPPNoZM29UWgZ7e18wpRE3yKMjNDa20dxIj1LvEuQ=",
+        "lastModified": 1790499230,
+        "narHash": "sha256-3SrJIPG0XO6YBo1vgb997IUOJX4/Xo+8saNKgUB6As4=",
         "ref": "main",
-        "rev": "5baae1fc97e58c7012c769c8ac0206d53f2e6bb5",
+        "rev": "a98e471a6997a351ee07a542d6ce079e0e275bbd",
         "shallow": true,
         "type": "git",
         "url": "https://github.com/SBEE-Lab/nixpkgs"
