@@ -52,6 +52,7 @@ in
 {
   imports = [
     ../modules/nix-grpc-store/edge-proxy.nix
+    ../modules/neko/edge.nix
     ../modules/hardware/vultr-vms.nix
     ../modules/disko/ext4-root.nix
     ../modules/headscale

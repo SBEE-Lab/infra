@@ -64,6 +64,16 @@ resource "cloudflare_dns_record" "edge_host" {
   comment = "${each.key} access through eta edge"
 }
 
+resource "cloudflare_dns_record" "neko" {
+  zone_id = data.sops_file.secrets.data["CLOUDFLARE_ZONE_ID"]
+  name    = "neko.sjanglab.org"
+  content = "141.164.53.203"
+  type    = "A"
+  ttl     = 300
+  proxied = false
+  comment = "Neko public edge (eta -> rho)"
+}
+
 resource "cloudflare_dns_record" "mail" {
   zone_id = data.sops_file.secrets.data["CLOUDFLARE_ZONE_ID"]
   name    = "mail.sjanglab.org"
