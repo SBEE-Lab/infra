@@ -69,6 +69,7 @@ let
       "modules/container-registry/secrets.yaml" = [ "eta" ];
       "modules/monitoring/secrets.yaml" = [ "rho" ];
       "modules/n8n/secrets.yaml" = [ "tau" ];
+      "terraform/authentik/neko-secrets.yaml" = [ "rho" ];
       "modules/nextcloud/secrets.yaml" = [ "tau" ];
       "modules/nfs/secrets.yaml" = [ "psi" ];
       "modules/niks3/secrets.yaml" = [ "psi" ];
