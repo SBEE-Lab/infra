@@ -11,10 +11,11 @@ terraform {
     arguments = ["-lock-timeout=30s"]
   }
 
-  before_hook "reset_old_terraform_state" {
-    commands     = ["init"]
-    execute      = ["rm", "-f", ".terraform.lock.hcl"]
-    run_on_error = true
+  # Terragrunt excludes dotfiles when copying local modules into its cache.
+  # Copy the reviewed lock file explicitly to keep provider selection reproducible.
+  before_hook "sync_provider_lock" {
+    commands = ["init"]
+    execute  = ["cp", "${get_original_terragrunt_dir()}/.terraform.lock.hcl", ".terraform.lock.hcl"]
   }
 }
 

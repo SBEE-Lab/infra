@@ -7,6 +7,7 @@ __pycache__/
 
 .terragrunt-cache/
 .terraform*
+!.terraform.lock.hcl
 *.tfstate*
 terraform.tf
 terraform/alert-bridge/worker.auto.tfvars.json
