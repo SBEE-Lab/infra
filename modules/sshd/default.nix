@@ -510,11 +510,14 @@ in
         interfaces.wg-admin.allowedTCPPorts = [ ssh.port ];
 
         # Emergency LAN access when bastion (eta) is down — whitelisted IPs only
-        extraCommands = ''
+        extraInputRules = lib.mkIf config.networking.nftables.enable ''
+          ip saddr 10.80.169.38-10.80.169.40 tcp dport ${toString ssh.port} accept
+        '';
+        extraCommands = lib.mkIf (!config.networking.nftables.enable) ''
           iptables -A INPUT -p tcp --dport ${toString ssh.port} \
             -m iprange --src-range 10.80.169.38-10.80.169.40 -j ACCEPT
         '';
-        extraStopCommands = ''
+        extraStopCommands = lib.mkIf (!config.networking.nftables.enable) ''
           iptables -D INPUT -p tcp --dport ${toString ssh.port} \
             -m iprange --src-range 10.80.169.38-10.80.169.40 -j ACCEPT 2>/dev/null || true
         '';
