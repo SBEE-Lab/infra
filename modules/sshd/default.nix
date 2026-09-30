@@ -367,6 +367,11 @@ in
       MaxStartups = "64:30:256";
       MaxSessions = 64;
 
+      # ProxyJump makes every internal connection appear to come from eta. Exempt only
+      # that authenticated WireGuard peer so one stale connection cannot block all users.
+      PerSourcePenaltyExemptList =
+        if isBastion then "none" else "${config.networking.sbee.hosts.eta.wg-admin}/32";
+
       Ciphers = [
         "chacha20-poly1305@openssh.com"
         "aes256-gcm@openssh.com"
