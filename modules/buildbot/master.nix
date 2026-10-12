@@ -25,6 +25,8 @@ in
     evalWorkerCount = 8;
     evalMaxMemorySize = 8192;
     buildConcurrency = 48;
+    # Large Rust crates link silently for over 20 minutes.
+    buildMaxSilentTime = 60 * 60;
 
     # Keep buildbot-era check names so existing branch protection rules match.
     statusContextPrefix = "buildbot";
