@@ -44,19 +44,25 @@ in
       add_header Strict-Transport-Security "max-age=31536000" always;
     '';
     streamConfig = lib.mkIf (cfg.streamProxies != { }) streamConfig;
-    virtualHosts = lib.mapAttrs (domain: _: {
+    virtualHosts = lib.mapAttrs (_: _: {
       forceSSL = true;
-      useACMEHost = domain;
+      enableACME = true;
     }) cfg.edgeVhosts;
   };
 
-  security.acme.certs = lib.mapAttrs (domain: certificate: {
-    inherit domain;
-    dnsProvider = "cloudflare";
-    environmentFile = config.sops.secrets.cloudflare-credentials.path;
-    webroot = null;
-    inherit (certificate) group reloadServices;
-  }) (cfg.edgeVhosts // cfg.localCertificates);
+  security.acme.certs =
+    lib.mapAttrs (_: certificate: {
+      inherit (certificate) group reloadServices;
+    }) cfg.edgeVhosts
+    // lib.mapAttrs (domain: certificate: {
+      inherit domain;
+      dnsProvider = "cloudflare";
+      # Certificate-only services have no public HTTP challenge endpoint.
+      dnsResolver = "8.8.8.8:53";
+      environmentFile = config.sops.secrets.cloudflare-credentials.path;
+      webroot = null;
+      inherit (certificate) group reloadServices;
+    }) cfg.localCertificates;
 
   networking.firewall.allowedTCPPorts = [
     80

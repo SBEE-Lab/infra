@@ -1,11 +1,14 @@
 # Nixbot reverse proxy/TLS endpoint on psi.
 # eta provides public ingress; this vhost is the wg-admin upstream.
-{ config, ... }:
+_:
 let
   nixbotDomain = "nixbot.sjanglab.org";
 in
 {
-  imports = [ ../gatus/check.nix ];
+  imports = [
+    ../acme/sync.nix
+    ../gatus/check.nix
+  ];
 
   gatusCheck.push = [
     {
@@ -19,25 +22,16 @@ in
 
   services.nginx.virtualHosts.${nixbotDomain} = {
     forceSSL = true;
-    useACMEHost = nixbotDomain;
+    sslCertificate = "/var/lib/acme/${nixbotDomain}/fullchain.pem";
+    sslCertificateKey = "/var/lib/acme/${nixbotDomain}/key.pem";
   };
 
-  security.acme = {
-    defaults.email = "sjang.bioe@gmail.com";
-    acceptTerms = true;
-    certs.${nixbotDomain} = {
-      dnsProvider = "cloudflare";
-      environmentFile = config.sops.secrets.cloudflare-credentials.path;
-      group = "nginx";
-    };
-  };
-
-  sops.secrets.cloudflare-credentials = {
-    sopsFile = ../acme/secrets.yaml;
-    owner = "acme";
-    group = "acme";
-    mode = "0400";
-  };
+  acmeSyncer.mkReceiver = [
+    {
+      domain = nixbotDomain;
+      user = "acme-sync-nixbot";
+    }
+  ];
 
   networking.firewall.interfaces.wg-admin.allowedTCPPorts = [
     80

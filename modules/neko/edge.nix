@@ -10,9 +10,6 @@ in
   services.sbee.nginx.edgeVhosts.${domain} = { };
   services.sbee.nginxAccessLogs.services.${domain} = "neko";
 
-  # Avoid systemd-resolved negative caching while the DNS-01 record is transient.
-  security.acme.certs.${domain}.dnsResolver = "1.1.1.1:53";
-
   services.nginx = {
     commonHttpConfig = ''
       limit_req_zone $binary_remote_addr zone=neko_public:10m rate=20r/s;

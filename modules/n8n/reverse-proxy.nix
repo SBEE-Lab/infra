@@ -32,8 +32,7 @@ in
     }
   ];
 
-  # ACME certificate (DNS challenge via Cloudflare)
-  # Also synced to tau for split DNS access
+  # eta answers HTTP-01 publicly and syncs the certificate to tau for split DNS.
 
   services.nginx.virtualHosts.${n8nDomain} = {
 

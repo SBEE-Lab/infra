@@ -7,7 +7,18 @@ let
   nixbotDomain = "nixbot.sjanglab.org";
 in
 {
+  imports = [ ../acme/sync.nix ];
+
   services.sbee.nginx.edgeVhosts.${nixbotDomain} = { };
+
+  acmeSyncer.mkSender = [
+    {
+      domain = nixbotDomain;
+      serviceName = "acme-sync-nixbot-to-psi";
+      remoteUser = "acme-sync-nixbot";
+      remoteHost = hosts.psi.wg-admin;
+    }
+  ];
   services.nginx.virtualHosts.${nixbotDomain} = {
 
     locations."/" = {
