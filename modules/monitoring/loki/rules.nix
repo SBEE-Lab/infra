@@ -52,6 +52,42 @@ let
         interval = "60s";
         rules = [
           (mkAlert {
+            alert = "AcmeRenewalFailed";
+            expr = ''
+              (
+                sum by (host, unit, job_class) (
+                  count_over_time(
+                    {log_type="systemd_status", event="job_snapshot"}
+                    | json
+                    | alert_enabled = "true"
+                    | job_class = "acme"
+                    | health = "FAIL"
+                  [10m])
+                ) > 0
+              )
+              unless
+              (
+                sum by (host, unit, job_class) (
+                  count_over_time(
+                    {log_type="systemd_status", event="job_snapshot"}
+                    | json
+                    | alert_enabled = "true"
+                    | job_class = "acme"
+                    | health = "OK"
+                  [2m])
+                ) > 0
+              )
+            '';
+            for = "5m";
+            labels = {
+              severity = "warning";
+              alert_category = "ops";
+              service = "acme";
+            };
+            summary = "ACME certificate renewal failed";
+            description = "{{ $labels.host }} {{ $labels.unit }} is failing; check DNS propagation and API credentials before retrying";
+          })
+          (mkAlert {
             alert = "BackupJobFailed";
             expr = ''
               sum by (host, unit, job_class) (
