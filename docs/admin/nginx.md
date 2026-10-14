@@ -9,8 +9,8 @@ owns their protocol and limits.
 
 - nginx baseline, TLS settings, compression, proxy defaults, and HSTS;
 - ports 80 and 443;
-- Cloudflare DNS-01 certificate issuance;
-- certificates issued only for distribution to internal hosts;
+- 공개 vhost의 nginx HTTP-01 인증서 발급 (`enableACME = true`);
+- 비공개 certificate-only 항목의 Cloudflare DNS-01 발급과 내부 호스트 동기화;
 - raw TCP listeners declared through `streamProxies`.
 
 A service with an HTTPS vhost registers its hostname and keeps only its routes locally:
@@ -49,6 +49,6 @@ defaults must not be imported on those hosts.
 
 ## Certificate ownership
 
-Each public hostname has one local ACME owner on eta. `edgeVhosts` means eta both serves the
-hostname and owns its certificate. `localCertificates` means eta only obtains and distributes
-the certificate. The edge module rejects a hostname declared in both sets.
+각 공개 hostname의 발급 주체는 eta 하나입니다. `edgeVhosts`는 eta가 HTTP-01 challenge와 서비스 ingress를 제공하며 인증서를 발급합니다. `localCertificates`는 공개 vhost 없이 DNS-01로 발급·배포만 수행하며, 전파 확인 resolver는 `8.8.8.8:53`입니다. 두 집합에 같은 hostname을 선언하면 edge 모듈이 거부합니다.
+
+Nixbot 인증서는 eta에서 psi의 `acme-sync-nixbot` 계정으로 동기화합니다. psi nginx는 동기화된 파일을 사용하고 변경 시 reload하며, 로컬 ACME 발급이나 Cloudflare 토큰은 필요하지 않습니다.

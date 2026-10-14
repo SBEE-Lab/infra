@@ -89,4 +89,4 @@ psi의 Naru 인터페이스에서는 malt의 IPv4/IPv6 source 주소만 TEI 임�
 
 ## ACME 인증서
 
-대부분의 TLS 인증서는 eta에서 Cloudflare DNS 챌린지로 발급됩니다. Nixbot(`nixbot.sjanglab.org`) 공개 인증서는 eta에서 발급되고, psi의 Nixbot nginx도 wg-admin upstream용 인증서를 유지합니다. 다른 호스트(rho, tau, psi)의 나머지 인증서는 `acme-sync` 사용자를 통해 rsync로 동기화됩니다.
+TLS 인증서는 eta에서 발급합니다. 공개 nginx vhost는 HTTP-01을 사용하고, 공개 HTTP endpoint가 없는 비공개 certificate-only 항목은 Cloudflare DNS-01을 사용합니다. DNS-01 전파 확인은 시스템 split DNS 대신 `8.8.8.8:53`을 사용합니다. Nixbot(`nixbot.sjanglab.org`)도 eta 인증서를 psi의 wg-admin upstream에 동기화하며 psi에서는 별도 발급하지 않습니다. rho, tau, psi의 인증서는 `acme-sync` 수신 계정을 통해 rsync로 동기화됩니다.

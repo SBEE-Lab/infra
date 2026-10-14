@@ -137,6 +137,7 @@ alert별 1차 확인:
 | `BlackboxExporterDown` | eta의 `prometheus-blackbox-exporter.service` | exporter 재시작, listen address와 방화벽 확인 |
 | `BlackboxProbeFailed` | eta blackbox exporter, DNS, nginx 인증서 | ACME/프록시/방화벽 확인 |
 | `TlsCertificateExpiringSoon` | eta ACME timer와 대상 `acme-sync-*` unit | 인증서 갱신 후 대상 호스트 동기화 확인 |
+| `AcmeRenewalFailed` | eta의 `acme-order-renew-*` journal과 `log_type="systemd_status"`, `job_class="acme"` | HTTP-01은 공개 DNS·80번 포트·nginx challenge 경로, DNS-01은 resolver·TXT 전파·토큰 권한 확인. 원인 해결 후 재검증·필요 시 unpause |
 | `NvidiaGpuExporterDown` | psi exporter service와 `nvidia-smi` | NVIDIA driver/GPU 상태 확인 후 exporter 복구 |
 | `PostgresqlDown` / `PostgresqlExporterMissing` | rho/tau `postgresql.service`, `prometheus-postgres-exporter.service`, Vector | DB 또는 exporter 복구 후 `pg_up` 확인 |
 | `PostgresqlReplicaNotStreaming` / `PostgresqlReplicationLagHigh` | rho `pg_stat_replication`, tau `pg_stat_wal_receiver` | 연결·WAL 상태 확인, WAL 유실이면 tau 재-bootstrap |
@@ -151,6 +152,8 @@ alert별 1차 확인:
 | `AuthentikLoginFailureBurst` / `AuthentikForwardAuthDenyBurst` | Authentik audit log의 user, app, source IP | 사용자 영향과 계정 탈취 여부 확인 |
 | `HeadscaleOidcDenied` / `HeadscaleNodeExpired` | Authentik group, `users.yaml`, node expiry | 정당한 사용자면 inventory/expiry 수정 후 Terraform apply |
 | `Watchdog` 미수신 | Alertmanager, healthchecks.io ping URL, 네트워크 | Alertmanager 복구. bridge 장애와 분리 확인 |
+
+`AcmeRenewalFailed`는 기존 systemd 상태 snapshot으로 auto-restart 중인 실패도 감지합니다. 10분 이내 실패가 있고 최근 2분 내 정상 snapshot이 없으면 5분 후 경보를 발생시킵니다. 정상 snapshot 수신 후 이전 실패로 인한 경보는 해제됩니다. snapshot 전송 자체가 끊기면 이 규칙은 실패를 판정하지 못하므로 Vector와 호스트 수집 상태도 함께 확인합니다.
 
 감사 alert는 `#infra-audit`에 도착합니다. 사용자명, source IP, app/node 정보를 기록하고 계정 탈취 가능성이 있으면 Authentik 계정 비활성화와 Headscale ACL apply를 우선합니다.
 

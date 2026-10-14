@@ -145,7 +145,7 @@ root의 `authorized_keys`에는 관리자 키만 등록됩니다 (`modules/users
 |----------|------------|------|
 | `hosts/<host>.yaml` | 해당 호스트 + admin | root 비밀번호 해시, WireGuard 키 |
 | `hosts/rho.yaml`, `hosts/tau.yaml` | 해당 호스트 | RustFS root credential, host-local backup passwords, PostgreSQL 사용자/복제 암호 |
-| `modules/acme/secrets.yaml` | eta, psi, tau | Cloudflare API 인증 |
+| `modules/acme/secrets.yaml` | eta | 비공개 인증서용 Cloudflare API 인증, 인증서 동기화 SSH 키 |
 | `modules/buildbot/secrets.yaml` | psi | Nixbot GitHub App/OAuth 시크릿 |
 | `modules/gitea-mq/secrets.yaml` | eta | merge queue GitHub App private key와 webhook secret |
 | `modules/authentik/secrets.yaml` | eta | OIDC 클라이언트 시크릿 |
@@ -164,7 +164,7 @@ sops updatekeys hosts/psi.yaml
 
 ## TLS 인증서
 
-대부분의 도메인은 eta에서 Let's Encrypt ACME + Cloudflare DNS 챌린지로 인증서를 발급합니다. Nixbot 공개 ingress는 eta에서 인증서를 발급하고, psi의 Nixbot 스택도 내부 nginx용 인증서를 유지합니다. 다른 호스트에서 사용하는 인증서는 `acme-sync` 서비스가 rsync로 동기화하고, 대상 호스트의 systemd path unit이 파일 변경을 감지하여 nginx를 자동 리로드합니다.
+인증서는 eta에서 Let's Encrypt ACME로 발급합니다. 공개 nginx vhost는 HTTP-01을 사용하고, 공개 HTTP endpoint가 없는 비공개 서비스의 certificate-only 항목은 Cloudflare DNS-01을 사용합니다. 다른 호스트에서 사용하는 인증서는 `acme-sync` 서비스가 rsync로 동기화하고, 대상 호스트의 systemd path unit이 파일 변경을 감지하여 nginx를 자동 리로드합니다. Nixbot도 eta 인증서를 psi에 동기화하며, psi에서는 별도 발급이나 Cloudflare 토큰을 사용하지 않습니다.
 
 | 도메인 | 발급 호스트 | 사용 호스트 |
 |--------|-----------|-----------|
@@ -174,11 +174,21 @@ sops updatekeys hosts/psi.yaml
 | `cloud.sjanglab.org` | eta | tau (동기화) |
 | `n8n.sjanglab.org` | eta | tau (동기화) |
 | `docling.sjanglab.org` | eta | psi (동기화) |
-| `nixbot.sjanglab.org` | eta, psi | eta (public edge), psi (service stack) |
+| `nixbot.sjanglab.org` | eta | eta (public edge), psi (동기화, service stack) |
 | `mq.sjanglab.org` | eta | eta |
 | `upterm.sjanglab.org` | eta | eta |
 
-인증서 동기화: eta에서 발급 → `acme-sync` 서비스가 rsync로 대상 호스트에 전송 → systemd path unit이 변경 감지 → nginx 자동 리로드. Nixbot은 eta 공개 edge와 psi 서비스 스택 양쪽에서 인증서를 발급합니다.
+인증서 동기화: eta에서 발급 → `acme-sync` 서비스가 rsync로 대상 호스트에 전송 → systemd path unit이 변경 감지 → nginx 자동 리로드. Nixbot 수신 계정은 psi의 `acme-sync-nixbot`이며 기존 Docling 수신 계정과 분리합니다.
+
+### ACME 갱신 실패 대응
+
+공개 vhost는 nginx의 `enableACME = true`로 HTTP-01을 처리합니다. 기존 공개 DNS와 80번 포트를 사용하며, 애플리케이션의 인증·경로 제한은 그대로 유지합니다. 비공개 certificate-only 항목은 DNS-01 전파 확인에만 `8.8.8.8:53`을 사용합니다. 시스템 resolver와 Headscale split DNS는 변경하지 않으며, 전파 확인과 대기 시간은 lego 기본 정책을 유지합니다.
+
+`modules/acme/secrets.yaml`의 `cloudflare-credentials`는 ACME 전용입니다. `CLOUDFLARE_DNS_API_TOKEN`과 `CLOUDFLARE_ZONE_API_TOKEN`에 같은 토큰을 사용하며, 필요한 권한은 `sjanglab.org`의 DNS Edit와 Zone Read입니다. Terraform DNS, Worker/D1, R2 자격증명과 별도로 관리합니다.
+
+`AcmeRenewalFailed`가 발생하면 eta의 `acme-order-renew-<domain>.service` journal을 확인합니다. HTTP-01은 공개 DNS·80번 포트·nginx challenge 경로를, DNS-01은 토큰 권한·TXT 전파·resolver 접근성을 확인합니다. 원인을 해결하고 한 인증서로 검증한 뒤 나머지를 갱신합니다. Let's Encrypt의 연속 인증 실패 정지가 남아 있으면 journal의 공식 해제 링크로 unpause합니다. 이 링크는 해제용 토큰을 포함하므로 채팅·공개 이슈·문서에 공유하지 않습니다.
+
+Nixbot 동기화 전환 시에는 기존 인증서가 있는 psi에 수신 계정과 watcher를 먼저 적용한 뒤 eta에 발급·송신 설정을 적용합니다. 새 psi를 처음 구성할 때는 nginx를 시작하기 전에 인증서 디렉터리에 유효한 인증서를 먼저 동기화해야 합니다. 전환 후 `acme-sync-nixbot-to-psi.service`를 실행하고 양쪽 인증서와 nginx reload를 확인합니다. 나머지 인증서도 만료일, `acme-sync-*` 동기화, 실제 HTTPS endpoint의 인증서를 확인합니다. 경보 규칙 변경은 rho에도 적용해야 합니다. 반복 실패를 무시하거나 DNS 전파 확인을 끄는 방식으로 우회하지 않습니다.
 
 ## 데이터 보안
 
