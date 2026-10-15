@@ -35,8 +35,7 @@ in
     ../modules/buildbot/reverse-proxy.nix
     ../modules/monitoring/vector
     ../modules/monitoring/exporters/systemd-status.nix
-    ../modules/backup/psi-protected.nix
-    ../modules/backup/postgresql.nix
+    ../modules/backup/borg.nix
     ../modules/niks3
     # ../modules/vllm
     ../modules/biodb
@@ -138,18 +137,6 @@ in
   systemd.services.github-runner-release-runner = {
     requires = [ "docker.service" ];
     after = [ "docker.service" ];
-  };
-
-  services.sbee.backups = {
-    psiProtected.enable = true;
-    postgresql = {
-      enable = true;
-      databases = [
-        "niks3"
-        "nixbot"
-      ];
-      startAt = "*-*-* 02:30:00";
-    };
   };
 
   services.sbee.systemdStatusExporter = {

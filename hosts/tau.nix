@@ -7,8 +7,7 @@
     ../modules/wake-on-lan.nix
     ../modules/tailscale
     ../modules/postgresql/replica.nix
-    ../modules/rustfs
-    ../modules/backup/primary.nix
+    ../modules/backup/borg.nix
     ../modules/monitoring/vector/monitor-services.nix
     ../modules/nextcloud
     ../modules/n8n
@@ -39,28 +38,6 @@
   systemd.services."serial-getty@ttyS0".enable = false;
 
   networking.hostName = "tau";
-
-  sops.secrets = {
-    rustfs-access-key = {
-      owner = "rustfs";
-      group = "rustfs";
-      mode = "0400";
-    };
-    rustfs-secret-key = {
-      owner = "rustfs";
-      group = "rustfs";
-      mode = "0400";
-    };
-  };
-
-  services.rustfs.enable = true;
-  services.sbee.backups = {
-    primary = {
-      psiProtected.enable = true;
-      vaultwarden.enable = true;
-      postgresql.enable = true;
-    };
-  };
 
   system.stateVersion = "25.05";
 }

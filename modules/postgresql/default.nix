@@ -81,8 +81,6 @@ in
     '';
   };
 
-  # PostgreSQL backup is moving to the S3 backup store.
-
   sops.secrets.pg-replicator-password = {
     owner = "postgres";
     group = "postgres";
