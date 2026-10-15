@@ -19,8 +19,9 @@
   disko.xfsMdadm = {
     enable = true;
     arrays = {
-      # HDD RAID0 for data (4TB total)
+      # HDD RAID1 for data (2TB usable)
       data = {
+        level = 1;
         disks.hdd1 = "/dev/disk/by-id/ata-WDC_WD20SPZX-00UA7T0_WD-WXB2A153HDND";
         disks.hdd2 = "/dev/disk/by-id/ata-WDC_WD20SPZX-00UA7T0_WD-WX62AC455S8R";
         mountpoint = "/srv";
