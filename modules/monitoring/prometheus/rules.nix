@@ -25,7 +25,7 @@ let
     };
   }) monitoredHosts;
 
-  rustfsStoreHosts = [
+  storageHosts = [
     "rho"
     "tau"
   ];
@@ -73,14 +73,14 @@ in
           rules =
             hostFreshnessRules
             ++ (lib.sbee.monitoring.mkFilesystemFreeSpaceAlerts {
-              alertPrefix = "RustFSStore";
-              hosts = rustfsStoreHosts;
+              alertPrefix = "Storage";
+              hosts = storageHosts;
               mountpoint = "/srv";
               warningFreePercent = 15;
               criticalFreePercent = 8;
               warningLabels = opsWarning;
               criticalLabels = opsCritical;
-              summaryPrefix = "RustFS store";
+              summaryPrefix = "Storage";
               annotations = hostAlertAnnotations;
             })
             ++ [
