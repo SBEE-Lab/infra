@@ -1,4 +1,4 @@
-# XFS RAID0 storage module (striping for maximum capacity)
+# XFS storage arrays with per-array RAID0 or RAID1.
 #
 # Usage in host config:
 #   disko.xfsMdadm.arrays.workspace = {
@@ -37,6 +37,15 @@ let
           ssd1 = "/dev/disk/by-id/nvme-Samsung_SSD_...";
           ssd2 = "/dev/disk/by-id/nvme-Samsung_SSD_...";
         };
+      };
+
+      level = mkOption {
+        type = types.enum [
+          0
+          1
+        ];
+        default = 0;
+        description = "mdadm RAID level: striping (0) or mirroring (1).";
       };
 
       mountpoint = mkOption {
@@ -83,7 +92,7 @@ let
   mkArrayMdadm = arrayName: arrayCfg: {
     ${arrayName} = {
       type = "mdadm";
-      level = 0;
+      inherit (arrayCfg) level;
       content = {
         type = "filesystem";
         format = "xfs";
@@ -105,12 +114,12 @@ let
 in
 {
   options.disko.xfsMdadm = {
-    enable = mkEnableOption "XFS RAID1 storage arrays";
+    enable = mkEnableOption "XFS mdadm storage arrays";
 
     arrays = mkOption {
       type = types.attrsOf arrayType;
       default = { };
-      description = "RAID1 array configurations";
+      description = "XFS mdadm array configurations";
     };
   };
 
