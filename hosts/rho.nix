@@ -42,20 +42,6 @@
 
   networking.hostName = "rho";
 
-  sops.secrets = {
-    rustfs-access-key = {
-      owner = "rustfs";
-      group = "rustfs";
-      mode = "0400";
-    };
-    rustfs-secret-key = {
-      owner = "rustfs";
-      group = "rustfs";
-      mode = "0400";
-    };
-  };
-
-  services.rustfs.enable = true;
   services.sbee.backups = {
     mirror.psiProtected.enable = true;
     postgresql = {
