@@ -1,0 +1,372 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "네트워크와 접근 제어",
+    "subtitle": "public IP, wg-admin, Headscale tailnet, lab NAT 경계",
+    "output": "docs/admin/network-access-architecture.html",
+    "visual_preset": "blueprint",
+    "quality_profile": "standard",
+    "views": [
+      {
+        "id": "public",
+        "label": "공개 진입",
+        "focus": [
+          "internet",
+          "eta-public",
+          "psi-public",
+          "eta-wg",
+          "psi-wg"
+        ],
+        "note": "eta는 공개 edge이고 psi는 공인 IP가 있지만 서비스 접근은 wg-admin upstream 중심입니다."
+      },
+      {
+        "id": "admin",
+        "label": "관리망",
+        "focus": [
+          "admin",
+          "eta-wg",
+          "psi-wg",
+          "rho-wg",
+          "tau-wg"
+        ],
+        "note": "wg-admin은 SSH, DB, 모니터링, upstream 프록시용 신뢰 네트워크입니다."
+      },
+      {
+        "id": "user-vpn",
+        "label": "사용자 VPN",
+        "focus": [
+          "user",
+          "headscale",
+          "tailnet",
+          "psi-tail",
+          "rho-tail",
+          "tau-tail"
+        ],
+        "note": "사용자 서비스 접근은 Headscale tailnet과 Magic DNS를 사용합니다."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "internet",
+      "type": "external",
+      "label": "인터넷",
+      "sublabel": "80/443/10022/2323",
+      "pos": [
+        40,
+        260
+      ]
+    },
+    {
+      "id": "admin",
+      "type": "external",
+      "label": "관리자",
+      "sublabel": "SSH · deploy",
+      "pos": [
+        40,
+        430
+      ]
+    },
+    {
+      "id": "user",
+      "type": "external",
+      "label": "VPN 사용자",
+      "sublabel": "Tailscale client",
+      "pos": [
+        40,
+        590
+      ]
+    },
+    {
+      "id": "eta-public",
+      "type": "security",
+      "label": "eta public",
+      "sublabel": "141.164.53.203",
+      "pos": [
+        245,
+        220
+      ]
+    },
+    {
+      "id": "psi-public",
+      "type": "backend",
+      "label": "psi public",
+      "sublabel": "117.16.251.37",
+      "pos": [
+        245,
+        90
+      ]
+    },
+    {
+      "id": "headscale",
+      "type": "security",
+      "label": "Headscale",
+      "sublabel": "hs.sjanglab.org",
+      "pos": [
+        245,
+        560
+      ]
+    },
+    {
+      "id": "eta-wg",
+      "type": "messagebus",
+      "label": "eta wg",
+      "sublabel": "10.100.0.1",
+      "pos": [
+        500,
+        300
+      ]
+    },
+    {
+      "id": "psi-wg",
+      "type": "messagebus",
+      "label": "psi wg",
+      "sublabel": "10.100.0.2",
+      "pos": [
+        720,
+        150
+      ]
+    },
+    {
+      "id": "rho-wg",
+      "type": "messagebus",
+      "label": "rho wg",
+      "sublabel": "10.100.0.3",
+      "pos": [
+        720,
+        300
+      ]
+    },
+    {
+      "id": "tau-wg",
+      "type": "messagebus",
+      "label": "tau wg",
+      "sublabel": "10.100.0.4",
+      "pos": [
+        720,
+        450
+      ]
+    },
+    {
+      "id": "tailnet",
+      "type": "messagebus",
+      "label": "Tailnet",
+      "sublabel": "100.64.0.0/10",
+      "pos": [
+        500,
+        560
+      ]
+    },
+    {
+      "id": "psi-tail",
+      "type": "backend",
+      "label": "psi services",
+      "sublabel": "tag:ai",
+      "pos": [
+        940,
+        150
+      ]
+    },
+    {
+      "id": "rho-tail",
+      "type": "backend",
+      "label": "rho services",
+      "sublabel": "tag:monitoring",
+      "pos": [
+        940,
+        300
+      ]
+    },
+    {
+      "id": "tau-tail",
+      "type": "backend",
+      "label": "tau services",
+      "sublabel": "tag:apps",
+      "pos": [
+        940,
+        450
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "공인 IP",
+      "wraps": [
+        "eta-public",
+        "psi-public"
+      ]
+    },
+    {
+      "kind": "security-group",
+      "label": "wg-admin 10.100.0.0/24",
+      "wraps": [
+        "eta-wg",
+        "psi-wg",
+        "rho-wg",
+        "tau-wg"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "랩 내부 NAT",
+      "wraps": [
+        "rho-wg",
+        "tau-wg",
+        "rho-tail",
+        "tau-tail"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "internet-eta",
+      "from": "internet",
+      "to": "eta-public",
+      "label": "공개 포트",
+      "variant": "emphasis"
+    },
+    {
+      "id": "internet-psi",
+      "from": "internet",
+      "to": "psi-public",
+      "label": "공인 IP",
+      "variant": "dashed",
+      "route": "orthogonal-h"
+    },
+    {
+      "id": "eta-public-wg",
+      "from": "eta-public",
+      "to": "eta-wg",
+      "label": "host",
+      "variant": "security",
+      "route": "orthogonal-h"
+    },
+    {
+      "id": "admin-eta-wg",
+      "from": "admin",
+      "to": "eta-wg",
+      "label": "SSH",
+      "variant": "security"
+    },
+    {
+      "id": "eta-psi-wg",
+      "from": "eta-wg",
+      "to": "psi-wg",
+      "label": "WireGuard",
+      "variant": "security"
+    },
+    {
+      "id": "eta-rho-wg",
+      "from": "eta-wg",
+      "to": "rho-wg",
+      "label": "WireGuard",
+      "variant": "security"
+    },
+    {
+      "id": "eta-tau-wg",
+      "from": "eta-wg",
+      "to": "tau-wg",
+      "label": "WireGuard",
+      "variant": "security"
+    },
+    {
+      "id": "user-headscale",
+      "from": "user",
+      "to": "headscale",
+      "label": "OIDC login",
+      "variant": "security"
+    },
+    {
+      "id": "headscale-tailnet",
+      "from": "headscale",
+      "to": "tailnet",
+      "label": "Magic DNS",
+      "variant": "emphasis"
+    },
+    {
+      "id": "tailnet-psi",
+      "from": "tailnet",
+      "to": "psi-tail",
+      "label": "tag:ai",
+      "variant": "emphasis",
+      "route": "orthogonal-h",
+      "via": [
+        [
+          880,
+          590
+        ],
+        [
+          880,
+          180
+        ]
+      ],
+      "fromSide": "right",
+      "toSide": "left",
+      "labelAt": [
+        880,
+        240
+      ]
+    },
+    {
+      "id": "tailnet-rho",
+      "from": "tailnet",
+      "to": "rho-tail",
+      "label": "tag:monitoring",
+      "variant": "emphasis",
+      "route": "orthogonal-h",
+      "fromSide": "right",
+      "toSide": "left",
+      "via": [
+        [
+          880,
+          590
+        ],
+        [
+          880,
+          330
+        ]
+      ],
+      "labelAt": [
+        880,
+        365
+      ]
+    },
+    {
+      "id": "tailnet-tau",
+      "from": "tailnet",
+      "to": "tau-tail",
+      "label": "tag:apps",
+      "variant": "emphasis",
+      "route": "orthogonal-h",
+      "via": [
+        [
+          880,
+          590
+        ],
+        [
+          880,
+          480
+        ]
+      ],
+      "fromSide": "right",
+      "toSide": "left",
+      "labelAt": [
+        880,
+        520
+      ]
+    }
+  ],
+  "cards": [
+    {
+      "dot": "rose",
+      "title": "방화벽 원칙",
+      "items": [
+        "wg-admin 인터페이스는 신뢰 관리망",
+        "rho/tau는 NAT 뒤에서 WireGuard로 연결",
+        "사용자 서비스는 Headscale ACL tag로 제한"
+      ]
+    }
+  ]
+}

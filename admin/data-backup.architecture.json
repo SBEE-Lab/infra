@@ -1,0 +1,325 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "데이터와 백업 아키텍처",
+    "subtitle": "PostgreSQL 복제, restic, RustFS primary/mirror, 복구 검증",
+    "output": "docs/admin/data-backup-architecture.html",
+    "visual_preset": "blueprint",
+    "quality_profile": "standard",
+    "views": [
+      {
+        "id": "postgres",
+        "label": "PostgreSQL 보호",
+        "focus": [
+          "rho-pg",
+          "tau-pg",
+          "rho-dumps",
+          "tau-s3",
+          "rho-s3"
+        ],
+        "note": "rho primary는 tau replica로 WAL을 스트리밍하고 logical dump를 restic으로 저장합니다."
+      },
+      {
+        "id": "psi-protected",
+        "label": "psi 보호 데이터",
+        "focus": [
+          "psi-project",
+          "psi-restic",
+          "tau-s3",
+          "rho-s3"
+        ],
+        "note": "psi는 /project와 /blobs 보호 subset만 quota guard 후 백업합니다."
+      },
+      {
+        "id": "restore",
+        "label": "복구 검증",
+        "focus": [
+          "tau-s3",
+          "rho-s3",
+          "restore-drill",
+          "grafana"
+        ],
+        "note": "restore drill과 systemd_status가 백업 신선도와 mirror 지연을 확인합니다."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "psi-project",
+      "type": "database",
+      "label": "psi 보호 데이터",
+      "sublabel": "/project · /blobs",
+      "pos": [
+        60,
+        180
+      ],
+      "size": [
+        145,
+        62
+      ],
+      "tag": "quota guard"
+    },
+    {
+      "id": "psi-restic",
+      "type": "backend",
+      "label": "psi restic",
+      "sublabel": "daily 02:30",
+      "pos": [
+        275,
+        180
+      ],
+      "size": [
+        140,
+        62
+      ]
+    },
+    {
+      "id": "rho-pg",
+      "type": "database",
+      "label": "rho PostgreSQL",
+      "sublabel": "primary · terraform/n8n/cloud",
+      "pos": [
+        60,
+        360
+      ],
+      "size": [
+        160,
+        68
+      ]
+    },
+    {
+      "id": "tau-pg",
+      "type": "database",
+      "label": "tau PostgreSQL",
+      "sublabel": "replica",
+      "pos": [
+        275,
+        363
+      ],
+      "size": [
+        140,
+        62
+      ]
+    },
+    {
+      "id": "rho-dumps",
+      "type": "backend",
+      "label": "logical dumps",
+      "sublabel": "pg_dump · globals",
+      "pos": [
+        275,
+        470
+      ],
+      "size": [
+        140,
+        62
+      ]
+    },
+    {
+      "id": "tau-s3",
+      "type": "database",
+      "label": "tau RustFS",
+      "sublabel": "S3 primary /srv",
+      "pos": [
+        535,
+        310
+      ],
+      "size": [
+        155,
+        70
+      ],
+      "tag": "versioning"
+    },
+    {
+      "id": "rho-s3",
+      "type": "database",
+      "label": "rho RustFS",
+      "sublabel": "delayed mirror",
+      "pos": [
+        790,
+        310
+      ],
+      "size": [
+        155,
+        70
+      ],
+      "tag": "min-age 24h"
+    },
+    {
+      "id": "restore-drill",
+      "type": "backend",
+      "label": "restore drill",
+      "sublabel": "weekly/monthly",
+      "pos": [
+        790,
+        485
+      ],
+      "size": [
+        155,
+        62
+      ]
+    },
+    {
+      "id": "grafana",
+      "type": "backend",
+      "label": "Grafana Jobs",
+      "sublabel": "freshness · lag",
+      "pos": [
+        1035,
+        485
+      ],
+      "size": [
+        145,
+        62
+      ]
+    },
+    {
+      "id": "credentials",
+      "type": "security",
+      "label": "분리 credential",
+      "sublabel": "writer/reader/pruner",
+      "pos": [
+        535,
+        485
+      ],
+      "size": [
+        155,
+        62
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "psi",
+      "wraps": [
+        "psi-project",
+        "psi-restic"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "rho",
+      "wraps": [
+        "rho-pg",
+        "rho-dumps",
+        "rho-s3"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "tau",
+      "wraps": [
+        "tau-pg",
+        "tau-s3"
+      ]
+    },
+    {
+      "kind": "security-group",
+      "label": "백업 보존 경계",
+      "wraps": [
+        "tau-s3",
+        "rho-s3",
+        "credentials",
+        "restore-drill"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "psi-restic",
+      "from": "psi-project",
+      "to": "psi-restic",
+      "label": "source guard",
+      "variant": "security"
+    },
+    {
+      "id": "psi-to-tau",
+      "from": "psi-restic",
+      "to": "tau-s3",
+      "label": "restic S3",
+      "variant": "emphasis"
+    },
+    {
+      "id": "rho-wal-tau",
+      "from": "rho-pg",
+      "to": "tau-pg",
+      "label": "WAL streaming",
+      "variant": "security",
+      "labelAt": [
+        248,
+        442
+      ]
+    },
+    {
+      "id": "rho-pg-dumps",
+      "from": "rho-pg",
+      "to": "rho-dumps",
+      "label": "logical dump",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "left"
+    },
+    {
+      "id": "dumps-to-tau",
+      "from": "rho-dumps",
+      "to": "tau-s3",
+      "label": "restic S3",
+      "variant": "emphasis"
+    },
+    {
+      "id": "tau-mirror-rho",
+      "from": "tau-s3",
+      "to": "rho-s3",
+      "label": "delayed mirror",
+      "variant": "dashed"
+    },
+    {
+      "id": "creds-tau",
+      "from": "credentials",
+      "to": "tau-s3",
+      "label": "least privilege",
+      "variant": "security"
+    },
+    {
+      "id": "rho-drill",
+      "from": "rho-s3",
+      "to": "restore-drill",
+      "label": "fallback restore",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelAt": [
+        868,
+        394
+      ]
+    },
+    {
+      "id": "tau-drill",
+      "from": "tau-s3",
+      "to": "restore-drill",
+      "label": "primary restore",
+      "variant": "emphasis",
+      "route": "orthogonal-h"
+    },
+    {
+      "id": "drill-grafana",
+      "from": "restore-drill",
+      "to": "grafana",
+      "label": "systemd_status",
+      "variant": "dashed"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "보장 수준",
+      "items": [
+        "rho PostgreSQL은 replica와 logical backup을 분리",
+        "rho mirror는 delete propagation을 지연해 실수 완충",
+        "공식 RPO/RTO는 아직 문서화 전"
+      ]
+    }
+  ]
+}
