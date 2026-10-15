@@ -49,6 +49,7 @@ let
     ./modules/cleanup-usr.nix
     ./modules/hosts.nix
     ./modules/network.nix
+    ./modules/monitoring/paused.nix
     ./modules/nix-daemon.nix
     ./modules/nix-index.nix
     ./modules/packages.nix

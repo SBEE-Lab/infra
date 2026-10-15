@@ -11,12 +11,18 @@
           targetRequires = tau.systemd.targets.postgresql.requires;
           rhoExporter = rho.services.prometheus.exporters.postgres.enable;
           tauExporter = tau.services.prometheus.exporters.postgres.enable;
+          rhoMonitoringActive = rho.systemd.services.vector.enable;
+          tauMonitoringActive = tau.systemd.services.vector.enable;
+          rhoExporterActive = rho.systemd.services.prometheus-postgres-exporter.enable;
+          tauExporterActive = tau.systemd.services.prometheus-postgres-exporter.enable;
           rhoExporterFlags = rho.services.prometheus.exporters.postgres.extraFlags;
           tauExporterFlags = tau.services.prometheus.exporters.postgres.extraFlags;
           rhoGatusChecks = map (check: check.name) rho.gatusCheck.push;
           tauGatusChecks = map (check: check.name) tau.gatusCheck.push;
           etaGatusEndpoints = map (endpoint: endpoint.name) eta.services.gatus.settings.external-endpoints;
           tauAuditTimer = tau.systemd.timers.postgresql-replication-audit.wantedBy or [ ];
+          tauAuditTimerActive = tau.systemd.timers.postgresql-replication-audit.enable;
+          tauAuditServiceActive = tau.systemd.services.postgresql-replication-audit.enable;
           tauMetricSource = tau.services.vector.settings.sources.postgresql_metrics.type or null;
           rhoMetricSource = rho.services.vector.settings.sources.postgresql_metrics.type or null;
           metricTransform = rho.services.vector.settings.transforms.tag_postgresql_metrics.source or "";
@@ -48,8 +54,15 @@
               and
               (.tauExporterFlags | index("--no-collector.stat_replication") != null)
             ' ${state}
-            jq -e '.rhoGatusChecks | index("PostgreSQL primary rho") != null' ${state}
-            jq -e '.tauGatusChecks | index("PostgreSQL replica tau") != null' ${state}
+            jq -e '
+              ((.rhoGatusChecks | index("PostgreSQL primary rho") != null) == .rhoMonitoringActive)
+              and
+              ((.tauGatusChecks | index("PostgreSQL replica tau") != null) == .tauMonitoringActive)
+              and (.rhoExporterActive == .rhoMonitoringActive)
+              and (.tauExporterActive == .tauMonitoringActive)
+              and (.tauAuditTimerActive == .tauMonitoringActive)
+              and (.tauAuditServiceActive == .tauMonitoringActive)
+            ' ${state}
             jq -e '
               (.etaGatusEndpoints | index("PostgreSQL primary rho") != null)
               and

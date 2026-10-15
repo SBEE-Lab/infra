@@ -52,6 +52,7 @@ in
     arrays = {
       # SSD RAID0 for workspace (16TB total)
       workspace = {
+        level = 0;
         disks.ssd1 = "/dev/disk/by-id/nvme-Samsung_SSD_9100_PRO_8TB_S7YHNJ0YA05025J";
         disks.ssd2 = "/dev/disk/by-id/nvme-Samsung_SSD_9100_PRO_8TB_S7YHNJ0YA02750H";
         mountpoint = "/workspace";
@@ -59,8 +60,9 @@ in
           "allocsize=16m"
         ];
       };
-      # HDD RAID0 for data (60TB total)
+      # HDD RAID1 for data (30TB usable)
       data = {
+        level = 1;
         disks.hdd1 = "/dev/disk/by-id/ata-ST30000NT011-3V2103_K1S0HG8X";
         disks.hdd2 = "/dev/disk/by-id/ata-ST30000NT011-3V2103_K1S0H1A7";
         mountpoint = "/data";
