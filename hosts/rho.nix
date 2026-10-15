@@ -36,6 +36,10 @@
     };
   };
 
+  # These hosts use a local display and keyboard, not a serial console.
+  srvos.boot.consoles = [ "tty0" ];
+  systemd.services."serial-getty@ttyS0".enable = false;
+
   networking.hostName = "rho";
 
   sops.secrets = {
