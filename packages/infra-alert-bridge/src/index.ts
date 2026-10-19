@@ -1,10 +1,6 @@
 import { handleAlertmanager, HttpError } from "./alertmanager";
 import { handleHealthchecks } from "./healthchecks";
-import { markStale, staleIncidents } from "./state";
-import { postThread, updateStaleParent } from "./slack";
 import type { Env } from "./types";
-
-const STALE_AFTER_SECONDS = 49 * 60 * 60;
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -31,23 +27,9 @@ export default {
   },
 
   async scheduled(_event: ScheduledEvent, env: Env, _ctx: ExecutionContext): Promise<void> {
-    const now = Math.floor(Date.now() / 1000);
-    await sweepStale(env, now);
     await pingHeartbeat(env);
   },
 };
-
-async function sweepStale(env: Env, now: number): Promise<void> {
-  const incidents = await staleIncidents(env, now - STALE_AFTER_SECONDS);
-  for (const incident of incidents) {
-    const eventKey = `stale:${now}`;
-    await updateStaleParent(env, incident, now);
-    if (incident.slack_channel_id && incident.slack_ts) {
-      await postThread(env, incident.slack_channel_id, incident.slack_ts, `${formatUnix(now)} marked stale`);
-    }
-    await markStale(env, incident.fingerprint, eventKey, now);
-  }
-}
 
 async function pingHeartbeat(env: Env): Promise<void> {
   if (!env.BRIDGE_HEARTBEAT_PING_URL) return;
@@ -62,8 +44,4 @@ function json(body: unknown, status = 200): Response {
     status,
     headers: { "Content-Type": "application/json" },
   });
-}
-
-function formatUnix(value: number): string {
-  return new Date(value * 1000).toISOString();
 }

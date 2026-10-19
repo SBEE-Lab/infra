@@ -1,4 +1,4 @@
-import type { CanonicalAlert, Env, Incident } from "./types";
+import type { CanonicalAlert, Env } from "./types";
 
 interface SlackResponse {
   ok: boolean;
@@ -68,34 +68,6 @@ export async function postThread(env: Env, channel: string, threadTs: string, te
   });
 }
 
-export async function updateStaleParent(env: Env, incident: Incident, now: number): Promise<void> {
-  if (!incident.slack_channel_id || !incident.slack_ts) return;
-  const labels = parseJsonObject(incident.labels_json);
-  const alert: CanonicalAlert = {
-    fingerprint: incident.fingerprint,
-    source: incident.source,
-    receiver: incident.receiver,
-    status: "firing",
-    severity: incident.severity ?? "unknown",
-    alertname: incident.alertname,
-    summary: incident.summary ?? "Alert state is stale",
-    description: incident.description ?? "No update received before stale threshold",
-    labels,
-    annotations: parseJsonObject(incident.annotations_json),
-    startsAt: new Date(incident.first_seen * 1000).toISOString(),
-    endsAt: "",
-    channelId: incident.slack_channel_id,
-  };
-
-  const title = `⚠️ STALE ${alert.severity} · ${alert.alertname} · ${labelValue(alert, "service", "job", "host")}`;
-  await slackApi(env, "chat.update", {
-    channel: incident.slack_channel_id,
-    ts: incident.slack_ts,
-    text: title,
-    blocks: baseBlocks(title, alert, now, incident.repeats, "STALE"),
-  });
-}
-
 export function messagePayload(alert: CanonicalAlert, now: number, repeats: number): { text: string; blocks: unknown[] } {
   const emoji = alert.status === "resolved" ? "✅" : severityEmoji(alert.severity);
   const status = alert.status.toUpperCase();
@@ -116,7 +88,8 @@ function baseBlocks(
     field("Service", labelValue(alert, "service", "job")),
     field("Host", labelValue(alert, "host", "instance")),
     field("Started", formatTime(alert.startsAt)),
-    field(alert.status === "resolved" ? "Resolved" : "Last seen", formatUnix(now)),
+    field("Notification received", formatUnix(now)),
+    ...(alert.status === "resolved" && alert.endsAt ? [field("Resolved", formatTime(alert.endsAt))] : []),
   ];
 
   const blocks: unknown[] = [
@@ -233,12 +206,4 @@ function formatUnix(value: number): string {
 
 function truncate(value: string, maxLength: number): string {
   return value.length <= maxLength ? value : `${value.slice(0, maxLength - 1)}…`;
-}
-
-function parseJsonObject(value: string): Record<string, string> {
-  const parsed = JSON.parse(value) as unknown;
-  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
-  return Object.fromEntries(
-    Object.entries(parsed).filter((entry): entry is [string, string] => typeof entry[1] === "string"),
-  );
 }
