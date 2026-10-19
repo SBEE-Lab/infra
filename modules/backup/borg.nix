@@ -31,6 +31,8 @@ in
       passCommand = "cat ${config.sops.secrets.borg-passphrase.path}";
     };
     compression = "auto,zstd";
+    # Keep warning results distinct from clean, complete backups.
+    failOnWarnings = true;
     # Schedule only after the initial backup and restore have been verified.
     startAt = [ ];
     extraCreateArgs = [

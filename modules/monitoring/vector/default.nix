@@ -62,6 +62,11 @@ in
 
     settings = {
       sources = {
+        vector_internal = {
+          type = "internal_metrics";
+          namespace = "vector";
+          scrape_interval_secs = 60;
+        };
         sshd_logs = {
           type = "journald";
           include_units = [ "sshd" ];
@@ -250,6 +255,7 @@ in
           inputs = [
             "host_metrics"
             "network_stats"
+            "vector_internal"
           ]
           ++ lib.optional nginxExporter.enable "nginx_metrics";
           source = ''

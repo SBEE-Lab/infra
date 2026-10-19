@@ -16,6 +16,19 @@ let
             fail_if_not_ssl = true;
           };
         };
+        http_health = {
+          prober = "http";
+          timeout = "10s";
+          http = {
+            preferred_ip_protocol = "ip4";
+            follow_redirects = false;
+            fail_if_not_ssl = true;
+            valid_status_codes = [
+              200
+              204
+            ];
+          };
+        };
         http_2xx_or_redirect = {
           prober = "http";
           timeout = "10s";

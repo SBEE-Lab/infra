@@ -47,9 +47,15 @@ in
     ./exporters/systemd-status.nix
   ];
 
-  gatusCheck.push = lib.mkForce [ ];
-  services.sbee.systemdStatusExporter.enable = lib.mkForce false;
-
-  systemd.services = disableUnits ([ "vector" ] ++ hostUnits.${config.networking.hostName});
-  systemd.timers = disableUnits (hostTimers.${config.networking.hostName} or [ ]);
+  config = lib.mkMerge [
+    {
+      # Persistent job results replace repeated snapshots as the alert input.
+      services.sbee.systemdStatusExporter.enable = lib.mkForce false;
+    }
+    (lib.mkIf (config.services.sbee.monitoring.mode == "paused") {
+      gatusCheck.push = lib.mkForce [ ];
+      systemd.services = disableUnits ([ "vector" ] ++ hostUnits.${config.networking.hostName});
+      systemd.timers = disableUnits (hostTimers.${config.networking.hostName} or [ ]);
+    })
+  ];
 }
