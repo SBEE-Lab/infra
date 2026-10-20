@@ -20,12 +20,40 @@
   - `SjangLab Infrastructure` (홈): 현재 건강 상태와 감사 요약 카운트
   - `SjangLab Hosts`: 호스트 리소스, 메트릭 freshness, Headscale 노드 상태
   - `SjangLab Apps`: Gatus 앱 smoke 상태와 앱 인증/거부 흐름
-  - `SjangLab Jobs`: db-sync 및 batch/sync/backup 상태
+  - `SjangLab Jobs`: Borg 백업·무결성 검사와 PostgreSQL 덤프의 마지막 완료 기록
   - `SjangLab Access & Audit`: SSH bastion, Authentik, Headscale 감사 드릴다운
   - `SjangLab AI Resources`: AI 서비스 smoke, psi 리소스, 데이터 동기화 상태
   - `SjangLab PostgreSQL`: rho primary, tau replica, streaming lag, slot WAL 여유, replication 감사 이력
 - **Gatus**: `https://status.sjanglab.org` (tailnet 내부 공개 상태 페이지)
   - PostgreSQL은 `primary rho`와 `replica tau`를 별도 endpoint로 표시합니다.
+
+## Grafana 사용 순서
+
+1. Headscale에 연결하고 [Grafana](https://logging.sjanglab.org)에 접속해 Authentik으로 로그인합니다. 신규 사용자는 Viewer이며 공유 관리자 계정이나 별도 API 토큰이 필요하지 않습니다. 접근 거부는 Authentik 인가·그룹을 확인하고, 헤더 위조나 인증 우회로 해결하지 않습니다.
+1. 우측 상단 시간 범위를 평소에는 최근 6시간, 야간 작업 점검에는 최근 24시간으로 선택합니다. 패널이 비어 있으면 기간을 늘리고 수집 상태부터 확인합니다. `No data`를 성공이나 0건으로 해석하지 않습니다.
+1. [Hosts](https://logging.sjanglab.org/d/sjanglab-hosts)에서 `Metrics freshness`, `Prometheus targets`, 디스크·CPU·메모리를 먼저 봅니다. 수집 경로가 끊긴 상태에서 다른 패널의 과거 값을 현재 상태로 판정하지 않습니다.
+1. [Jobs](https://logging.sjanglab.org/d/sjanglab-jobs)에서 `Latest recorded outcome`과 `Last completion time`을 함께 봅니다. `Success`만으로 예약 실행·무결성·복원을 판정하지 않습니다.
+1. 앱 장애는 [Apps](https://logging.sjanglab.org/d/sjanglab-apps), DB 복제는 [PostgreSQL](https://logging.sjanglab.org/d/sjanglab-postgresql), 로그인·권한 문제는 [Access & Audit](https://logging.sjanglab.org/d/sjanglab-access-audit)에서 같은 시간대를 확인합니다.
+
+### Jobs 패널 판독
+
+| 표시 | 의미 | 추가 확인 |
+|------|------|----------|
+| `Success` | 마지막으로 기록한 실행이 정상 종료 | 완료 시각이 충분히 최근인지 확인 |
+| `Unsuccessful` | 마지막 완료가 비정상 종료 | 같은 실행의 systemd 결과·원인 확인 |
+| `No completion data` / 행 없음 | 완료 관측 없음 | 미실행과 수집 누락 구분 |
+| `scheduled=true` | 선언에 일정 있음 | 실제 timer 활성화·다음 시각·마지막 trigger는 systemd 확인 |
+| 결과 시계열의 연속 0 | 마지막 성공 값이 반복 수집됨 | 성공 실행 횟수나 매분 백업을 뜻하지 않음 |
+
+Jobs는 psi·rho·tau의 Borg와 PostgreSQL 덤프만 표시합니다. eta Restic·Stalwart 작업은 이 패널에 없으므로 전체 백업 상태판으로 사용하지 않습니다. eta는 systemd timer/service와 Loki의 backup snapshot을 별도로 확인합니다. Explore 권한이 있는 사용자는 Loki에서 다음 쿼리로 작업별 `unit`, `health`, `health_reason`을 확인할 수 있습니다. Explore가 보이지 않으면 권한을 요청하며 익명 접근을 열지 않습니다.
+
+```logql
+{host="eta", log_type="systemd_status", event="job_snapshot"} | json | job_class="backup"
+```
+
+로그 자체가 없으면 정상이라는 뜻이 아닙니다. 서비스가 `inactive (dead)`여도 oneshot은 정상 종료 후 그렇게 표시됩니다. `Result`, `ExecMainStatus`, 시작·종료 시각을 같은 실행 기준으로 함께 봅니다. 예약 성공을 확인하려면 timer의 `LastTriggerUSec`가 서비스 시작 시각과 연결되고, 그 실행이 정상 종료했는지 확인합니다. 수동 실행 성공만으로 자동 예약 검증을 완료하지 않습니다.
+
+Grafana는 관측 화면이며 백업 실행기나 알림 전송 확인서가 아닙니다. `observe`에서도 같은 대시보드를 사용합니다. `active` 승인은 실제 firing/resolved 수신과 독립 Watchdog 전달을 확인하는 절차와 분리하지 않습니다.
 
 ## 스택 구성
 
