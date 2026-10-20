@@ -97,6 +97,10 @@ in
             "/etc/shadow"
             "/run/credentials/*"
             "/run/docker/netns/*"
+            # Container overlays duplicate backing capacity and can be root-only.
+            "/var/lib/containers/storage/overlay"
+            "/var/lib/containers/storage/overlay/*/merged"
+            "/var/lib/containers/storage/overlay-containers/*/userdata/shm"
             "/var/lib/docker/overlay2/*/merged"
           ];
         };
