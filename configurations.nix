@@ -76,6 +76,7 @@ let
     ./modules/sops
     ({ lib, ... }: {
       time.timeZone = lib.mkForce "Asia/Seoul";
+      services.sbee.monitoring.mode = lib.mkDefault "observe";
     })
   ];
 

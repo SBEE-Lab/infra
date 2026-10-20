@@ -1,222 +1,121 @@
 # 백업
 
-백업 저장소는 Borg에서 S3 기반 저장소로 전환 중입니다.
+## 현재 구성
 
-## 저장소 배치
+psi·rho·tau는 각 호스트의 HDD RAID1에 암호화된 로컬 Borg 백업을 저장합니다. RustFS primary/mirror와 Restic을 사용하는 이전 교차 호스트 구성은 이 세 호스트에서 활성화하지 않습니다.
 
-rho와 tau의 HDD RAID0 배열은 백업 저장소 전용 공간으로 사용합니다. 기존 mountpoint `/backup`은 폐기하고 `/srv`를 사용합니다.
+| 호스트 | 저장소 | 파일시스템 |
+|--------|--------|------------|
+| psi | `/data/borg/psi` | XFS / HDD RAID1 |
+| rho | `/srv/borg/rho` | XFS / HDD RAID1 |
+| tau | `/srv/borg/tau` | XFS / HDD RAID1 |
 
-```mermaid
-flowchart TB
-  subgraph rho["rho"]
-    rho_srv["/srv/rustfs/data<br/>S3 mirror store"]
-  end
+RAID1은 디스크 한 개의 장애에 대비할 뿐 백업을 대체하지 않습니다. 저장소도 같은 호스트에 있으므로 호스트 전체 손실, 관리자 권한 탈취, 저장소 삭제, 화재에 대비한 오프사이트 백업은 아닙니다.
 
-  subgraph tau["tau"]
-    tau_srv["/srv/rustfs/data<br/>S3 primary store"]
-  end
-```
+## 범위
 
-## 목표 흐름
+- 시스템 SSD의 `/`와 별도 파일시스템 `/boot`를 포함합니다. `/root`와 `/nix/store`도 대상입니다.
+- `/home`, HDD 데이터 경로, `/workspace`, `/dev`, `/proc`, `/run`, `/sys`는 제외합니다.
+- 실행 중인 PostgreSQL 데이터 디렉터리는 제외하고, 백업 전에 생성한 SQL 덤프를 포함합니다.
+- `--one-file-system`으로 명시하지 않은 다른 마운트를 따라가지 않습니다.
 
-```mermaid
-flowchart LR
-  psi["psi<br/>selected quota-limited data"]
-  rho_src["rho<br/>database dumps<br/>service exports"]
+HDD의 연구 데이터와 사용자 홈은 이 백업으로 보호하지 않습니다. 해당 데이터의 별도 보호 정책이 필요합니다.
 
-  subgraph tau["tau"]
-    tau_s3["RustFS S3 primary<br/>/srv/rustfs/data"]
-  end
+## 실행 순서와 일정
 
-  subgraph rho["rho"]
-    rho_s3["RustFS S3 mirror<br/>/srv/rustfs/data"]
-  end
+`modules/backup/borg.nix`의 선언은 다음과 같습니다.
 
-  psi -- "restic native S3" --> tau_s3
-  rho_src -- "restic native S3" --> tau_s3
-  tau_s3 -- "delayed mirror" --> rho_s3
-```
+1. 매일 **05:30 Asia/Seoul**에 `borgbackup-job-local.timer`가 실행됩니다. 무작위 지연은 없습니다.
+1. `postgresqlBackup.service`가 모든 로컬 데이터베이스와 역할을 `pg_dumpall`로 덤프합니다. 별도의 덤프 타이머는 두지 않습니다.
+1. 덤프 성공 후 Borg가 아카이브를 생성하고 보관 정책을 적용합니다.
 
-## RustFS bootstrap
+- 덤프: `/var/backup/postgresql/all.sql`, 압축하지 않은 SQL, 접근 제한된 로컬 디렉터리에 저장
+- 보관: 일간 7개, 주간 4개, 월간 6개
+- 암호화: `repokey-blake2`, 호스트별 SOPS passphrase
+- 압축: `auto,zstd`
+- 경고도 정상 완료와 구분하며 작업 실패로 처리
+- `Persistent = true`: 전원이 꺼져 놓친 타이머는 복귀 후 보충 실행
+- `doInit = false`: 저장소가 사라져도 새 키로 자동 초기화하지 않음
 
-RustFS daemon은 nixpkgs upstream `services.rustfs` 모듈로 실행합니다. Infra 모듈은 `/srv/rustfs/data`, wg-admin bind, sops 환경 파일, bucket/IAM bootstrap, monitoring만 덧붙입니다. Bucket 같은 object store 내부 state는 `rustfs-bootstrap.service`가 RustFS readiness를 기다린 뒤 S3-compatible client로 적용합니다.
+05:30은 기존 야간 GC·optimise·플러그인 업데이트 이후의 시작 시각입니다. 시간 분리만으로 엄격한 상호 배제를 보장하지 않습니다. Nixbot의 PR/push 빌드는 언제든 실행될 수 있고, 놓친 타이머의 보충 실행도 다른 작업과 겹칠 수 있습니다.
 
-`rustfs-bootstrap.service`는 선언된 object-store state를 다음 순서로 수렴합니다.
-
-- `services.rustfs.ensureBuckets`: bucket 생성, bucket versioning enable, versioning 상태 확인
-- `services.rustfs.ensurePolicies`: canned IAM policy 생성/갱신
-- `services.rustfs.ensureUsers`: access key/user 생성, policy attach
-
-선언에서 제거한 user/policy는 RustFS에서 자동 삭제하지 않습니다. 폐기된 credential은 bootstrap 후 별도 `mc admin user rm` 절차로 제거합니다.
-
-RustFS root credential은 sops template로 생성되는 systemd `EnvironmentFile`을 통해 daemon에 전달되며, bootstrap과 break-glass 용도로만 사용합니다. restic job은 별도 writer/prune/restore credential을 사용해야 합니다. RustFS console UI는 localhost에만 bind하며 운영 절차에 포함하지 않습니다.
-
-## RustFS monitoring
-
-`services.rustfs.monitoring`은 daemon liveness만 담당합니다.
-
-- Gatus: `/health/ready` readiness check
-- Loki: `rustfs.service`, `rustfs-bootstrap.service` journald logs
-- Prometheus: `/srv` filesystem freshness and free-space alerts
-
-Backup/check/prune/restore drill freshness는 `systemd_status` Loki stream에 포함됩니다. psi는 protected data와 Nixbot PostgreSQL job을, rho는 PostgreSQL backup과 delayed mirror job을 기록합니다.
-
-## psi 백업 범위
-
-psi 전체를 백업하지 않습니다. S3 primary에는 source guard를 통과한 `/project`와 `/blobs`만 저장합니다. 어느 경로든 상한을 넘으면 해당 실행은 새 snapshot을 만들지 않고 실패합니다.
-
-백업 대상:
-
-- `/project` 전체 — restic source guard로 모든 사용자 합계 10GiB 상한 적용
-- `/blobs` 전체 — XFS project quota와 restic source guard로 200GB 상한 적용
-- restore drill은 `/project/.rustic-backup-sentinel` 단일 파일 복원과 비교로 수행합니다.
-
-백업 제외:
-
-- `/data` 전체
-- `/workspace` 전체
-- `/nix/store`
-- public bioinformatics database mirror
-- cache, work, temp, intermediate
-
-## 보장 수준과 한계
-
-- psi protected data와 PostgreSQL dump는 매일 백업합니다. 정상 동작 중에도 최신 snapshot에 포함되지 않는 변경이 최대 약 24시간 발생할 수 있습니다.
-- rho mirror는 24시간 이상 지난 object만 복사하고 daily timer에 최대 2시간 지터를 적용하므로 tau primary보다 하루 이상 늦을 수 있습니다.
-- 위 값은 현재 schedule에서 계산한 기대 지연입니다. 공식 RPO/RTO는 아직 정하지 않았습니다.
-- 복구 시간은 데이터 크기, tau/rho 가용성, 대상 스토리지 속도에 따라 달라집니다. 백업을 즉시 복구 가능한 고가용성 저장소로 간주하지 않습니다.
-- source guard 실패, 마지막 성공 시각, mirror 지연은 Grafana `SjangLab Jobs`와 `systemd_status`에서 확인합니다.
-
-## PostgreSQL 백업 범위
-
-Streaming replica는 장애 대응용이고 백업으로 간주하지 않습니다. PostgreSQL은 논리 덤프를 만든 뒤 restic native S3로 tau primary RustFS에 저장합니다.
-
-백업 대상:
-
-- rho: `nextcloud`, `n8n`
-- psi: `nixbot`
-- eta: `authentik`, `gitea-mq`, `stalwart-mail`
-- globals: `pg_dumpall --globals-only`
-- database dump: `pg_dump --format=custom --create --clean --if-exists`
-
-저장소:
-
-- rho: `backups/rho/postgresql/`
-- psi: `backups/psi/postgresql/`
-- eta: `backups/eta/postgresql/`
-
-스케줄과 보관:
-
-- dump + backup: daily (`rho` 04:30, `psi` 02:30, `eta` 03:30)
-- check: monthly, reader credential
-- prune: weekly, pruner credential
-- retention: daily 7, weekly 4, monthly 6
-- restore drill: weekly, latest snapshot에서 `globals.sql`과 custom dump를 복원하고 `pg_restore --list`로 검증
-
-## Stalwart R2 blob 백업
-
-Stalwart 메일 본문과 첨부파일 blob은 Cloudflare R2 `stalwart-mail-blobs` bucket에 저장합니다. PostgreSQL backup은 blob reference와 metadata만 보호하므로, Stalwart 복구에는 R2 blob backup이 함께 필요합니다.
-
-eta는 매일 `stalwart-mail-blobs`에서 `stalwart-mail-blobs-backup`으로 append-only copy를 실행합니다. 이 작업은 `rclone copy --ignore-existing`만 사용하고 `sync`를 사용하지 않습니다. primary bucket에서 삭제된 object를 backup bucket에 전파하지 않기 위해서입니다.
-
-R2 backup bucket은 Terraform에서 `prevent_destroy = true`로 보호합니다. R2 object versioning이 없으므로 retention은 자동 prune 없이 장기 보관으로 둡니다. 공간 회수가 필요하면 Stalwart metadata와 blob reference를 확인한 뒤 수동 절차로만 삭제합니다.
-
-`stalwart-r2-copy` credential은 Stalwart runtime credential, 일반 restic credential과 분리합니다. 권한은 primary bucket read/list와 backup bucket write/list만 허용하고 delete 권한은 주지 않습니다. Git에는 secret placeholder만 둘 수 있으며, 운영 전 실제 Cloudflare R2 token으로 교체해야 합니다.
-
-검증은 월 1회 `stalwart-r2-blob-restore-drill.service`가 수행합니다. backup bucket에서 sample blob을 읽고 primary object와 size를 비교해서 backup object가 실제로 read 가능한지 확인합니다.
-
-rho는 `stalwart-mail-blobs-backup`을 `backups/eta/stalwart-r2-blobs/`로 한 번 더 지연 복사합니다. 이 2차 copy도 `--immutable --min-age 24h`를 사용해서 Cloudflare R2 backup bucket의 삭제나 즉시 변경을 rho RustFS에 전파하지 않습니다.
-
-## tau→rho delayed mirror
-
-rho가 tau primary RustFS에서 pull 방식으로 secondary RustFS에 복사합니다.
-
-- units: `backup-mirror-psi-protected.service`, `backup-mirror-psi-postgresql.service`, `backup-mirror-rho-postgresql.service`, `backup-mirror-eta-postgresql.service`, `backup-mirror-eta-vaultwarden.service`
-- timer: daily, `RandomizedDelaySec=2h`
-- sources: `tau:backups/psi/protected/`, `tau:backups/psi/postgresql/`, `tau:backups/rho/postgresql/`, `tau:backups/eta/postgresql/`, `tau:backups/eta/vaultwarden/`
-- destinations: matching prefixes on rho RustFS
-- rclone options: `copy --immutable --min-age 24h --exclude 'locks/**' --s3-no-check-bucket`
-
-즉시 delete propagation은 하지 않습니다. tau에서 사라진 object도 rho에 남으므로 prune/delete 실수에 대한 지연 완충 역할을 합니다. source는 psi restic reader credential을 사용하고, destination은 rho-local mirror credential을 사용합니다.
-
-## 기존 Borg 상태
-
-기존 Borg 저장소는 S3 전환 과정에서 폐기 대상입니다.
-
-- tau의 기존 `/backup/borg/psi`는 이전 원격 백업입니다.
-- tau의 기존 `/backup/borg/rho`는 유효한 Borg repository가 아니었습니다.
-- rho의 기존 `/backup/borg-mirror`는 비어 있었습니다.
-
-새 저장소는 `/srv`에서 구성하며 `/backup` 호환 mount나 symlink는 만들지 않습니다.
-
-## 복구 runbook
-
-### 공통 절차
-
-1. Grafana `SjangLab Jobs`와 `systemd_status` 로그에서 마지막 성공 시각을 확인합니다.
-1. 대상 repository와 snapshot을 확인합니다.
-1. 원본 경로에 바로 복원하지 말고 `/var/lib/restic-restore/<repository>` 같은 임시 경로로 복원합니다.
-1. 파일 소유권, 권한, dump 무결성을 확인한 뒤 필요한 경로에 반영합니다.
-1. 복구 완료 후 사고 타임라인, 사용한 snapshot, 누락 데이터 범위를 기록합니다.
-
-### psi protected data 복원
-
-`/project`와 `/blobs` protected subset은 `psi-protected` restic repository에 저장됩니다.
+배포 후 실제 적용 여부를 확인합니다.
 
 ```bash
-ssh -p 10022 root@psi
-systemctl start restic-restore-drill-psi-protected.service
-journalctl -u restic-restore-drill-psi-protected.service -e
+systemctl list-timers borgbackup-job-local.timer
+systemctl show borgbackup-job-local.timer -p TimersCalendar -p Persistent -p RandomizedDelayUSec
+systemctl status borgbackup-job-local.service postgresqlBackup.service
 ```
 
-전체 파일 복원이 필요하면 reader credential 환경을 사용해 임시 경로로 복원합니다. 대용량 복원 전에는 tau RustFS 여유 공간과 psi 대상 경로 quota를 먼저 확인합니다.
+수동 실행은 덤프 의존성을 포함하는 systemd 서비스를 사용합니다. 시작 명령의 반환을 백업 완료로 간주하지 않습니다.
 
 ```bash
-ssh -p 10022 root@psi
-mkdir -p /var/lib/restic-restore/manual-psi-protected
-systemctl cat restic-restore-drill-psi-protected.service
-# 위 unit의 RESTIC_REPOSITORY, RESTIC_PASSWORD_FILE, EnvironmentFile 값을 재사용해 restic restore 실행
+systemctl start borgbackup-job-local.service
+journalctl -u postgresqlBackup.service -u borgbackup-job-local.service -f
 ```
 
-### PostgreSQL dump 복원
+## 실패와 관측
 
-PostgreSQL은 logical dump를 restic repository에 저장합니다. 운영 DB에 바로 덮어쓰지 않고 staging DB에서 먼저 검증합니다.
+완료 기록은 `infra_job_last_result`와 `infra_job_last_completion_timestamp_seconds` 두 메트릭으로 수집합니다. 결과 0은 마지막 완료가 정상, 1은 정상 완료가 아니었다는 뜻입니다. 최초 완료 전에는 결과를 임의로 생성하지 않습니다.
+
+- `ScheduledJobFailed`: 예약 작업의 마지막 완료 결과가 비정상
+- `BackupDumpFailed`: PostgreSQL 덤프 실패. 의존성 실패로 Borg가 시작되지 않는 경우도 확인
+- `BackupCompletionOverdue`: 마지막 정상 완료 이후 36시간 넘게 새 완료가 없음. 이미 실패 결과가 있으면 기존 실패 경보로 처리
+- `BackupVerificationOverdue`: 마지막 정상 무결성 검사 이후 9일 넘게 새 완료가 없음. 검사 실패는 기존 실패 경보로 처리
+- `BackupObservationMissing`: 기대한 백업·무결성 검사 완료 메트릭이 누락됨. 최초 실행 여부와 수집 경로를 확인하며 실패나 성공으로 추정하지 않음
+
+이 기록은 실행 중 상태나 별도로 보존된 마지막 성공 이력이 아닙니다. Grafana Jobs 대시보드와 해당 서비스 journal을 함께 확인합니다. 모니터링 `observe` 모드에서는 평가만 수행하고 외부 알림을 보내지 않습니다.
+
+## 검증과 복원
+
+세 호스트 모두 최초 아카이브의 범위, 파일·EFI 추출과 해시 비교, 격리된 PostgreSQL 실제 SQL 복원, 전체 `borg check --verify-data` 검증을 완료했습니다. 최초 검증 완료가 이후 백업의 정상성을 보장하지 않습니다.
+
+정기 작업은 \*\*일요일 09:00 Asia/Seoul의 `borgbackup-verify-local.timer`\*\*로 전체 `borg check --verify-data`만 실행합니다. 무작위 지연 없이 놓친 실행을 보충합니다. 저장소 구조와 데이터 무결성을 검사하며, 파일 추출·SQL 복원·운영 DB 접속은 하지 않습니다. 필요한 자격증명은 기존 Borg 복호화 키와 passphrase뿐입니다. SQL 복원 가능성이나 앱 기능은 이 검사로 보장하지 않습니다.
+
+일간 백업과 주간 검사는 공통 `flock`으로 직렬화합니다. 이미 실행 중이면 최대 6시간 기다린 뒤 실패하며 상대 작업을 종료하지 않습니다. 검사 서비스 시작 제한은 대기 시간을 포함해 12시간입니다. 이 lock은 수동 Borg 명령이나 Nix GC까지 조정하지는 않습니다.
+
+배포 후 최초 검사를 수동 실행해 실제 완료를 확인합니다. 최초 완료 전에는 결과가 없으며 정상으로 간주하지 않습니다.
 
 ```bash
-ssh -p 10022 root@rho
-systemctl start restic-restore-drill-rho-postgresql.service
-journalctl -u restic-restore-drill-rho-postgresql.service -e
+systemctl --wait start borgbackup-verify-local.service
+journalctl -u borgbackup-verify-local.service -e
+systemctl list-timers borgbackup-verify-local.timer
 ```
 
-수동 복원 절차:
+Borg 명령은 passphrase를 출력하지 않는 호스트별 wrapper로 실행합니다.
 
-1. `restic restore`로 최신 snapshot을 `/var/lib/restic-restore/<repository>`에 복원합니다.
-1. `globals.sql`과 `*.dump` 파일 존재를 확인합니다.
-1. `pg_restore --list <db>.dump`로 dump 구조를 확인합니다.
-1. 필요하면 staging database를 만들어 `pg_restore --clean --if-exists --create`로 복원 테스트합니다.
-1. 운영 반영은 서비스 중단 공지 후 maintenance window에서 수행합니다.
+```bash
+borg-job-local list
+borg-job-local info
+borg-job-local check --verify-data
+```
 
-### tau primary 장애 시 rho mirror 사용
+수동 무결성 검사도 가능하면 공통 lock을 사용하는 `borgbackup-verify-local.service`로 실행합니다. 중단 후 repository lock 오류가 발생하면 실제 Borg 프로세스를 먼저 확인합니다. `--repair`나 `break-lock`은 자동 실행하지 않습니다.
 
-rho mirror는 delayed copy라 최신 snapshot이 tau보다 늦을 수 있습니다. tau primary 장애 시:
+파일 복원:
 
-1. rho RustFS의 대상 prefix에 snapshot이 존재하는지 확인합니다.
-1. 마지막 mirror 성공 시각으로 RPO를 계산합니다.
-1. restic repository URL을 rho RustFS endpoint로 바꿔 임시 복원합니다.
-1. tau 복구 후 mirror 방향을 임의로 반전하지 않습니다. 필요한 object만 검증 후 수동 복사합니다.
+1. 아카이브를 선택하고 별도 임시 디렉터리를 권한 0700으로 생성합니다.
+1. 해당 디렉터리에서 `borg-job-local extract ::<archive> <relative-path>`로 필요한 파일만 추출합니다.
+1. 내용, 소유권, 권한을 확인합니다. 운영 경로에 바로 덮어쓰지 않습니다.
+1. SQL 덤프처럼 민감한 평문은 검증 후 안전하게 정리합니다.
 
-### credential 유출/오동작 대응
+필요 시 수동 PostgreSQL 복원 점검은 별도 데이터 디렉터리·Unix socket·포트를 사용하는 일회성 클러스터에서 수행합니다. TCP를 비활성화하고 운영 socket과 PGDATA에 접근하지 못하게 합니다. `all.sql`은 `psql`의 `ON_ERROR_STOP`을 켜서 복원하고 예상 데이터베이스가 실제 생성되는지 확인합니다. 운영 DB에 SQL을 직접 실행하지 않습니다.
 
-- writer credential 유출: 해당 writer user를 새 키로 교체하고 기존 키를 RustFS에서 제거합니다.
-- pruner credential 유출: 즉시 prune/delete 권한을 회수하고 rho delayed mirror를 보존합니다.
-- root credential 사용: bootstrap/break-glass 목적만 허용하고 사용 후 즉시 rotation합니다.
+## 복구 키
 
-## 운영 원칙
+호스트별 `hosts/<host>.yaml`의 `borg-recovery-key`는 export한 Borg 키를 SOPS로 보호합니다. 이 키 자체에도 Borg passphrase 암호화가 적용되어 있습니다. 호스트 배포용 secret으로 선언하지 않습니다.
 
-- 백업 대상은 경로 전체가 아니라 보호 등급과 quota로 관리합니다.
-- tau S3는 primary backup store입니다.
-- rho S3는 delayed mirror입니다.
-- delete propagation은 즉시 전파하지 않습니다.
-- bucket versioning을 사용합니다.
-- writer credential과 prune/delete credential은 분리합니다.
-- restore drill 완료 전에는 새 backup 체계를 완료로 보지 않습니다.
+복구에는 저장소 데이터, Borg 키와 passphrase, SOPS 복호화 identity가 필요합니다. Git 저장소와 같은 위치에만 복구 자료를 보관하지 않습니다. 키·passphrase·SQL을 터미널 출력이나 Nix store에 노출하지 않습니다.
+
+## eta 및 이전 백업 정리
+
+eta의 PostgreSQL·Vaultwarden은 아직 이전 Restic 모듈을 사용합니다. 대상 RustFS가 중단되어 있으므로 설정이 남아 있다는 이유로 정상 백업으로 간주하지 않습니다. eta에는 별도 HDD가 없으며 대체 저장소부터 결정해야 합니다.
+
+Restic 최종 제거 순서:
+
+1. eta 대체 백업 저장소와 범위를 결정합니다.
+1. 실제 백업·격리 복원·무결성 검증을 완료합니다.
+1. 관련 timer, module, 모니터링 참조를 제거합니다.
+1. 과거 아카이브 보존 필요와 복구 가능성을 확인한 뒤 자격증명·데이터 폐기를 별도 승인받습니다.
+
+Stalwart R2 blob 복사는 Restic과 별도입니다. 메일 본문·첨부파일과 DB 메타데이터를 함께 복구할 수 있어야 합니다. 이전 점검의 R2 권한 오류가 해결됐는지도 별도로 검증해야 합니다. R2 object·bucket 삭제나 credential rotation은 이 전환에 포함하지 않습니다.

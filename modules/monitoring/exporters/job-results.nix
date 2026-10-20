@@ -26,7 +26,13 @@ let
       (_: {
         scheduled = pg.startAt != [ ] && pg.startAt != "";
       });
-  jobs = borgJobs // pgJobs;
+  jobs =
+    borgJobs
+    // pgJobs
+    # The local backup module owns both the daily and weekly units.
+    // lib.optionalAttrs (config.services.borgbackup.jobs ? local) {
+      borgbackup-verify-local.scheduled = true;
+    };
   statePath = unit: "/var/lib/infra-job-results/${unit}/state.json";
   sourceName = unit: "job_${lib.sbee.monitoring.componentId unit}_source";
   metricName = unit: "job_${lib.sbee.monitoring.componentId unit}_metrics";

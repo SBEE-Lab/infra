@@ -4,6 +4,11 @@ let
     lib.filterAttrs (_: host: host.wg-admin != null) config.networking.sbee.hosts
   );
   targets = import ../targets.nix;
+  backupHosts = [
+    "psi"
+    "rho"
+    "tau"
+  ];
   runbook = "https://github.com/SBEE-Lab/infra/blob/main/docs/admin/monitoring.md#prometheus-rho";
   hostAlertAnnotations = {
     runbook_url = runbook;
@@ -82,6 +87,28 @@ in
             }) monitoredHosts)
             ++ serviceRules
             ++ observationRules
+            ++ (lib.concatMap (
+              host:
+              map
+                (unit: {
+                  alert = "BackupObservationMissing";
+                  expr = ''absent_over_time(infra_job_last_completion_timestamp_seconds{host="${host}",unit="${unit}",scheduled="true"}[10m])'';
+                  for = "15m";
+                  labels = opsWarning // {
+                    inherit host unit;
+                    signal = "collection";
+                  };
+                  annotations = {
+                    summary = "Backup completion observations are missing";
+                    description = "${host} ${unit}: restore collection or complete the initial verification. Missing observations do not establish failure or success.";
+                    runbook_url = runbook;
+                  };
+                })
+                [
+                  "borgbackup-job-local.service"
+                  "borgbackup-verify-local.service"
+                ]
+            ) backupHosts)
             ++ [
               {
                 alert = "DiskSpaceLow";
@@ -377,6 +404,57 @@ in
                 annotations = {
                   summary = "Scheduled job needs attention";
                   description = "{{ $labels.host }} {{ $labels.unit }}: the last completed attempt did not succeed cleanly. Inspect its journal for the exit status and details before retrying.";
+                  runbook_url = runbook;
+                };
+              }
+              {
+                alert = "BackupDumpFailed";
+                expr = ''infra_job_last_result{host=~"psi|rho|tau",unit="postgresqlBackup.service"} > 0'';
+                for = "15m";
+                labels = opsWarning // {
+                  signal = "job";
+                };
+                annotations = {
+                  summary = "Backup preparation failed";
+                  description = "{{ $labels.host }}: the PostgreSQL dump did not finish cleanly. Inspect postgresqlBackup.service; its failure can prevent Borg from starting.";
+                  runbook_url = runbook;
+                };
+              }
+              {
+                alert = "BackupCompletionOverdue";
+                expr = ''
+                  (time() - infra_job_last_completion_timestamp_seconds{
+                    host=~"psi|rho|tau",unit="borgbackup-job-local.service",scheduled="true"
+                  } > 129600)
+                  and on (host, unit)
+                  (infra_job_last_result{scheduled="true"} == 0)
+                '';
+                for = "15m";
+                labels = opsWarning // {
+                  signal = "job";
+                };
+                annotations = {
+                  summary = "Daily backup completion is overdue";
+                  description = "{{ $labels.host }}: no new completion for more than 36 hours after the last clean attempt. Inspect the timer, PostgreSQL dependency, and Borg journal. Failed attempts are covered by ScheduledJobFailed.";
+                  runbook_url = runbook;
+                };
+              }
+              {
+                alert = "BackupVerificationOverdue";
+                expr = ''
+                  (time() - infra_job_last_completion_timestamp_seconds{
+                    host=~"psi|rho|tau",unit="borgbackup-verify-local.service",scheduled="true"
+                  } > 777600)
+                  and on (host, unit)
+                  (infra_job_last_result{scheduled="true"} == 0)
+                '';
+                for = "15m";
+                labels = opsWarning // {
+                  signal = "job";
+                };
+                annotations = {
+                  summary = "Weekly backup verification is overdue";
+                  description = "{{ $labels.host }}: no new verification completion for more than 9 days after the last clean attempt. Inspect its timer and journal. Failed attempts are covered by ScheduledJobFailed.";
                   runbook_url = runbook;
                 };
               }

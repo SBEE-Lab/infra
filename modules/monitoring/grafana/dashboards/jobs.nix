@@ -1,20 +1,20 @@
-# SjangLab Jobs dashboard
-# Batch/sync health. Current source is psi biodb systemd status snapshots in Loki.
+# Completion records do not establish current execution state or backup integrity.
 { datasources }:
 let
-  inherit (datasources) loki;
-
+  inherit (datasources) prometheus;
   statPanel =
     {
       id,
       title,
       x,
       expr,
+      color,
     }:
     {
       inherit id title;
       type = "stat";
-      datasource = loki;
+      datasource = prometheus;
+      description = "Latest recorded outcomes only. Missing records are unknown, not successful jobs.";
       gridPos = {
         h = 4;
         w = 8;
@@ -31,16 +31,17 @@ let
         };
       };
       fieldConfig.defaults = {
-        noValue = "0";
+        noValue = "No completion data";
+        decimals = 0;
         thresholds = {
           mode = "absolute";
           steps = [
             {
-              color = "green";
+              color = "gray";
               value = null;
             }
             {
-              color = "red";
+              inherit color;
               value = 1;
             }
           ];
@@ -49,10 +50,91 @@ let
       targets = [
         {
           refId = "A";
-          datasource = loki;
+          datasource = prometheus;
           inherit expr;
-          queryType = "instant";
           instant = true;
+        }
+      ];
+    };
+  resultMappings = [
+    {
+      type = "value";
+      options = {
+        "0" = {
+          text = "Success";
+          color = "green";
+        };
+        "1" = {
+          text = "Unsuccessful";
+          color = "red";
+        };
+      };
+    }
+  ];
+  tablePanel =
+    {
+      id,
+      title,
+      x,
+      expr,
+      valueName,
+      properties,
+    }:
+    {
+      inherit id title;
+      type = "table";
+      datasource = prometheus;
+      description = "Borg and PostgreSQL dumps with completion records only. Missing rows can mean never run or collection loss. Inspect the journal for details; this is not a running-state or restore-health view.";
+      gridPos = {
+        h = 12;
+        w = 12;
+        inherit x;
+        y = 4;
+      };
+      options = {
+        showHeader = true;
+        cellHeight = "sm";
+        footer.show = false;
+      };
+      transformations = [
+        {
+          id = "organize";
+          options = {
+            excludeByName = {
+              Time = true;
+              __name__ = true;
+              job = true;
+              instance = true;
+            };
+            indexByName = {
+              host = 0;
+              unit = 1;
+              scheduled = 2;
+              Value = 3;
+            };
+            renameByName.Value = valueName;
+          };
+        }
+      ];
+      fieldConfig = {
+        defaults.noValue = "Unknown";
+        overrides = [
+          {
+            matcher = {
+              id = "byName";
+              options = valueName;
+            };
+            inherit properties;
+          }
+        ];
+      };
+      targets = [
+        {
+          refId = "A";
+          datasource = prometheus;
+          inherit expr;
+          instant = true;
+          format = "table";
         }
       ];
     };
@@ -60,13 +142,14 @@ in
 {
   uid = "sjanglab-jobs";
   title = "SjangLab Jobs";
+  description = "Latest Borg and PostgreSQL dump completions, not biodb lifecycle status. No completion data is unknown, not success. A successful completion does not prove backup freshness, integrity, or restorability.";
   tags = [
     "infra"
     "jobs"
   ];
   timezone = "browser";
   schemaVersion = 41;
-  version = 1;
+  version = 2;
   refresh = "1m";
   time = {
     from = "now-24h";
@@ -77,109 +160,83 @@ in
   panels = [
     (statPanel {
       id = 1;
-      title = "psi job failures";
+      title = "Jobs with completion data";
       x = 0;
-      expr = ''sum(count_over_time({host="psi", log_type="systemd_status", event="job_snapshot"} | json | health = "FAIL" [10m]))'';
+      expr = "count(infra_job_last_result)";
+      color = "blue";
     })
     (statPanel {
       id = 2;
-      title = "biodb failures";
+      title = "Last result: success";
       x = 8;
-      expr = ''sum(count_over_time({host="psi", log_type="systemd_status", event="job_snapshot"} | json | health = "FAIL" | unit =~ "biodb-.*" [10m]))'';
+      expr = "sum(infra_job_last_result == bool 0)";
+      color = "green";
     })
     (statPanel {
       id = 3;
-      title = "backup failures";
+      title = "Last result: unsuccessful";
       x = 16;
-      expr = ''sum(count_over_time({log_type="systemd_status", event="job_snapshot"} | json | health = "FAIL" | unit =~ ".*backup.*|.*restic.*|.*rustic.*|.*minio.*" [10m]))'';
+      expr = "sum(infra_job_last_result > bool 0)";
+      color = "red";
+    })
+    (tablePanel {
+      id = 4;
+      title = "Latest recorded outcome";
+      x = 0;
+      expr = "infra_job_last_result";
+      valueName = "Last result";
+      properties = [
+        {
+          id = "mappings";
+          value = resultMappings;
+        }
+        {
+          id = "custom.cellOptions";
+          value.type = "color-text";
+        }
+      ];
+    })
+    (tablePanel {
+      id = 6;
+      title = "Last completion time";
+      x = 12;
+      expr = "1000 * (infra_job_last_completion_timestamp_seconds > 0)";
+      valueName = "Completed at";
+      properties = [
+        {
+          id = "unit";
+          value = "dateTimeAsIso";
+        }
+      ];
     })
     {
-      id = 4;
-      title = "Latest psi job status";
-      type = "table";
-      datasource = loki;
-      gridPos = {
-        h = 12;
-        w = 24;
-        x = 0;
-        y = 4;
-      };
-      options = {
-        showHeader = true;
-        cellHeight = "sm";
-        footer.show = false;
-      };
-      transformations = [
-        {
-          id = "extractFields";
-          options = {
-            source = "Line";
-            format = "json";
-            replace = true;
-            keepTime = true;
-          };
-        }
-        {
-          id = "organize";
-          options = {
-            excludeByName = {
-              host = true;
-              log_type = true;
-              message = true;
-            };
-            indexByName = {
-              Time = 0;
-              health = 1;
-              health_reason = 2;
-              unit = 3;
-              active_state = 4;
-              sub_state = 5;
-              result = 6;
-              last_exit_status = 7;
-              last_success_age_seconds = 8;
-              next_due_seconds = 9;
-              max_success_age_seconds = 10;
-              description = 11;
-            };
-            renameByName = {
-              active_state = "active";
-              sub_state = "sub";
-              last_exit_status = "exit";
-              health_reason = "reason";
-              last_success_age_seconds = "last success age";
-              next_due_seconds = "next due";
-              max_success_age_seconds = "max success age";
-            };
-          };
-        }
-      ];
-      targets = [
-        {
-          refId = "A";
-          datasource = loki;
-          expr = ''{host="psi", log_type="systemd_status", event="job_snapshot"}'';
-        }
-      ];
-      timeFrom = "10m";
-    }
-    {
       id = 5;
-      title = "Job failures over time";
+      title = "Latest recorded outcome over time";
+      description = "Sampled last-result gauges, not a count or complete history of executions. Gaps are missing observations, not recovery.";
       type = "timeseries";
-      datasource = loki;
+      datasource = prometheus;
       gridPos = {
         h = 8;
         w = 24;
         x = 0;
         y = 16;
       };
-      fieldConfig.defaults.min = 0;
+      fieldConfig.defaults = {
+        min = 0;
+        max = 1;
+        noValue = "Unknown";
+        mappings = resultMappings;
+        custom = {
+          lineInterpolation = "stepAfter";
+          spanNulls = false;
+        };
+      };
       targets = [
         {
           refId = "A";
-          datasource = loki;
-          expr = ''sum(count_over_time({host="psi", log_type="systemd_status", event="job_snapshot"} | json | health = "FAIL" [$__auto]))'';
-          legendFormat = "failures";
+          datasource = prometheus;
+          expr = "infra_job_last_result";
+          legendFormat = "{{host}} {{unit}}";
         }
       ];
     }
