@@ -52,10 +52,10 @@ in
     description = "Run tailnet app access audit correlator every minute";
     wantedBy = [ "timers.target" ];
     timerConfig = {
-      OnBootSec = "60s";
+      # Seed every activation so pause/resume cannot strand the recurring timer.
+      OnActiveSec = "60s";
       OnUnitActiveSec = "60s";
       AccuracySec = "10s";
-      Persistent = true;
     };
   };
 

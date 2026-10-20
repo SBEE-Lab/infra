@@ -43,6 +43,10 @@ Headscale split DNS는 내부 rho 경로를 유지합니다. `/prometheus/`와 `
 
 인증서 동기화에서 `failed to set times`가 발생하면 rho의 수신 디렉토리와 파일·심볼릭 링크 자체의 소유권을 수신 계정 `acme-sync-logging`과 비교합니다. 링크 소유권 수정에는 `chown -h`를 사용해 대상을 따라가지 않으며, 개인키·인증서 본문을 로그에 출력하지 않습니다. 동기화 서비스 정상 종료와 nginx reload까지 확인합니다.
 
+### Access & Audit 패널 판독
+
+`SSH Access audit`와 `Tailnet app access`는 원본 SSH·nginx 로그가 아니라 rho의 두 correlator가 가공한 기록입니다. `observe`에서도 수집하며 timer 활성화 60초 뒤 첫 실행, 이후 60초 간격으로 실행합니다. `active (elapsed)`이면서 다음 실행이 없으면 정상 수집 상태가 아닙니다. 다음 trigger, 최근 서비스 완료, `correlator_heartbeat`와 원본 로그를 함께 확인합니다. 수집 재개만으로 과거 공백이 자동 복구되지는 않습니다. 공개 Grafana 요청은 tailnet audit 대상이 아니며 원본 `nginx_access`에서 확인합니다.
+
 ### Jobs 패널 판독
 
 | 표시 | 의미 | 추가 확인 |

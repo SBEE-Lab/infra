@@ -94,6 +94,8 @@ These raw streams use bounded labels only:
 
 Vector classifies `ingress_network` from `source_ip`: `100.64.0.0/10` is tailnet, `10.100.0.0/24` is wg-admin, all other valid source IPs are public. High-cardinality request fields stay in JSON, not labels. Query strings and referers are omitted from the structured access log to avoid retaining capability tokens in Loki.
 
+Both access-audit correlator timers bootstrap 60 seconds after each timer activation, then recur every 60 seconds. They use `OnActiveSec` rather than a boot-only seed and do not persist monotonic timer history. This keeps pause/resume from leaving a timer `active (elapsed)` without a next run. Verify a future trigger, recent service completion and `correlator_heartbeat`; `active` or `Result=success` alone does not establish freshness. Restarting collection does not automatically backfill historical gaps.
+
 Tailnet application access audit:
 
 ```logql
