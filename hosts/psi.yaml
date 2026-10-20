@@ -12,6 +12,7 @@ nix-grpc-server-key: ENC[AES256_GCM,data:TrFmxLoKn8S2SgmzXzhKUJSGWOphEXODZCCq/TF
 tinc-naru-key: ENC[AES256_GCM,data:US0XekwWNfPFBHWTPDYUsPtm76UhWgtwRwlgUMxvt+kfhtqBV7nvgmvLHarbrMOgf40S7elVMr/WAO4AXP8J4l7HWj9DZkJh+uiGJ1ngoJD748f6cvR9yGhQnkDh+URg5s88+SOov9YRtppIsgl+q88D+/Du7/Uk4MCNVXcUUOrS/9XcIbOfM48T9R+6unODgbMe3jCKDlVKYkze9/MZItDepPpIdXRybhuvvNm8GITKBfSK2gNLcCgmk/zhVfEDxwxeaWHM4mI=,iv:mE1/K0ncB+IQ1IZhOvPXU7CrY26i3JR4JhVg4k+2Ytk=,tag:epHRh9Pu36Jlr2laXGGbGQ==,type:str]
 github-actions-runner-token: ENC[AES256_GCM,data:ZyFkjdorcTGeG2DhPjSy/bLHkLhLEHQ6f5baU5QgY5eiN5vjj4RmVQPaUhiqaRorX3B+soC8zyVl38dvwEfyiebCgUUmpjCqEu1xrBMfGb7Ibu2mALKIZQ+ET8nM,iv:Mxn6ka3Fy0denzJgXJQZUpOT5XRl49IE4CobHNT6+Fc=,tag:+O8JprGWMhQ2mDOx0VGKgw==,type:str]
 borg-passphrase: ENC[AES256_GCM,data:+W+s4Cw/uD9HsdtVwHk6nCXKB6a42yUXXPyJUg5mAMN/ihH+nmX/QYYhB+2TdVfpMwdYTKn5MlxGpk3yoS3tjw==,iv:xsy1CtZ/DiEQjtRjVRVqpSJKR4QydAURMz5BfGTmA2k=,tag:Dj5zm32dF+KNryeLqLyl8Q==,type:str]
+borg-recovery-key: ENC[AES256_GCM,data:vAfRr49q3isdMe/1jwN4laYieJSSp9HwzO7ZkFQV0gUiQu70YHmtIc0b2gCCa2STGNLGoQb40j0g+AjNysN1NDtLMfRETcDBc863mxFLbzqxXbB/RnndZdMZlqvgVxdnqQCRyUX9Fj8p1Az8m7LyWotqY35F9bQS4veKzejtbAUIWNTrpjoXmnSvsKQWKtKd2Qune5yvTwRdGPEisVwgELKdJ72tu7bdjNsfdK3eo/ZrQAyEaUWM6jGo1hLjLA/6N6CZR3uI4VgBt09W0bXFzvpa6+pFoWCHVh58VJQyQcNnHDlkqRrhoi01Z8EBulyMmFr1Q5aOL0CzSRTo06AuMD34hJm4Nv51uAe7iIGoi3rCmoreCYeVrewIQf8q1xZZ8ge4/JO6KmGpZQd03iu0N9VcyJtSX2mcZE0CCQTcze4ugz6y/fQNDDvhoEK5+7JTlqsjaMi8MOavFc/fy6woWmzZVrhfWbUz74lNIJqKzD1MY92rS4mAKbm9L7kA79S3ISodwryzINc3bSKFFBjrEeiP53lmEqCiFqTUGggltAGe2AsRDlov/+2dzqKkD9Tn/2JPbwdXhMfXwYj1Hrj/UlQSPQIoJmRCGPqEaDlU6Rs0LhkCYL/0CCR93Cb/WWbBUMzlPk4HDPR8pvBp8pON3AmOS15cFBNjmvhVtxSrbZVNiX4x55r6iYUZoUUInPirkBl5tuI/vv/lmg328pEu74uZeUtpCKl79kn2oUc3kWJSETKCyzz03dBU+cMme0h3xABS0g4ccsz37/QGN/NQuldFRotnUFEHKSjTa417u+A3nDmajUN1tJggSGnMYkuKS5M/jOGzF6mFwFJWz1Kc71xEfkIXy9KUcJQ92KaczJNuKP9zIqj5L9ljI+mw5EQeHSLhNgX9+2rj+5mFfRuJSom58kEFr2QhjU0ZiV4fgror/Jek2dO0yBChk6McPuHC+jLHSjbtFJwuELPmAeI3V1kKP9mbSIr2tjfXxqsJ6ZynrtyOEvyOKQjYI2HqH/J0hky/fLI5dgHHnNgab87nVbnEQOv3p4LoUqk9be7Wf5vFKQwHUEvit6U8lG9l,iv:0SKbgHzCSIKj58uFz1UmCMoDQoFWMMo+JlWcAjHr8sY=,tag:sFQ/juCbE3CXZjTz/MCT7g==,type:str]
 sops:
     age:
         - enc: |
@@ -32,7 +33,7 @@ sops:
             TwJUMxSr00mWCHePRiM4Q7IYgwL0hxQFHKb9DHzLQXitFABmKckNiw==
             -----END AGE ENCRYPTED FILE-----
           recipient: age1730f3cxdyh56zw8xcvlmpa7u2x7353wu4u0e58kyx24rsefgp98sxehm6s
-    lastmodified: "2026-10-19T11:25:33Z"
-    mac: ENC[AES256_GCM,data:bTpneNGEAS5JwheVMPUtS//WM9Rll4mHZSC2Xe1kjZlrJxdgytwBclr3DIFaQwBKjbIOc+B6A76kaOhDKTPiAiqKHZadQlycdJc4gJYaMJ3E57/L2lrWmG5Bu9wWdDifBSD455h/JipDkZIS+ylI72RUHUo0xMLaq1uxLDhn2x4=,iv:NnSS37opHiQoeeAd3VKdxrPtJt6cwtQgWNJ3TCkzuks=,tag:g7+rNGXvnACHIpOLM+XS8w==,type:str]
+    lastmodified: "2026-10-19T15:18:51Z"
+    mac: ENC[AES256_GCM,data:yLbrUK4WL6DSbwuwWLfwwmtsi2knfjt9c71m4fsrGXkchI+R5y+6dDhHorCxJf3Ndxyl8xJZL9MXwObcIR2d8BnY44SWokk2c43I1yVggwKZYPTIaGNT+Sq9bpsBSZgiTKcjOjtjC33A/dknwMw7swSgT/JoXI6wOPh0mczitbI=,iv:xRZEOWeXvM2vryu5aBOf0MBNjrwJkcX8nIs+iIPv2aw=,tag:cJ1geF2rq8Qirp72+ZCw1w==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.13.3
