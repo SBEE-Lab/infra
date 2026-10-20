@@ -4980,7 +4980,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <div class="pulse-dot"></div>
         <h1>Ingress와 인증 게이트</h1>
       </div>
-      <p class="subtitle">공개 Nextcloud, tailnet 웹 앱, OIDC·Forward Auth, 별도 private TEI</p>
+      <p class="subtitle">공개 Nextcloud·Grafana, tailnet 웹 앱, OIDC·Forward Auth, private TEI</p>
     </div>
 
 
@@ -4990,7 +4990,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
          data-preset-badge-editorial-plate="ARCHIFY / PLATE 04">
       <svg viewBox="0 0 1367 986" role="img" lang="en" aria-labelledby="archify-diagram-title archify-diagram-description" data-preset="blueprint" data-quality-profile="standard" data-reader-fit="intrinsic-height" data-reader-min-text="7.5" data-reader-primary-text="14">
         <title id="archify-diagram-title">Ingress와 인증 게이트</title>
-        <desc id="archify-diagram-description">공개 Nextcloud, tailnet 웹 앱, OIDC·Forward Auth, 별도 private TEI</desc>
+        <desc id="archify-diagram-description">공개 Nextcloud·Grafana, tailnet 웹 앱, OIDC·Forward Auth, private TEI</desc>
         <!-- Definitions -->
         <defs>
           <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
@@ -5051,20 +5051,21 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         </g>
         <g data-graph-role="automatic-crossover" style="--step:8">
           <path data-graph-role="automatic-crossover-underlay" d="M 150 428 L 150 620" fill="none" stroke="var(--mask)" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="user" data-edge-to="eta-nginx" data-edge-label="공개 Nextcloud" data-edge-key="8" data-edge-id="public-nextcloud" data-composition-points="150,428;150,620" data-composition-crossover="halo" d="M 150 428 L 150 620" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+          <path data-edge-from="user" data-edge-to="eta-nginx" data-edge-label="공개 HTTPS" data-edge-key="8" data-edge-id="public-nextcloud" data-composition-points="150,428;150,620" data-composition-crossover="halo" d="M 150 428 L 150 620" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         </g>
-        <g data-graph-role="automatic-crossover" style="--step:9">
-          <path data-graph-role="automatic-crossover-underlay" d="M 240 654 L 390 654" fill="none" stroke="var(--mask)" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="eta-nginx" data-edge-to="oidc-apps" data-edge-label="Nextcloud만" data-edge-key="9" data-edge-id="edge-oidc-app" data-composition-points="240,654;390,654" data-composition-crossover="halo" data-composition-independent="true" d="M 240 654 L 390 654" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
-        </g>
+        <path data-edge-from="eta-nginx" data-edge-to="internal-nginx" data-edge-label="Grafana TLS" data-edge-key="9" data-edge-id="public-grafana" data-composition-points="150,620;150,560;650,560;650,460;810,460;810,428" d="M 150 620 L 150 568 Q 150 560 158 560 L 642 560 Q 650 560 650 552 L 650 468 Q 650 460 658 460 L 802 460 Q 810 460 810 452 L 810 428" class="a-security" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
         <g data-graph-role="automatic-crossover" style="--step:10">
-          <path data-graph-role="automatic-crossover-underlay" d="M 480 428 L 480 620" fill="none" stroke="var(--mask)" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="tailnet" data-edge-to="oidc-apps" data-edge-label="cloud · vault" data-edge-key="10" data-edge-id="private-oidc-apps" data-composition-points="480,428;480,620" data-composition-crossover="halo" d="M 480 428 L 480 620" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 240 654 L 390 654" fill="none" stroke="var(--mask)" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="eta-nginx" data-edge-to="oidc-apps" data-edge-label="Nextcloud만" data-edge-key="10" data-edge-id="edge-oidc-app" data-composition-points="240,654;390,654" data-composition-crossover="halo" data-composition-independent="true" d="M 240 654 L 390 654" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         </g>
-        <path data-edge-from="oidc-apps" data-edge-to="authentik" data-edge-label="앱별 OIDC" data-edge-key="11" data-edge-id="apps-oidc" data-composition-points="480,688;480,740;1300,740;1300,174;1230,174" d="M 480 688 L 480 732 Q 480 740 488 740 L 1292 740 Q 1300 740 1300 732 L 1300 182 Q 1300 174 1292 174 L 1230 174" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
-        <g data-graph-role="automatic-crossover" style="--step:12">
+        <g data-graph-role="automatic-crossover" style="--step:11">
+          <path data-graph-role="automatic-crossover-underlay" d="M 480 428 L 480 620" fill="none" stroke="var(--mask)" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="tailnet" data-edge-to="oidc-apps" data-edge-label="cloud · vault" data-edge-key="11" data-edge-id="private-oidc-apps" data-composition-points="480,428;480,620" data-composition-crossover="halo" d="M 480 428 L 480 620" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+        </g>
+        <path data-edge-from="oidc-apps" data-edge-to="authentik" data-edge-label="앱별 OIDC" data-edge-key="12" data-edge-id="apps-oidc" data-composition-points="480,688;480,740;1300,740;1300,174;1230,174" d="M 480 688 L 480 732 Q 480 740 488 740 L 1292 740 Q 1300 740 1300 732 L 1300 182 Q 1300 174 1292 174 L 1230 174" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+        <g data-graph-role="automatic-crossover" style="--step:13">
           <path data-graph-role="automatic-crossover-underlay" d="M 240 884 L 390 884" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="naru-wg" data-edge-to="tei" data-edge-label="허용된 API" data-edge-key="12" data-edge-id="private-tei" data-composition-points="240,884;390,884" data-composition-crossover="halo" data-composition-independent="true" d="M 240 884 L 390 884" class="a-security" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
+          <path data-edge-from="naru-wg" data-edge-to="tei" data-edge-label="허용된 API" data-edge-key="13" data-edge-id="private-tei" data-composition-points="240,884;390,884" data-composition-crossover="halo" data-composition-independent="true" d="M 240 884 L 390 884" class="a-security" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
         </g>
 
         <!-- Components -->
@@ -5153,8 +5154,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <text data-detail="context" x="480" y="138" class="t-muted" font-size="9" text-anchor="middle">등록 · ACL 제어</text>
         </g>
 
-        <g id="node-eta-nginx" data-node-id="eta-nginx" data-node-label="eta 공개 nginx" tabindex="0" role="button" aria-label="Focus eta 공개 nginx, Nextcloud public proxy, Architecture component" aria-pressed="false" data-node-kind="security" data-node-sublabel="Nextcloud public proxy" data-node-context="Architecture component">
-          <title>eta 공개 nginx · Nextcloud public proxy · Architecture component</title>
+        <g id="node-eta-nginx" data-node-id="eta-nginx" data-node-label="eta 공개 nginx" tabindex="0" role="button" aria-label="Focus eta 공개 nginx, Nextcloud · Grafana proxy, Architecture component" aria-pressed="false" data-node-kind="security" data-node-sublabel="Nextcloud · Grafana proxy" data-node-context="Architecture component">
+          <title>eta 공개 nginx · Nextcloud · Grafana proxy · Architecture component</title>
           <rect x="60" y="620" width="180" height="68" rx="6" class="c-mask"/>
           <rect x="60" y="620" width="180" height="68" rx="6" class="c-security" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="security" class="semantic-sigil s-security" transform="translate(66 626) scale(0.6875)">
@@ -5162,7 +5163,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
             <path d="m5.8 8 1.5 1.5 3-3"/>
           </g>
           <text data-node-label="" data-detail-anchor="" x="150" y="652" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">eta 공개 nginx</text>
-        <text data-detail="context" x="150" y="668" class="t-muted" font-size="9" text-anchor="middle">Nextcloud public proxy</text>
+        <text data-detail="context" x="150" y="668" class="t-muted" font-size="9" text-anchor="middle">Nextcloud · Grafana proxy</text>
         </g>
 
         <g id="node-oidc-apps" data-node-id="oidc-apps" data-node-label="OIDC 앱" tabindex="0" role="button" aria-label="Focus OIDC 앱, Nextcloud · Vaultwarden, Architecture component" aria-pressed="false" data-node-kind="backend" data-node-sublabel="Nextcloud · Vaultwarden" data-node-context="Architecture component">
@@ -5232,23 +5233,27 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           <rect x="455.8" y="249" width="48.4" height="14" rx="3" class="c-mask"/>
           <text x="480" y="259" class="t-edge-dashed" font-size="8" text-anchor="middle">ACL 제어</text>
         </g>
-        <g data-detail="context" data-edge-from="user" data-edge-to="eta-nginx" data-edge-label="공개 Nextcloud" data-edge-key="8" data-edge-id="public-nextcloud">
-          <rect x="111.4" y="514" width="77.2" height="14" rx="3" class="c-mask"/>
-          <text x="150" y="524" class="t-edge-emphasis" font-size="8" text-anchor="middle">공개 Nextcloud</text>
+        <g data-detail="context" data-edge-from="user" data-edge-to="eta-nginx" data-edge-label="공개 HTTPS" data-edge-key="8" data-edge-id="public-nextcloud">
+          <rect x="121" y="514" width="58" height="14" rx="3" class="c-mask"/>
+          <text x="150" y="524" class="t-edge-emphasis" font-size="8" text-anchor="middle">공개 HTTPS</text>
         </g>
-        <g data-detail="context" data-edge-from="eta-nginx" data-edge-to="oidc-apps" data-edge-label="Nextcloud만" data-edge-key="9" data-edge-id="edge-oidc-app">
+        <g data-detail="context" data-edge-from="eta-nginx" data-edge-to="internal-nginx" data-edge-label="Grafana TLS" data-edge-key="9" data-edge-id="public-grafana">
+          <rect x="618.6" y="500" width="62.8" height="14" rx="3" class="c-mask"/>
+          <text x="650" y="510" class="t-edge-security" font-size="8" text-anchor="middle">Grafana TLS</text>
+        </g>
+        <g data-detail="context" data-edge-from="eta-nginx" data-edge-to="oidc-apps" data-edge-label="Nextcloud만" data-edge-key="10" data-edge-id="edge-oidc-app">
           <rect x="283.6" y="634" width="62.8" height="14" rx="3" class="c-mask"/>
           <text x="315" y="644" class="t-edge-emphasis" font-size="8" text-anchor="middle">Nextcloud만</text>
         </g>
-        <g data-detail="context" data-edge-from="tailnet" data-edge-to="oidc-apps" data-edge-label="cloud · vault" data-edge-key="10" data-edge-id="private-oidc-apps">
+        <g data-detail="context" data-edge-from="tailnet" data-edge-to="oidc-apps" data-edge-label="cloud · vault" data-edge-key="11" data-edge-id="private-oidc-apps">
           <rect x="443.8" y="514" width="72.4" height="14" rx="3" class="c-mask"/>
           <text x="480" y="524" class="t-edge-emphasis" font-size="8" text-anchor="middle">cloud · vault</text>
         </g>
-        <g data-detail="context" data-edge-from="oidc-apps" data-edge-to="authentik" data-edge-label="앱별 OIDC" data-edge-key="11" data-edge-id="apps-oidc">
+        <g data-detail="context" data-edge-from="oidc-apps" data-edge-to="authentik" data-edge-label="앱별 OIDC" data-edge-key="12" data-edge-id="apps-oidc">
           <rect x="1273.4" y="540" width="53.199999999999996" height="14" rx="3" class="c-mask"/>
           <text x="1300" y="550" class="t-edge-dashed" font-size="8" text-anchor="middle">앱별 OIDC</text>
         </g>
-        <g data-detail="context" data-edge-from="naru-wg" data-edge-to="tei" data-edge-label="허용된 API" data-edge-key="12" data-edge-id="private-tei">
+        <g data-detail="context" data-edge-from="naru-wg" data-edge-to="tei" data-edge-label="허용된 API" data-edge-key="13" data-edge-id="private-tei">
           <rect x="286" y="864" width="58" height="14" rx="3" class="c-mask"/>
           <text x="315" y="874" class="t-edge-security" font-size="8" text-anchor="middle">허용된 API</text>
         </g>
@@ -5470,7 +5475,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           <h3>공개 예외</h3>
         </div>
         <ul>
-          <li>Nextcloud는 공개와 tailnet에서 같은 URL 사용</li>
+          <li>Nextcloud·Grafana는 공개와 tailnet에서 같은 URL 사용</li>
+          <li>Grafana 공개 경로는 인가 필수; Prometheus·Alertmanager는 내부</li>
           <li>n8n 공개 edge는 webhook·health만 허용; UI는 tailnet</li>
           <li>Nixbot은 별도 GitHub OAuth</li>
         </ul>

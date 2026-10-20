@@ -26,6 +26,10 @@ in
       sslCertificate = "${certDir}/fullchain.pem";
       sslCertificateKey = "${certDir}/key.pem";
       extraConfig = ''
+        # Preserve client attribution only for the authenticated wg-admin peer.
+        set_real_ip_from ${hosts.eta.wg-admin};
+        real_ip_header X-Forwarded-For;
+        real_ip_recursive on;
         access_log /var/log/nginx/access-audit/grafana.log nginx_access_json;
       '';
 

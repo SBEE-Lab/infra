@@ -81,6 +81,7 @@ in
     ../modules/uptermd
     ../modules/gatus
     ../modules/monitoring/vector
+    ../modules/monitoring/proxy/edge.nix
     ../modules/monitoring/exporters/systemd-status.nix
     ../modules/n8n/reverse-proxy.nix
     ../modules/nextcloud/reverse-proxy.nix
@@ -124,7 +125,6 @@ in
 
   services.sbee.nginx.localCertificates = {
     # "docling.sjanglab.org".group = "acme";
-    "logging.sjanglab.org".group = "acme";
     "status.sjanglab.org".group = "acme";
     "vault.sjanglab.org".group = "acme";
   };

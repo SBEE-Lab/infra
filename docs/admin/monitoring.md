@@ -29,11 +29,19 @@
 
 ## Grafana 사용 순서
 
-1. Headscale에 연결하고 [Grafana](https://logging.sjanglab.org)에 접속해 Authentik으로 로그인합니다. 신규 사용자는 Viewer이며 공유 관리자 계정이나 별도 API 토큰이 필요하지 않습니다. 접근 거부는 Authentik 인가·그룹을 확인하고, 헤더 위조나 인증 우회로 해결하지 않습니다.
+1. [Grafana](https://logging.sjanglab.org)에 접속해 Authentik으로 로그인합니다. 공개 HTTPS 경로는 VPN이 필요 없으며 기존 `sjanglab-admins` 인가 정책을 유지합니다. 신규 사용자는 Viewer이며 공유 관리자 계정이나 별도 API 토큰이 필요하지 않습니다. 접근 거부는 Authentik 인가·그룹을 확인하고, 헤더 위조나 인증 우회로 해결하지 않습니다.
 1. 우측 상단 시간 범위를 평소에는 최근 6시간, 야간 작업 점검에는 최근 24시간으로 선택합니다. 패널이 비어 있으면 기간을 늘리고 수집 상태부터 확인합니다. `No data`를 성공이나 0건으로 해석하지 않습니다.
 1. [Hosts](https://logging.sjanglab.org/d/sjanglab-hosts)에서 `Metrics freshness`, `Prometheus targets`, 디스크·CPU·메모리를 먼저 봅니다. 수집 경로가 끊긴 상태에서 다른 패널의 과거 값을 현재 상태로 판정하지 않습니다.
 1. [Jobs](https://logging.sjanglab.org/d/sjanglab-jobs)에서 `Latest recorded outcome`과 `Last completion time`을 함께 봅니다. `Success`만으로 예약 실행·무결성·복원을 판정하지 않습니다.
 1. 앱 장애는 [Apps](https://logging.sjanglab.org/d/sjanglab-apps), DB 복제는 [PostgreSQL](https://logging.sjanglab.org/d/sjanglab-postgresql), 로그인·권한 문제는 [Access & Audit](https://logging.sjanglab.org/d/sjanglab-access-audit)에서 같은 시간대를 확인합니다.
+
+공개 경로는 eta nginx → rho nginx → localhost Grafana입니다. eta는 rho 인증서의 CA·hostname을 검증하고 외부에서 받은 identity 헤더를 버립니다. 교차 서명된 중간 CA 체인을 허용하도록 TLS 검증 깊이는 4로 설정합니다. 502가 발생하면 실제 upstream 인증서 체인을 확인하며 인증서 검증을 끄지 않습니다. rho가 Authentik 인가 후 identity를 다시 설정하며, 클라이언트 주소 헤더도 eta peer에서 온 경우에만 신뢰합니다. 익명 접근은 끄고 신규 Grafana 계정 기본 역할은 Viewer로 유지합니다. Viewer도 데이터소스 조회가 가능하므로 SSO 접근 그룹을 확대할 때 로그 열람 범위를 함께 검토합니다.
+
+Headscale split DNS는 내부 rho 경로를 유지합니다. `/prometheus/`와 `/alertmanager/`는 공개 eta 경로에서 404이며, 내부 경로 또는 SSH 터널을 사용합니다. Grafana의 자체 `/api/`·WebSocket은 인증 뒤에 제공하며 직접 Prometheus/Loki API를 공개하는 설정이 아닙니다.
+
+공개 경로 변경은 `terraform/dns`의 `logging.sjanglab.org` 레코드와 eta·rho 설정을 함께 적용해야 합니다. rho의 인증·헤더 신뢰 설정을 먼저 적용하고, eta의 public ACME 발급·rho 인증서 동기화를 확인한 뒤 공개 접속을 검증합니다. 선언 추가나 기존 인증서 파일만으로 적용 완료를 판정하지 않습니다. 검증 기준은 VPN 없는 접속의 로그인 유도, 승인 사용자 dashboard·Live 연결, identity 헤더 위조 거부, public 관리 경로 404, 내부 관리 경로 유지입니다. public DNS를 추가해 HTTP-01 발급을 시작하기 전에는 기존 DNS-01 인증서를 제거하지 않습니다.
+
+인증서 동기화에서 `failed to set times`가 발생하면 rho의 수신 디렉토리와 파일·심볼릭 링크 자체의 소유권을 수신 계정 `acme-sync-logging`과 비교합니다. 링크 소유권 수정에는 `chown -h`를 사용해 대상을 따라가지 않으며, 개인키·인증서 본문을 로그에 출력하지 않습니다. 동기화 서비스 정상 종료와 nginx reload까지 확인합니다.
 
 ### Jobs 패널 판독
 
@@ -151,7 +159,7 @@ eta의 Vector가 journald에서 수집해 이벤트를 분류합니다 (`modules
   - `blackbox_exporter`: eta blackbox exporter 자체 health
   - `alertmanager`: rho Alertmanager health (Alertmanager SOPS keys가 있을 때)
   - `blackbox_http`: eta vantage public HTTPS probes (`auth`, `hs`, `n8n`)
-  - `blackbox_tailnet_http`: eta vantage wg-admin HTTPS probes with Host/SNI override for tailnet-only apps (`n8n-ui`, `grafana`, `nextcloud`, etc.)
+  - `blackbox_tailnet_http`: eta vantage wg-admin HTTPS probes with Host/SNI override for tailnet-only apps (`n8n-ui`, `nextcloud`, etc.). Grafana는 공개 HTTPS/login 경로를 검사하며 인증 후 dashboard 내용까지 검증하지는 않습니다.
   - `blackbox_tcp`: eta vantage TCP probe for Upterm
   - `blackbox_icmp`: eta vantage ICMP probe for wg-admin host reachability
   - `nvidia-gpu`: psi GPU exporter

@@ -59,6 +59,8 @@ in
       # reverse proxy only. The localhost bind plus whitelist below are
       # load-bearing: without both, any peer able to reach Grafana could
       # spoof X-authentik-email and impersonate users.
+      "auth.anonymous".enabled = false;
+
       "auth.proxy" = {
         enabled = true;
         header_name = "X-authentik-email";

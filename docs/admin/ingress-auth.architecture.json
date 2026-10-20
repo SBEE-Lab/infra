@@ -3,7 +3,7 @@
   "diagram_type": "architecture",
   "meta": {
     "title": "Ingress와 인증 게이트",
-    "subtitle": "공개 Nextcloud, tailnet 웹 앱, OIDC·Forward Auth, 별도 private TEI",
+    "subtitle": "공개 Nextcloud·Grafana, tailnet 웹 앱, OIDC·Forward Auth, private TEI",
     "output": "docs/admin/ingress-auth-architecture.html",
     "visual_preset": "blueprint",
     "quality_profile": "standard",
@@ -15,11 +15,12 @@
           "user",
           "tailnet",
           "internal-nginx",
+          "eta-nginx",
           "apps",
           "authentik-outpost",
           "authentik"
         ],
-        "note": "내부 nginx가 outpost에 인가를 확인하고 허용된 사용자 헤더를 앱으로 전달합니다. eta 공개 edge가 모든 내부 앱을 중계하지 않습니다."
+        "note": "Grafana는 공개 eta 또는 tailnet에서 rho nginx에 접근합니다. rho가 outpost 인가 후 identity를 설정합니다. 공개 edge는 Prometheus·Alertmanager 경로를 차단합니다."
       },
       {
         "id": "oidc",
@@ -158,7 +159,7 @@
       "id": "eta-nginx",
       "type": "security",
       "label": "eta 공개 nginx",
-      "sublabel": "Nextcloud public proxy",
+      "sublabel": "Nextcloud · Grafana proxy",
       "pos": [
         60,
         620
@@ -279,7 +280,7 @@
       "id": "public-nextcloud",
       "from": "user",
       "to": "eta-nginx",
-      "label": "공개 Nextcloud",
+      "label": "공개 HTTPS",
       "variant": "emphasis",
       "fromSide": "bottom",
       "toSide": "top",
@@ -287,6 +288,17 @@
         150,
         524
       ]
+    },
+    {
+      "id": "public-grafana",
+      "from": "eta-nginx",
+      "to": "internal-nginx",
+      "label": "Grafana TLS",
+      "variant": "security",
+      "fromSide": "top",
+      "toSide": "bottom",
+      "via": [[150, 560], [650, 560], [650, 460], [810, 460]],
+      "labelAt": [650, 510]
     },
     {
       "id": "edge-oidc-app",
@@ -358,7 +370,8 @@
       "dot": "cyan",
       "title": "공개 예외",
       "items": [
-        "Nextcloud는 공개와 tailnet에서 같은 URL 사용",
+        "Nextcloud·Grafana는 공개와 tailnet에서 같은 URL 사용",
+        "Grafana 공개 경로는 인가 필수; Prometheus·Alertmanager는 내부",
         "n8n 공개 edge는 webhook·health만 허용; UI는 tailnet",
         "Nixbot은 별도 GitHub OAuth"
       ]

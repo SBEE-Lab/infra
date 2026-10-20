@@ -8,7 +8,7 @@ This directory contains the Nix-owned monitoring stack for rho/eta/psi/tau.
 - **eta** runs Gatus and blackbox exporter.
 - **all hosts** run Vector for host metrics and logs.
 - **psi** exports biodb job freshness snapshots and NVIDIA GPU metrics.
-- **Grafana** is reachable only through `https://logging.sjanglab.org/` behind Authentik forward auth; identity comes from the `X-authentik-email` header and users auto-provision as Viewer. It binds `127.0.0.1` and has no direct wg-admin/tailnet port.
+- **Grafana** has public HTTPS ingress on eta, forwarded over verified TLS to rho's Authentik-protected nginx. It is reachable through `https://logging.sjanglab.org/` behind Authentik forward auth; identity comes from the `X-authentik-email` header and users auto-provision as Viewer. It binds `127.0.0.1` and has no direct wg-admin/tailnet port.
 - **Gatus** is tailnet-only at `https://status.sjanglab.org/` and remains the user-facing status page.
 
 ## Network exposure and trust planes
@@ -16,7 +16,7 @@ This directory contains the Nix-owned monitoring stack for rho/eta/psi/tau.
 rho separates the ingest plane from the query/UI plane so that a compromised fleet host can push telemetry but cannot read audit data or mutate alerting state:
 
 - **Ingest (wg-admin, all peers):** Loki `/loki/api/v1/push` and Prometheus `/api/v1/write` are re-exposed on the wg-admin address by `proxy/ingest.nix`, an nginx listener that path-filters to the push endpoints (plus Loki `/ready`) and returns 403 for every query path. Loki and Prometheus themselves bind `127.0.0.1`.
-- **Query/UI (rho-local + SSO):** Grafana, Prometheus query API, Alertmanager, and the Vector exporter bind `127.0.0.1`. Human access is via the Authentik-protected reverse proxy (`/`, `/prometheus/`, `/alertmanager/`). Grafana-admin break-glass is `ssh -L 3000:127.0.0.1:3000 rho` then the local admin account (tunneled requests carry no auth-proxy header, so the normal login form is served).
+- **Query/UI (rho-local + SSO):** Grafana, Prometheus query API, Alertmanager, and the Vector exporter bind `127.0.0.1`. Public access exposes Grafana and its authenticated APIs/WebSocket only. The eta edge returns 404 for `/prometheus` and `/alertmanager` (including descendants); those authenticated management paths remain available through rho's private proxy. Headscale split DNS still selects rho directly. Client identity headers are stripped at eta and replaced by rho's verified Authentik response; rho accepts forwarded client addresses only from eta. Grafana-admin break-glass is `ssh -L 3000:127.0.0.1:3000 rho` then the local admin account (tunneled requests carry no auth-proxy header, so the normal login form is served).
 - Remote agents are unchanged: they still push to `http://<rho-wg-admin>:3100` and `:9090/api/v1/write`.
 
 This closes peer-reachable LogQL/PromQL query and, notably, unauthenticated Alertmanager silence creation. It does not authenticate the push path: Loki still trusts wg-admin producers, so a compromised peer can still forge or flood ingested events (see the audit-pipeline caveat below).

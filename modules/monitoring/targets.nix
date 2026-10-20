@@ -54,7 +54,8 @@
   grafana = {
     host = "rho";
     url = "https://logging.sjanglab.org";
-    access = "private";
+    # Public HTTPS/login smoke only; rho-local Gatus also checks Grafana health.
+    access = "public";
     response = "observe";
     failureFor = "15m";
   };
