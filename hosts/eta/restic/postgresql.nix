@@ -6,12 +6,8 @@
 }:
 let
   cfg = config.services.sbee.backups.postgresql;
-  hostName = config.networking.hostName;
-  contracts = lib.sbee.backup.contracts.postgresql;
-  contract = contracts.${hostName} or null;
-  sharedBackupSecretsFile = ../../hosts/shared/psi-backup.yaml;
-  resticEnvTemplateName = role: "restic-${contract.repository}-${role}-env";
-  resticRepository = "s3:http://${config.networking.sbee.hosts.tau.wg-admin}:9100/${contract.bucket}/${contract.prefix}";
+  contract = (import ./contracts.nix).postgresql;
+  resticRepository = "s3:${contract.endpoint}/${contract.bucket}/${contract.prefix}";
   dumpService = "postgresql-dump-${contract.repository}.service";
   restoreIncludes = [
     "${cfg.location}/globals.sql"
@@ -48,52 +44,12 @@ in
   config = lib.mkIf cfg.enable {
     assertions = [
       {
-        assertion = contract != null;
-        message = "services.sbee.backups.postgresql has no backup contract for host ${hostName}";
-      }
-      {
         assertion = cfg.databases != [ ];
         message = "services.sbee.backups.postgresql.databases must list at least one database";
       }
     ];
 
-    sops.secrets = {
-      ${contract.secretNames.writer}.sopsFile = sharedBackupSecretsFile;
-      ${contract.secretNames.reader}.sopsFile = sharedBackupSecretsFile;
-      ${contract.secretNames.pruner}.sopsFile = sharedBackupSecretsFile;
-      ${contract.secretNames.repositoryPassword} = { };
-    };
-
-    sops.templates.${resticEnvTemplateName "writer"} = {
-      owner = "root";
-      group = "root";
-      mode = "0400";
-      content = ''
-        AWS_ACCESS_KEY_ID=${contract.accessKeys.writer}
-        AWS_SECRET_ACCESS_KEY=${config.sops.placeholder.${contract.secretNames.writer}}
-        AWS_DEFAULT_REGION=us-east-1
-      '';
-    };
-    sops.templates.${resticEnvTemplateName "reader"} = {
-      owner = "root";
-      group = "root";
-      mode = "0400";
-      content = ''
-        AWS_ACCESS_KEY_ID=${contract.accessKeys.reader}
-        AWS_SECRET_ACCESS_KEY=${config.sops.placeholder.${contract.secretNames.reader}}
-        AWS_DEFAULT_REGION=us-east-1
-      '';
-    };
-    sops.templates.${resticEnvTemplateName "pruner"} = {
-      owner = "root";
-      group = "root";
-      mode = "0400";
-      content = ''
-        AWS_ACCESS_KEY_ID=${contract.accessKeys.pruner}
-        AWS_SECRET_ACCESS_KEY=${config.sops.placeholder.${contract.secretNames.pruner}}
-        AWS_DEFAULT_REGION=us-east-1
-      '';
-    };
+    sops.secrets.${contract.secretNames.repositoryPassword} = { };
 
     systemd.tmpfiles.rules = [
       "d ${cfg.location} 0750 postgres postgres -"
@@ -141,7 +97,7 @@ in
       ${contract.repository} = {
         repository = resticRepository;
         passwordFile = config.sops.secrets.${contract.secretNames.repositoryPassword}.path;
-        environmentFile = config.sops.templates.${resticEnvTemplateName "writer"}.path;
+        environmentFile = config.sops.templates.eta-restic-r2-env.path;
         paths = [ cfg.location ];
         initialize = true;
         timerConfig = {
@@ -154,7 +110,7 @@ in
       "${contract.repository}-check" = {
         repository = resticRepository;
         passwordFile = config.sops.secrets.${contract.secretNames.repositoryPassword}.path;
-        environmentFile = config.sops.templates.${resticEnvTemplateName "reader"}.path;
+        environmentFile = config.sops.templates.eta-restic-r2-env.path;
         timerConfig = {
           OnCalendar = "monthly";
           Persistent = true;
@@ -167,7 +123,7 @@ in
       "${contract.repository}-prune" = {
         repository = resticRepository;
         passwordFile = config.sops.secrets.${contract.secretNames.repositoryPassword}.path;
-        environmentFile = config.sops.templates.${resticEnvTemplateName "pruner"}.path;
+        environmentFile = config.sops.templates.eta-restic-r2-env.path;
         timerConfig = {
           OnCalendar = "weekly";
           Persistent = true;
@@ -198,7 +154,7 @@ in
       path = [ config.services.postgresql.package ];
       serviceConfig = {
         Type = "oneshot";
-        EnvironmentFile = config.sops.templates.${resticEnvTemplateName "reader"}.path;
+        EnvironmentFile = config.sops.templates.eta-restic-r2-env.path;
         CacheDirectory = "restic-restore-drill-${contract.repository}";
         CacheDirectoryMode = "0700";
       };

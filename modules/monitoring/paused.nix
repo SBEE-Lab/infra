@@ -7,10 +7,7 @@ let
       "prometheus-blackbox-exporter"
       "prometheus-nginx-exporter"
     ];
-    psi = [
-      "prometheus-nvidia-gpu-exporter"
-      "prometheus-restic-exporter"
-    ];
+    psi = [ "prometheus-nvidia-gpu-exporter" ];
     rho = [
       "alertmanager"
       "grafana"

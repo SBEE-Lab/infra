@@ -72,8 +72,7 @@ in
     ../modules/authentik
     ../modules/stalwart
     ../modules/vaultwarden
-    ../modules/backup/postgresql.nix
-    ../modules/backup/vaultwarden.nix
+    ./eta/restic
     ../modules/buildbot/edge-proxy.nix
     ../modules/gitea-mq
     ../modules/container-registry
@@ -132,21 +131,7 @@ in
 
   networking.hostName = "eta";
 
-  services.sbee = {
-    systemdStatusExporter.enable = true;
-    backups = {
-      postgresql = {
-        enable = true;
-        databases = [
-          "authentik"
-          "gitea-mq"
-          "stalwart-mail"
-        ];
-        startAt = "*-*-* 03:30:00";
-      };
-      vaultwarden.enable = true;
-    };
-  };
+  services.sbee.systemdStatusExporter.enable = true;
 
   services.prometheus.exporters.blackbox = {
     enable = true;
