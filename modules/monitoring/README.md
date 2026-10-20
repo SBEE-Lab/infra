@@ -15,7 +15,7 @@ This directory contains the Nix-owned monitoring stack for rho/eta/psi/tau.
 
 rho separates the ingest plane from the query/UI plane so that a compromised fleet host can push telemetry but cannot read audit data or mutate alerting state:
 
-- **Ingest (wg-admin, all peers):** Loki `/loki/api/v1/push` and Prometheus `/api/v1/write` are re-exposed on the wg-admin address by `ingest-proxy.nix`, an nginx listener that path-filters to the push endpoints (plus Loki `/ready`) and returns 403 for every query path. Loki and Prometheus themselves bind `127.0.0.1`.
+- **Ingest (wg-admin, all peers):** Loki `/loki/api/v1/push` and Prometheus `/api/v1/write` are re-exposed on the wg-admin address by `proxy/ingest.nix`, an nginx listener that path-filters to the push endpoints (plus Loki `/ready`) and returns 403 for every query path. Loki and Prometheus themselves bind `127.0.0.1`.
 - **Query/UI (rho-local + SSO):** Grafana, Prometheus query API, Alertmanager, and the Vector exporter bind `127.0.0.1`. Human access is via the Authentik-protected reverse proxy (`/`, `/prometheus/`, `/alertmanager/`). Grafana-admin break-glass is `ssh -L 3000:127.0.0.1:3000 rho` then the local admin account (tunneled requests carry no auth-proxy header, so the normal login form is served).
 - Remote agents are unchanged: they still push to `http://<rho-wg-admin>:3100` and `:9090/api/v1/write`.
 
@@ -102,7 +102,7 @@ Tailnet application access audit:
 
 rho runs `tailnet-app-access-audit.timer` every 60 seconds. The correlator reads recent raw `nginx_access` events and Headscale `node_snapshot` inventory from rho Loki, enriches tailnet-origin app accesses with node/user metadata when an IP address appears in the latest snapshot, deduplicates with `/var/lib/tailnet-app-access-audit/seen.json`, and pushes normalized audit events back to rho Loki. It also emits a bounded `correlator_heartbeat` event each run so Loki ruler can alert on silent pipeline gaps. It does not send Slack alerts directly.
 
-Only tailnet-origin requests are emitted: `ingress_network="tailnet"` or `source_ip` in `100.64.0.0/10`. Public HTTP requests are never mirrored into `access_audit`. HTTP bodies are not collected. First version emits all tailnet app access events as a retention/privacy choice while volume is low; this can later narrow to sensitive services or anomalies.
+Only tailnet-origin requests are emitted: `ingress_network="tailnet"` or `source_ip` in `100.64.0.0/10`. Public HTTP requests are never mirrored into `access_audit`. HTTP bodies are not collected. The stream includes all tailnet app access events, not only failures or anomalies; account for this scope when reviewing retention and access permissions.
 
 Bounded labels for this stream are:
 
@@ -134,7 +134,7 @@ Audit pipeline health:
 {log_type="access_audit", event="correlator_heartbeat"}
 ```
 
-The audit pipeline is not append-only or tamper-proof against root on a source host. The query and alerting planes are now rho-local (see "Network exposure and trust planes"), but the ingest path still trusts any wg-admin producer, so these alerts detect silent gaps and correlator failures; they do not prove that a compromised peer could not forge or suppress source-side events before ingestion. Per-producer authentication (mTLS + Loki tenants) is the tracked next step if that threat becomes in scope.
+The audit pipeline is not append-only or tamper-proof against root on a source host. The query and alerting planes are rho-local (see "Network exposure and trust planes"), but the ingest path still trusts any wg-admin producer, so these alerts detect silent gaps and correlator failures; they do not prove that a compromised peer could not forge or suppress source-side events before ingestion. Do not treat the trusted-network ingest path as authenticated per-producer evidence.
 
 ## Synthetic probes
 
@@ -150,7 +150,7 @@ Internal eta probes validate the internal/tailnet view. Public endpoints still n
 
 ## Job freshness
 
-psi and rho write allowlisted systemd job snapshots to Loki every 60 seconds. These are job status summaries, not all-systemd scrapes:
+Hosts with the systemd status exporter enabled write allowlisted job snapshots to Loki every 60 seconds. These are job status summaries, not all-systemd scrapes:
 
 ```logql
 {host="psi", log_type="systemd_status", event="job_snapshot"}
@@ -170,7 +170,7 @@ Each row includes:
 - `trigger_kind`
 - `alert_enabled`
 
-Backup, PostgreSQL dump, restore-drill, and mirror jobs set `alert_enabled=true` with per-unit freshness thresholds. Manual `biodb-*` oneshot services are still logged with `job_class="biodb"` and `alert_enabled=false`, because they are operator-triggered rather than scheduled unattended jobs.
+Each job declaration controls `alert_enabled` and its freshness threshold. Borg and its preceding PostgreSQL dump also report `infra_job_last_result` and `infra_job_last_completion_timestamp_seconds` to Prometheus. Use these completion metrics for Borg failure, overdue, and missing-observation rules; a missing sample is not a successful run. Manual `biodb-*` oneshot services are still logged with `job_class="biodb"` and `alert_enabled=false`, because they are operator-triggered rather than scheduled unattended jobs.
 
 Prometheus cannot evaluate these LogQL streams directly. Loki ruler evaluates job freshness and audit LogQL alerts, then sends them to Alertmanager.
 
@@ -184,7 +184,7 @@ SSH:
 
 Parsed SSH events include `login_success`, `login_failed`, `session_opened`, `session_closed`, and `disconnected`. Managed non-bastion hosts run OpenSSH `LogLevel VERBOSE` so successful public-key logins include `key_type` and `key_fingerprint` JSON fields. These fields are not Loki labels.
 
-eta keeps OpenSSH `LogLevel INFO` in this staged rollout because it is the public bastion and fail2ban can count `Failed publickey` lines for every rejected offered key. Enable VERBOSE there only after fail2ban behavior is explicitly handled and tested.
+eta uses OpenSSH `LogLevel INFO` because it is the public bastion and fail2ban can count `Failed publickey` lines for every rejected offered key. Enable VERBOSE there only after fail2ban behavior is explicitly handled and tested.
 
 Post-deploy fingerprint smoke query:
 
@@ -283,51 +283,32 @@ Raw nginx/app access:
 sum by (host, service, ingress_network) (count_over_time({log_type="nginx_access"}[1h]))
 ```
 
-Selected tailnet-relevant reverse-proxied apps currently emit this raw stream: Grafana/logging, Gatus/status, n8n, Nextcloud, Vaultwarden, and Docling.
+Enabled tailnet-relevant reverse-proxied apps, including Grafana/logging, Gatus/status, n8n, Nextcloud, and Vaultwarden, emit this raw stream. Check the owning host imports before expecting logs from a disabled service.
 
 ## Alerting state
 
-Prometheus sends alerts to Alertmanager on rho. Alertmanager routes operational alerts to the alert bridge for Slack `#infra-alerts`, audit/security alerts to the alert bridge for `#infra-audit`, and the always-firing `Watchdog` alert to healthchecks.io as a dead-man switch. healthchecks.io is attached to its Slack `infra-alerts` integration so rho alerting-path failures notify outside rho.
+Check `services.sbee.monitoring.mode` before testing delivery. In `observe`, collection and rule evaluation continue but external Alertmanager delivery is discarded. In `paused`, collection and evaluation stop. Changing to `active` and sending external test notifications require approval.
+
+In `active`, Alertmanager routes eligible operational alerts through the bridge to Slack `#infra-alerts`, audit/security alerts to `#infra-audit`, and `Watchdog` to healthchecks.io. Verify routing, Slack updates/resolution, and dead-man delivery independently; collection or a healthy dashboard does not prove notification delivery.
 
 The Slack app source of truth lives in `../../slack/infra-alerts`. The external bridge implementation lives in `../../packages/infra-alert-bridge`, with Cloudflare deployment in `../../terraform/alert-bridge`. Keep legacy incoming webhook secrets only during the rollback window; remove the Slack app `incoming-webhook` scope and SOPS webhook secrets after the bridge path is stable.
 
-Current Prometheus rule intent:
+Rule definitions are the source of truth for enabled alert names, severity, thresholds, and conditions:
 
-- `HostMetricsMissing`: critical host metric freshness.
-- `DiskSpaceLow`: warning disk pressure.
-- `DiskSpaceCritical`: critical disk pressure.
-- `MemoryLow`: warning memory pressure.
-- `HighCPULoad`: warning sustained CPU pressure.
-- `PrometheusTargetDown`: critical generic scrape target failure, excluding blackbox probe jobs, blackbox exporter, and GPU exporter.
-- `GatusEndpointDown`: warning for non-app Gatus heartbeats; app endpoints are covered by blackbox tailnet probes.
-- `BlackboxExporterDown`: critical eta blackbox exporter failure.
-- `BlackboxProbeFailed`: critical for public and wg-admin probes, warning for tailnet app probes.
-- `NvidiaGpuExporterDown`: warning GPU exporter failure.
-- `Watchdog`: present only when Alertmanager secrets exist; always firing and routed only to healthchecks.io, never to Slack.
+- `prometheus/rules.nix`: host, service, PostgreSQL, scheduled job, backup, and pipeline rules.
+- `prometheus/storage-rules.nix`: RAID/SMART failures and missing collection.
+- `loki/rules.nix`: allowlisted job status and access/audit rules.
 
-Current Loki ruler rule intent:
-
-- `BackupJobFailed`: critical alert-eligible backup systemd job failure from `systemd_status` snapshots.
-- `BackupJobStale`: warning alert-eligible backup systemd job freshness breach from `stale_success` snapshots.
-- `AuditJobFailed`: critical alert-eligible audit correlator systemd job failure from `systemd_status` snapshots.
-- `AuditJobStale`: warning alert-eligible audit correlator freshness breach from `stale_success` snapshots.
-- `AuditCorrelatorHeartbeatMissing`: critical when SSH or tailnet app access audit correlator heartbeats stop.
-- `NginxAccessLogsMissing`: audit warning when raw nginx access logs stop arriving.
-- `HeadscaleNodeSnapshotsMissing`: audit warning when Headscale inventory snapshots stop arriving.
-- `SshLoginFailureBurst`: audit warning for SSH login failure bursts.
-- `AuthentikLoginFailureBurst`: audit warning for Authentik login failure bursts.
-- `AuthentikForwardAuthDenyBurst`: audit warning for excessive forward-auth denials.
-- `HeadscaleOidcDenied`: audit warning for denied Headscale OIDC attempts.
-- `HeadscaleNodeExpired`: audit warning when headscale node summary reports expired nodes.
+Use `../../docs/admin/monitoring.md` for response procedures. When changing coverage, update the owning rule and runbook together; do not infer current rules from an older alert-name inventory.
 
 Gatus does not send alerts directly. Prometheus and Loki evaluate rules, and Alertmanager handles Slack delivery.
 
-## Remaining alerting work
+## Validation boundaries
 
-- Add Loki ruler for job freshness and audit bursts.
-- Add outside-tailnet public probe vantage.
-- Document alert runbooks and silence policy.
-- Fix workstation wg-admin routing if direct local access to `10.100.0.0/24` is required; current service health checks should run from rho/eta or through SSH until then.
+- Test public reachability from an external vantage as well as eta's internal probes.
+- Use the alert response and silence procedures in `../../docs/admin/monitoring.md`.
+- Run query API checks rho-locally or through an SSH tunnel. The wg-admin ports are ingest-only, not workstation query endpoints.
+- Inspect enabled rules in `prometheus/rules.nix`, `prometheus/storage-rules.nix`, and `loki/rules.nix` rather than inferring alert coverage from dashboards.
 
 ## Validation
 

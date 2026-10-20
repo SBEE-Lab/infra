@@ -36,7 +36,7 @@ Terraform이 Authentik 그룹과 Headscale ACL policy를 같은 사용자 invent
 - [ ] sops age 키 접근 권한 확인 (`pubkeys.json`)
 - [ ] Authentik `sjanglab-admins` 그룹 배정
 - [ ] wg-admin VPN 연결 확인
-- [ ] `inv deploy` 테스트 (staging)
+- [ ] 대상 호스트 선언 평가와 CI 확인; 배포는 별도 승인 후 수행
 - [ ] Grafana 대시보드 접근 확인 (`https://logging.sjanglab.org`)
 
 ## 관리자 인수인계
@@ -46,7 +46,7 @@ Terraform이 Authentik 그룹과 Headscale ACL policy를 같은 사용자 invent
 | 시스템 | 작업 | 파일/위치 |
 |--------|------|-----------|
 | **SSH** | 새 관리자 키 추가, `root` 키 교체, `trusted-users` 추가 | `modules/users/admins.nix` |
-| **sops** | 새 관리자 age 공개키 등록 → `sops updatekeys` | `pubkeys.json` |
+| **sops** | 새 관리자 age 공개키·recipient 정책 검토 → `inv update-sops-files` | `pubkeys.json` |
 | **Nixbot** | `admins` 목록 변경, GitHub OAuth/App 권한 이전 | `modules/buildbot/master.nix` |
 | **Authentik** | `sjanglab-admins` 그룹에 추가, 기존 관리자 수퍼유저 권한 이전 | `auth.sjanglab.org` |
 | **GitHub** | `SBEE-Lab` 조직 Owner 권한 부여 | GitHub 설정 |
@@ -55,8 +55,8 @@ Terraform이 Authentik 그룹과 Headscale ACL policy를 같은 사용자 invent
 
 1. 새 관리자의 SSH 키와 age 키를 확보합니다
 1. `admins.nix`에 사용자 추가 (아래 [사용자 관리](user-management.md) 참조)
-1. `pubkeys.json`에 age 키 추가 후 `sops updatekeys` 실행
-1. `inv deploy --hosts psi,rho,tau,eta` (전체 배포)
+1. `pubkeys.json`과 `.sops.nix`의 관리자 recipient 정책을 함께 검토하고 `inv update-sops-files` 실행
+1. 평가·CI 통과 후 승인된 호스트를 `inv deploy --hosts <hosts>`로 배포하고 새 관리자의 실제 접속 검증
 1. Nixbot `master.nix`의 `admins` 목록에 `github:<login>` 추가 → 재배포
 1. Authentik, GitHub에서 권한 부여
 
@@ -67,7 +67,7 @@ Terraform이 Authentik 그룹과 Headscale ACL policy를 같은 사용자 invent
 - [사용자 관리](user-management.md) — 계정 추가/삭제, 만료 관리
 - [배포](deployment.md) — NixOS 설정 배포 및 자동 업그레이드
 - [모니터링](monitoring.md) — Grafana, Prometheus, Loki, Gatus
-- [백업](backup.md) — RustFS S3 백업 저장소와 복구 원칙
+- [백업](backup.md) — 로컬 Borg·eta R2 Restic의 범위, 점검과 복구
 - [CI/CD](ci-cd.md) — Nixbot, Nix 바이너리 캐시
 - [아키텍처](architecture.md) — 전체 구조, 호스트 역할, 기술 스택
 - [아키텍처 도식](architecture-diagrams.md) — 전체/인증/네트워크/백업/관측/운영/CI 도식 묶음

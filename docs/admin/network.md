@@ -47,7 +47,7 @@ Terraform이 `terraform/authentik/users.yaml`의 그룹 membership으로 생성�
 | 태그 | 소유 그룹 | 설명 |
 |------|----------|------|
 | `tag:server` | `sjanglab-admins` | 서버 노드 |
-| `tag:ai` | `sjanglab-admins` | AI/GPU 서비스 (Docling) |
+| `tag:ai` | `sjanglab-admins` | AI 서비스용 정책 태그; Docling 비활성, TEI는 별도 Naru/WireGuard 제한 |
 | `tag:apps` | `sjanglab-admins` | 앱 서비스 (Nextcloud, n8n, Vaultwarden) |
 | `tag:monitoring` | `sjanglab-admins` | 모니터링 (Grafana) |
 

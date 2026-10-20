@@ -1,87 +1,28 @@
 # Docling
 
-`https://docling.sjanglab.org` — AI 기반 문서 변환 API입니다. PDF 등을 마크다운으로 변환합니다.
+**현재 비활성 서비스입니다.** VPN 연결이나 계정 권한이 있어도 SBEE Lab의 Docling API를 사용할 수 없습니다. `docling.sjanglab.org`에 변환 요청을 보내거나 이 주소를 MCP 서버에 등록하지 마세요.
 
-| 항목 | 내용 |
-|------|------|
-| **네트워크** | VPN 필수 (Headscale 연결 필요) |
-| **인증** | Headscale ACL만 (별도 로그인 불필요) |
-| **접근 권한** | 관리자, 연구원 (학생 불가) |
+Docling은 PDF 등 문서를 변환하는 도구입니다. 서비스 제공 여부와 접근 권한은 별개이며, `tag:ai` 권한만으로 비활성 서비스가 시작되지는 않습니다.
 
-## API 사용
+## 문서 변환이 필요한 경우
 
-### 동기 방식 (소용량 파일)
+[접근 권한 요청 채널](requesting-access.md#access-request-channel)로 다음을 전달합니다.
 
-```bash
-# PDF를 마크다운으로 변환
-curl -X POST https://docling.sjanglab.org/v1/convert/file \
-  -F "files=@paper.pdf" \
-  -H "Accept: application/json"
+- 문서 형식·대략적인 크기·필요한 출력 형식
+- 일회성 변환인지 반복 작업인지와 필요한 시점
+- 민감 데이터·라이선스 제한 여부
 
-# 결과를 파일로 저장
-curl -X POST https://docling.sjanglab.org/v1/convert/file \
-  -F "files=@paper.pdf" \
-  -H "Accept: application/json" \
-  -o output.json
-```
+원문이나 credential을 공개 이슈·채널에 첨부하지 않습니다. 승인된 처리 환경을 먼저 협의합니다. [TEI](tei.md)는 임베딩·리랭킹 API이며 문서 변환 API의 대체 서비스가 아닙니다.
 
-### 비동기 방식 (대용량 파일)
+## 재개 전 관리자 확인
 
-동기 요청 타임아웃(120초)을 초과하는 대용량 문서는 비동기 API를 사용합니다.
+재개는 별도 승인된 구성 변경입니다. 다음을 함께 검토합니다.
 
-```bash
-# 1. 비동기 변환 요청 → task_id 반환
-curl -X POST https://docling.sjanglab.org/v1/convert/file/async \
-  -F "files=@paper.pdf" \
-  -H "Accept: application/json"
+1. `hosts/psi.nix`의 서비스 import와 GPU·VRAM 여유
+1. 실제 배포 버전의 API·업로드 제한·타임아웃
+1. nginx endpoint·네트워크 접근 제어와 Headscale 정책
+1. eta 인증서 선언·동기화와 psi의 수신·reload 경로
+1. Gatus·probe target·로그/메트릭과 운영 모드
+1. 승인된 입력으로 변환·결과 조회·실패 동작 검증
 
-# 2. 상태 확인
-curl https://docling.sjanglab.org/v1/status/poll/{task_id}
-
-# 3. 완료 후 결과 가져오기
-curl https://docling.sjanglab.org/v1/result/{task_id} -o output.json
-
-# 마크다운만 추출 (jq 경로는 응답 구조에 따라 다를 수 있음)
-curl -s https://docling.sjanglab.org/v1/result/{task_id} | jq -r '.document.md_content' > paper.md
-```
-
-!!! warning "curl 경로 주의"
-curl의 `-F` 옵션에서 `~`는 홈 디렉토리로 확장되지 않습니다.
-`$HOME` 또는 절대 경로를 사용하세요.
-
-````
-```bash
-# ❌ 작동 안 함
-curl -F "files=@~/Downloads/paper.pdf" ...
-
-# ✅ 올바른 방법
-curl -F "files=@$HOME/Downloads/paper.pdf" ...
-curl -F "files=@/Users/username/Downloads/paper.pdf" ...
-```
-````
-
-## MCP 서버
-
-Docling MCP 서버를 설정하면 Claude Code, Cursor 등 AI 도구에서 직접 문서 변환 기능을 사용할 수 있습니다.
-
-MCP 설정 예시:
-
-```json
-{
-  "mcpServers": {
-    "docling": {
-      "command": "uvx",
-      "args": ["docling-mcp-server"],
-      "env": {
-        "DOCLING_SERVER_URL": "https://docling.sjanglab.org"
-      }
-    }
-  }
-}
-```
-
-## 참고사항
-
-- 최대 업로드 크기: 100MB
-- 동기 요청 타임아웃: 120초 (초과 시 비동기 API 사용)
-- GPU 가속으로 처리됩니다 (psi 서버)
+재개가 검증된 뒤에만 API/MCP 사용 예시와 [사용자 가이드](index.md)의 제공 상태를 갱신합니다. 자세한 감시 운영은 [모니터링](../admin/monitoring.md)을 참조합니다.

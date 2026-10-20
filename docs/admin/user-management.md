@@ -130,7 +130,7 @@ Authentik은 웹 서비스(Nextcloud, Vaultwarden, n8n)의 SSO 인증과 Headsca
 | Authentik 그룹 | Headscale ACL 접근 | 서비스 |
 |----------------|-------------------|--------|
 | `sjanglab-admins` | `tag:ai` + `tag:apps` + `tag:monitoring` | 전체 |
-| `sjanglab-researchers` | `tag:ai` + `tag:apps` | Nextcloud, Vaultwarden, n8n, Docling |
+| `sjanglab-researchers` | `tag:ai` + `tag:apps` | Nextcloud, Vaultwarden, n8n; AI 서비스는 활성 상태·개별 네트워크 제한 확인 |
 | `sjanglab-students` | `tag:apps` | Nextcloud, Vaultwarden |
 
 > Nextcloud는 public edge에서도 접근 가능하지만 OIDC 인증이 필요합니다. Vaultwarden은 tau의 tailnet proxy를 사용하므로 Headscale VPN과 Authentik 계정이 모두 필요합니다.

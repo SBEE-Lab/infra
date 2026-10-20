@@ -8,13 +8,15 @@
 
 ### 보수 중 자동 업데이트 차단
 
-psi·rho·tau·eta에는 보수용 영구 drop-in이 직접 적용되어 있습니다. `/etc/systemd/system.control/{auto-upgrade,auto-reboot}.{service,timer}.d/90-migration-pause.conf`가 `/run/infra-maintenance-resume-automatic-updates`의 존재를 실행 조건으로 요구하며, 해당 marker는 만들지 않습니다. 재부팅 후에도 차단됩니다. 일반 Nix 배포만으로 해제되지 않습니다.
+자동 업데이트 차단 여부는 각 호스트에서 `systemctl cat auto-upgrade.service auto-upgrade.timer auto-reboot.service auto-reboot.timer`로 확인합니다. 런타임 drop-in의 존재를 Git 선언만으로 추정하지 않습니다.
 
-main이 검토된 스토리지·백업·모니터링 선언과 일치하고 운영 검증을 마친 뒤, 별도 승인으로 영구 drop-in과 남아 있는 동일 이름의 `/run/systemd/system/` drop-in을 제거하고 daemon reload·timer 재활성화를 수행합니다. marker 생성으로 우회하지 않습니다.
+`/etc/systemd/system.control/{auto-upgrade,auto-reboot}.{service,timer}.d/90-migration-pause.conf`가 있으면 재부팅과 일반 Nix 배포 후에도 차단될 수 있습니다. `/run/systemd/system/`의 동일 이름 drop-in도 확인합니다. `/run/infra-maintenance-resume-automatic-updates` marker 생성으로 실행 조건을 우회하지 않습니다.
+
+차단 해제는 변경 검토·배포·운영 검증을 마친 뒤 별도 승인으로 수행합니다. 해당 drop-in을 제거하고 daemon reload·timer 재활성화 후 다음 실행 시각과 실제 적용 상태를 확인합니다.
 
 ## 대시보드
 
-- **Grafana**: `https://logging.sjanglab.org` (익명 Viewer 접근 가능, wg-admin 경유)
+- **Grafana**: `https://logging.sjanglab.org` (Authentik Forward Auth, localhost upstream, 신규 인증 사용자 Viewer)
   - `SjangLab Infrastructure` (홈): 현재 건강 상태와 감사 요약 카운트
   - `SjangLab Hosts`: 호스트 리소스, 메트릭 freshness, Headscale 노드 상태
   - `SjangLab Apps`: Gatus 앱 smoke 상태와 앱 인증/거부 흐름
@@ -95,7 +97,7 @@ psi·rho·tau의 Borg·PostgreSQL 덤프는 종료 시각과 정상 완료 여�
 
 Jobs 대시보드는 마지막 완료 결과와 경과 시간을 표시합니다. 예약 백업·주간 Borg 무결성 검사의 실패, 선행 덤프 실패, 백업 36시간·검사 9일 완료 지연, 완료 관측 누락을 구분합니다. 주간 검사는 파일 추출이나 DB 복원을 하지 않습니다. 누락은 실패나 복구의 증거가 아닙니다. 일정·범위·복원 절차는 [백업 문서](backup.md)를 봅니다.
 
-Docling은 임시 중단 상태로 host import, Gatus 등록, probe target, 인증서 동기화 선언을 주석 처리했습니다. 재개할 때 관련 선언을 함께 복구해야 합니다.
+Docling은 구성에서 비활성화되어 있습니다. 활성화하려면 host import, Gatus 등록, probe target, 인증서 동기화 선언을 함께 검토하고 승인 후 적용합니다. 감시 대상에서 빠진 상태를 서비스 정상 동작으로 해석하지 않습니다.
 
 ### 접근 감사 (Authentik / Headscale)
 

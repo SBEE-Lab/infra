@@ -64,11 +64,11 @@ nix shell nixpkgs#nodejs -c npx wrangler d1 migrations apply infra-alert-bridge
 
 Run migrations before routing Alertmanager or healthchecks.io traffic to the Worker.
 
-## Cutover
+## Notification activation
 
-Alertmanager uses `POST /alertmanager` with `Authorization: Bearer $ALERTMANAGER_WEBHOOK_TOKEN` from `modules/monitoring/prometheus/alertmanager.nix`.
+Alertmanager uses `POST /alertmanager` with `Authorization: Bearer $ALERTMANAGER_WEBHOOK_TOKEN` from `modules/monitoring/prometheus/alertmanager.nix` when external delivery is enabled. `observe` discards delivery; do not change monitoring mode or send external notifications without approval.
 
-Remaining cutover:
+Before enabling or changing delivery:
 
 1. Verify `GET /healthz` on the Worker URL.
 2. Confirm Alertmanager bridge posts and updates Slack messages successfully.

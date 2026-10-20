@@ -38,7 +38,7 @@ A: `https://cloud.sjanglab.org` 도메인으로 접속해야 합니다. 직접 I
 
 **Q: AI API 요청이 느립니다.**
 
-A: Docling은 첫 요청에서 모델 적재나 워밍업이 필요할 수 있습니다. TEI는 모델을 상시 적재하지만 두 서비스가 psi GPU를 공유하므로 동시에 큰 작업이 돌면 느려질 수 있습니다.
+A: TEI는 psi GPU를 연구 작업과 공유합니다. `nvidia-smi`로 GPU·VRAM 사용량을 확인하고 요청 크기와 동시성을 조절하세요. 접근 경로는 [TEI 가이드](../guide/tei.md)의 Naru/WireGuard allowlist를 따릅니다. Docling은 비활성 상태이므로 요청 재시도로 해결되지 않습니다.
 
 **Q: n8n에서 외부 웹훅이 작동하지 않습니다.**
 
@@ -52,7 +52,7 @@ A: `nvidia-smi`로 현재 사용량을 확인합니다. GPU 자원은 공유이�
 
 **Q: `/workspace/` 데이터가 사라졌습니다.**
 
-A: `/workspace/`는 백업 대상이 아닙니다. 보호할 데이터는 `/project/<username>/`에 저장하고 별도 사본도 유지하세요. `/project` 전체가 10GiB를 넘으면 source guard가 백업을 중단합니다. `du -sh /project/$USER`로 개인 사용량을 확인하고 전체 상태는 관리자에게 문의하세요.
+A: `/workspace/`는 백업 대상이 아닙니다. psi root filesystem의 `/project/<username>/`는 로컬 Borg에 포함되지만, 같은 호스트의 사본이므로 독립적인 사본도 유지하세요. `/home`·HDD data·별도 filesystem은 자동으로 보호되지 않습니다. 복구가 필요하면 호스트·경로·시점을 관리자에게 전달하세요. [백업 범위와 복구](../admin/backup.md)를 참조합니다.
 
 **Q: 특정 생물정보 DB가 오래되었습니다.**
 

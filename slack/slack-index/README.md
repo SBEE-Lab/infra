@@ -40,7 +40,7 @@ Do not run `slack app install` before confirming the app does not already exist.
 Without local link state, install can enter the app creation flow and create a
 duplicate app.
 
-For an existing app, link it first, then commit the resulting `.slack/apps.json`:
+For an existing app, inspect the tracked `.slack/apps.json` and confirm the intended workspace/app IDs before linking. Commit only reviewed deployed identity changes, never credentials. Local `.slack/config.json`, `.slack/apps.dev.json`, cache, and logs remain ignored.
 
 ```bash
 slack app link \

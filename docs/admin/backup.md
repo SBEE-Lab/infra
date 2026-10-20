@@ -2,7 +2,7 @@
 
 ## 현재 구성
 
-psi·rho·tau는 각 호스트의 HDD RAID1에 암호화된 로컬 Borg 백업을 저장합니다. RustFS primary/mirror와 Restic을 사용하는 이전 교차 호스트 구성은 이 세 호스트에서 활성화하지 않습니다.
+psi·rho·tau는 각 호스트의 HDD RAID1에 암호화된 로컬 Borg 백업을 저장합니다.
 
 | 호스트 | 저장소 | 파일시스템 |
 |--------|--------|------------|
@@ -68,9 +68,9 @@ journalctl -u postgresqlBackup.service -u borgbackup-job-local.service -f
 
 ## 검증과 복원
 
-세 호스트 모두 최초 아카이브의 범위, 파일·EFI 추출과 해시 비교, 격리된 PostgreSQL 실제 SQL 복원, 전체 `borg check --verify-data` 검증을 완료했습니다. 최초 검증 완료가 이후 백업의 정상성을 보장하지 않습니다.
+백업 범위와 복구 가능성은 무결성 검사와 별도로 확인합니다. 필요한 파일·EFI·SQL 덤프가 아카이브에 포함되는지 확인하고, 별도 경로에서 추출·해시 비교와 격리된 SQL 복원을 수행합니다. 한 아카이브의 검증 결과가 이후 백업의 정상성을 보장하지는 않습니다.
 
-정기 작업은 \*\*일요일 09:00 Asia/Seoul의 `borgbackup-verify-local.timer`\*\*로 전체 `borg check --verify-data`만 실행합니다. 무작위 지연 없이 놓친 실행을 보충합니다. 저장소 구조와 데이터 무결성을 검사하며, 파일 추출·SQL 복원·운영 DB 접속은 하지 않습니다. 필요한 자격증명은 기존 Borg 복호화 키와 passphrase뿐입니다. SQL 복원 가능성이나 앱 기능은 이 검사로 보장하지 않습니다.
+정기 작업은 **일요일 09:00 Asia/Seoul**의 `borgbackup-verify-local.timer`로 전체 `borg check --verify-data`만 실행합니다. 무작위 지연 없이 놓친 실행을 보충합니다. 저장소 구조와 데이터 무결성을 검사하며, 파일 추출·SQL 복원·운영 DB 접속은 하지 않습니다. 필요한 자격증명은 기존 Borg 복호화 키와 passphrase뿐입니다. SQL 복원 가능성이나 앱 기능은 이 검사로 보장하지 않습니다.
 
 일간 백업과 주간 검사는 공통 `flock`으로 직렬화합니다. 이미 실행 중이면 최대 6시간 기다린 뒤 실패하며 상대 작업을 종료하지 않습니다. 검사 서비스 시작 제한은 대기 시간을 포함해 12시간입니다. 이 lock은 수동 Borg 명령이나 Nix GC까지 조정하지는 않습니다.
 
@@ -107,15 +107,48 @@ borg-job-local check --verify-data
 
 복구에는 저장소 데이터, Borg 키와 passphrase, SOPS 복호화 identity가 필요합니다. Git 저장소와 같은 위치에만 복구 자료를 보관하지 않습니다. 키·passphrase·SQL을 터미널 출력이나 Nix store에 노출하지 않습니다.
 
-## eta 및 이전 백업 정리
+## eta Restic 백업
 
-eta의 PostgreSQL·Vaultwarden은 아직 이전 Restic 모듈을 사용합니다. 대상 RustFS가 중단되어 있으므로 설정이 남아 있다는 이유로 정상 백업으로 간주하지 않습니다. eta에는 별도 HDD가 없으며 대체 저장소부터 결정해야 합니다.
+eta의 PostgreSQL·Vaultwarden은 `hosts/eta/restic/`의 호스트 전용 모듈을 사용합니다. 공통 `modules/backup/`에는 Borg만 둡니다. 목적지는 비공개 R2 버킷 `eta-restic-backups`이며, 저장소 prefix는 각각 `eta/postgresql`, `eta/vaultwarden`입니다. 백업 일정·대상 DB·보관 정책은 이 모듈에서 관리하며, 저장소 암호는 호스트 SOPS의 repository password 항목을 사용합니다.
 
-Restic 최종 제거 순서:
+R2 전용 토큰은 이 버킷에만 Object Read & Write 권한을 부여합니다. `hosts/eta.yaml`의 `restic-r2-access-key-id`, `restic-r2-secret-access-key`를 root 전용 환경 파일로 렌더링합니다. 메일·Terraform용 토큰을 재사용하지 않습니다. 같은 토큰을 백업·점검·prune에 사용하므로 역할별 접근 격리나 append-only 보호는 제공하지 않습니다.
 
-1. eta 대체 백업 저장소와 범위를 결정합니다.
-1. 실제 백업·격리 복원·무결성 검증을 완료합니다.
-1. 관련 timer, module, 모니터링 참조를 제거합니다.
-1. 과거 아카이브 보존 필요와 복구 가능성을 확인한 뒤 자격증명·데이터 폐기를 별도 승인받습니다.
+### 실행과 검증
 
-Stalwart R2 blob 복사는 Restic과 별도입니다. 메일 본문·첨부파일과 DB 메타데이터를 함께 복구할 수 있어야 합니다. 이전 점검의 R2 권한 오류가 해결됐는지도 별도로 검증해야 합니다. R2 object·bucket 삭제나 credential rotation은 이 전환에 포함하지 않습니다.
+eta에서 승인된 수동 백업은 덤프 의존성을 포함하는 systemd 서비스를 사용합니다.
+
+```bash
+systemctl start restic-backups-eta-postgresql.service
+systemctl start restic-backups-eta-vaultwarden.service
+systemctl show restic-backups-eta-postgresql.service restic-backups-eta-vaultwarden.service \
+  -p Result -p ExecMainStatus -p ExecMainStartTimestamp -p ExecMainExitTimestamp
+```
+
+`Result=success`만으로 완료를 판정하지 않습니다. 새 실행의 시작·종료 시각, 종료 코드 0, 새 snapshot 생성을 함께 확인합니다. 실패 상태 초기화나 배포로 지워진 실행 기록은 성공의 증거가 아닙니다.
+
+root 전용 wrapper가 환경 파일과 repository password를 읽습니다. 키를 셸 인자나 터미널에 출력하지 않습니다.
+
+```bash
+restic-eta-postgresql snapshots
+restic-eta-vaultwarden snapshots
+restic-eta-postgresql check --read-data
+restic-eta-vaultwarden check --read-data
+```
+
+복원 점검 절차:
+
+1. 저장소별 snapshot ID를 선택하고 권한 0700의 별도 임시 디렉터리를 만듭니다.
+1. 해당 wrapper의 `restore <snapshot-id> --target <directory> --verify`로 추출합니다. 운영 경로에 덮어쓰지 않습니다.
+1. PostgreSQL은 `globals.sql`과 대상 DB의 custom dump가 있는지 확인합니다. 별도 PGDATA·Unix socket·포트를 쓰고 TCP를 비활성화한 임시 서버에서 역할과 DB를 복원합니다. `psql`의 `ON_ERROR_STOP`, `pg_restore`의 `--exit-on-error`를 사용하고 복원한 DB에 실제로 연결해 조회합니다. 운영 socket·PGDATA를 사용하지 않습니다.
+1. Vaultwarden은 복원한 `/var/lib/vaultwarden`과 `/var/backup/vaultwarden`의 SQLite에 `PRAGMA integrity_check`를 실행해 `ok`인지 확인합니다. 필요한 첨부파일·키·권한도 확인합니다.
+1. 임시 서버를 종료하고 민감한 복원 데이터와 로그를 정리합니다. 이 점검을 정기 작업으로 추가하지 않습니다.
+
+### 저장소 변경과 폐기
+
+저장소 목적지를 바꿔도 기존 아카이브가 자동 이전되지는 않습니다. 새 저장소 초기화와 기존 저장소 복구는 별도 작업입니다. 전환할 때는 백업·격리 복원·무결성을 확인한 뒤 타이머와 모니터링을 전환합니다. 기존 아카이브·키·암호의 폐기는 보존 필요와 복구 가능성을 확인하고 별도 승인받습니다.
+
+## Stalwart blob 백업
+
+Stalwart R2 blob 복사는 Restic과 별도입니다. 복사 토큰에는 원본 버킷 읽기·목록 조회와 백업 버킷 쓰기·읽기·목록 조회 권한이 필요합니다. 작업 종료 코드와 백업 객체 존재를 확인하고, 선택한 객체를 양쪽에서 읽어 SHA-256을 비교합니다. 빈 버킷에서의 점검 생략이나 샘플 한 개의 일치는 전체 메일 복구의 증거가 아닙니다.
+
+메일 복구에는 DB 메타데이터가 참조하는 본문·첨부 blob이 함께 필요합니다. DB snapshot과 blob 백업의 시점·범위를 맞춰 검증합니다. R2 object·bucket 삭제나 credential rotation은 백업 점검과 분리해 승인받습니다.

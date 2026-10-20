@@ -43,7 +43,7 @@
           "rho-tail",
           "tau-tail"
         ],
-        "note": "사용자 서비스 접근은 Headscale tailnet과 Magic DNS를 사용합니다."
+        "note": "Headscale은 제어 평면이며 실제 서비스 데이터는 tailnet으로 흐릅니다. TEI는 별도 Naru/WireGuard 경로, Docling은 비활성입니다."
       }
     ]
   },
@@ -75,7 +75,7 @@
       "sublabel": "Tailscale client",
       "pos": [
         40,
-        590
+        560
       ]
     },
     {
@@ -105,7 +105,7 @@
       "sublabel": "hs.sjanglab.org",
       "pos": [
         245,
-        560
+        710
       ]
     },
     {
@@ -161,8 +161,8 @@
     {
       "id": "psi-tail",
       "type": "backend",
-      "label": "psi services",
-      "sublabel": "tag:ai",
+      "label": "psi tailnet peer",
+      "sublabel": "서비스별 방화벽",
       "pos": [
         940,
         150
@@ -186,6 +186,34 @@
       "pos": [
         940,
         450
+      ]
+    },
+    {
+      "id": "naru",
+      "type": "external",
+      "label": "허용된 Naru",
+      "sublabel": "malt ai-memory",
+      "pos": [
+        50,
+        800
+      ],
+      "size": [
+        160,
+        68
+      ]
+    },
+    {
+      "id": "tei",
+      "type": "backend",
+      "label": "psi TEI",
+      "sublabel": "8201 embed · 8202 rerank",
+      "pos": [
+        1120,
+        800
+      ],
+      "size": [
+        190,
+        68
       ]
     }
   ],
@@ -231,7 +259,7 @@
       "id": "internet-psi",
       "from": "internet",
       "to": "psi-public",
-      "label": "공인 IP",
+      "label": "VPN UDP만",
       "variant": "dashed",
       "route": "orthogonal-h"
     },
@@ -282,14 +310,14 @@
       "id": "headscale-tailnet",
       "from": "headscale",
       "to": "tailnet",
-      "label": "Magic DNS",
-      "variant": "emphasis"
+      "label": "DNS · ACL 제어",
+      "variant": "dashed"
     },
     {
       "id": "tailnet-psi",
       "from": "tailnet",
       "to": "psi-tail",
-      "label": "tag:ai",
+      "label": "peer · ACL",
       "variant": "emphasis",
       "route": "orthogonal-h",
       "via": [
@@ -356,6 +384,34 @@
         880,
         520
       ]
+    },
+    {
+      "id": "user-tailnet",
+      "from": "user",
+      "to": "tailnet",
+      "label": "VPN 데이터",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "left",
+      "route": "straight",
+      "labelAt": [
+        330,
+        600
+      ]
+    },
+    {
+      "id": "naru-tei",
+      "from": "naru",
+      "to": "tei",
+      "label": "8201 allowlist",
+      "variant": "security"
+    },
+    {
+      "id": "wg-tei",
+      "from": "psi-wg",
+      "to": "tei",
+      "label": "관리망 API",
+      "variant": "security"
     }
   ],
   "cards": [
@@ -365,7 +421,9 @@
       "items": [
         "wg-admin 인터페이스는 신뢰 관리망",
         "rho/tau는 NAT 뒤에서 WireGuard로 연결",
-        "사용자 서비스는 Headscale ACL tag로 제한"
+        "사용자 서비스는 Headscale ACL tag로 제한",
+        "psi 공인 IP가 있어도 공개 SSH는 없음; eta bastion 또는 콘솔 사용",
+        "TEI는 공개·Headscale nginx/TLS endpoint 없음"
       ]
     }
   ]

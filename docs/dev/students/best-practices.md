@@ -4,12 +4,13 @@
 
 | 경로 | 용도 | 주의 |
 |------|------|------|
-| `/project/<username>/` | 코드, 결과물 | 매일 백업, 아래 전체 상한 적용 |
+| `/project/<username>/` | 코드, 결과물 | psi root filesystem에서는 매일 로컬 Borg 대상 |
 | `/workspace/<username>/` | 대용량 임시 데이터 | 백업 안 됨, 정리 필요 |
 
-- `/project` 전체 사용량이 10GiB를 넘으면 source guard 때문에 모든 사용자 백업이 실패합니다
-- `du -sh /project/$USER`로 개인 사용량을 확인하고, 전체 source guard 상태는 관리자에게 문의하세요
-- 중요한 데이터는 `/project` 백업만 유일한 사본으로 두지 마세요
+- `/home`은 백업 대상이 아닙니다. 설정 원본과 보호할 결과물은 root filesystem의 `/project/$USER`에 보관하세요.
+- `du -sh /project/$USER`로 사용량을 확인하고 대용량 데이터의 보호 범위는 관리자와 협의하세요.
+- 로컬 Borg는 같은 호스트의 HDD에 저장됩니다. 중요한 데이터는 독립적인 사본도 유지하세요.
+- RAID1은 디스크 한 개 장애에 대비하는 구성이지 백업이 아닙니다. 복구와 제외 범위는 [백업 가이드](../../admin/backup.md)를 따릅니다.
 - 불필요한 데이터는 주기적으로 정리하세요
 
 ## GPU 사용 에티켓

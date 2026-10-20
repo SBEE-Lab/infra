@@ -9,4 +9,4 @@ the consuming service's SOPS configuration.
 - `slack-index/`: read-only bot that indexes channel conversations and files
 
 Slack App creation, installation, and drift checks use the packaged Slack CLI
-from each app directory.
+from each app directory. Deployed workspace/app IDs in `.slack/apps.json` are tracked and reviewed; local config, development links, cache, and logs are ignored. Credentials belong in the consuming service's secret store, never in link files.

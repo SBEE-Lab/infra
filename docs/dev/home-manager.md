@@ -9,7 +9,7 @@ Home Manager는 서버 계정, SSH 공개키, sudo 권한, `/etc/passwd`의 logi
 - 개인 머신: [Nix 설치](nix-environment.md#local-nix-install)와 flakes 활성화
 - SBEE Lab 서버: SSH 접속만 필요
 
-서버에서는 설정 원본을 백업되지 않는 `/workspace`보다 `/project/$USER` 또는 private Git 저장소에 보관합니다. 설정 파일이 작더라도 `/project` 전체 10GiB source guard는 적용됩니다.
+psi에서는 설정 원본을 백업되지 않는 `/workspace`나 `/home`보다 root filesystem의 `/project/$USER`에 보관합니다. 이 경로의 Borg 사본도 같은 호스트에 있으므로 private Git 원격 저장소 등 독립적인 사본을 유지합니다. 다른 호스트나 별도 filesystem에서는 관리자에게 백업 범위를 확인하세요. 비밀은 Git과 Nix store에 넣지 않습니다.
 
 ## Template 초기화
 
