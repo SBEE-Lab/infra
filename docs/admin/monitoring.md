@@ -80,6 +80,8 @@ eta는 SSH 인증 로그와 같은 PID의 outbound socket을 관찰해 `ssh_bast
 
 psi는 `db-sync-*.service`, protected data backup, Nixbot PostgreSQL backup 상태를 60초마다 snapshot으로 기록합니다. rho는 PostgreSQL backup과 delayed mirror units 상태를 같은 형식으로 기록합니다 (`log_type="systemd_status"`, `event="job_snapshot"`). 각 행은 `health=OK|WARN|FAIL`, `health_reason`, `last_success_age_seconds`, `next_due_seconds`, `max_success_age_seconds`를 포함합니다. `FAIL`은 systemd 실패/비정상 exit, `WARN`은 성공 기록이 없거나 마지막 성공이 freshness 한계를 넘은 상태입니다.
 
+Docling은 임시 중단 상태로 host import, Gatus 등록, probe target, 인증서 동기화 선언을 주석 처리했습니다. 재개할 때 관련 선언을 함께 복구해야 합니다.
+
 ### 접근 감사 (Authentik / Headscale)
 
 eta의 Vector가 journald에서 수집해 이벤트를 분류합니다 (`modules/authentik/audit.nix`, `modules/headscale/audit.nix`):

@@ -40,7 +40,7 @@ in
     # ../modules/vllm
     ../modules/biodb
     ../modules/biodb/databases.nix
-    ../modules/docling
+    # ../modules/docling
     ../modules/tei
   ];
 
