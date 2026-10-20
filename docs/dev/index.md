@@ -6,9 +6,9 @@ SSH 기반 연구 컴퓨팅과 개인 머신의 재현 가능한 개발 환경�
 
 | 호스트 | 역할 | 주요 자원 |
 |--------|------|----------|
-| **psi** | GPU 연산/CI | RTX A6000 48GB, 16TB NVMe RAID0, 60TB HDD RAID0 |
-| **rho** | DB/모니터링/백업 미러 | PostgreSQL primary, Grafana/Prometheus/Loki, 4TB HDD RAID0 |
-| **tau** | 앱/백업 primary | Nextcloud, n8n, PostgreSQL replica, 4TB HDD RAID0 |
+| **psi** | GPU 연산/CI | RTX A6000 48GB, workspace 16TB NVMe RAID0, data 30TB usable HDD RAID1 |
+| **rho** | DB/모니터링 | PostgreSQL primary, Grafana/Prometheus/Loki, 2TB usable HDD RAID1 |
+| **tau** | 앱/DB replica | Nextcloud, n8n, PostgreSQL replica, 2TB usable HDD RAID1 |
 
 ## 스토리지 구조 (psi 기준)
 
@@ -21,7 +21,7 @@ graph TD
   subgraph ssd["NVMe RAID0 (16TB, 고속)"]
     workspace["/workspace/&lt;user&gt;/<br/>임시 작업 공간 ❌ 백업"]
   end
-  subgraph hdd["HDD RAID0 (60TB)"]
+  subgraph hdd["HDD RAID1 (30TB usable)"]
     data["/data/<br/>장기 데이터 저장 ❌ 백업"]
     databases["/data/databases/<br/>생물정보 DB ❌ 백업"]
   end
@@ -29,13 +29,15 @@ graph TD
 
 | 경로 | 용도 | 백업 |
 |------|------|------|
-| `/project/<username>/` | 개인 프로젝트 (장기 작업 데이터) | 매일¹ |
+| `/project/<username>/` | 개인 프로젝트 (root SSD) | 로컬 Borg, 매일 |
 | `/workspace/<username>/` | 임시 작업 공간 (고속 SSD) | X |
 | `/data/databases/` | 생물정보 DB (db-sync) | X |
-| `/blobs/` | 대용량/라이선스 파일 | O |
-| `/data/` | 장기 데이터 저장 (60TB HDD) | X |
+| `/blobs/` | 관리자가 배치하는 대용량/라이선스 파일 | 로컬 Borg, 매일 |
+| `/data/` | 장기 데이터 저장 (30TB usable HDD RAID1) | X |
 
-¹ `/project` 전체 사용량이 10GiB를 넘으면 source guard가 모든 `/project`·`/blobs` 백업을 중단합니다. 이 백업만 중요한 데이터의 유일한 사본으로 사용하지 마세요. 대용량 보호 데이터가 필요하면 작업 전에 관리자와 백업 범위를 협의합니다.
+Borg는 매일 05:30 Asia/Seoul에 root filesystem과 `/boot`를 같은 호스트의 `/data/borg/psi`로 백업합니다. `/project`와 `/blobs`는 root filesystem 안에 있을 때 포함되며, 별도 filesystem으로 옮기면 자동으로 포함되지 않습니다. `/home`, `/workspace`, `/data`, live PGDATA는 제외됩니다.
+
+백업은 다른 호스트나 외부 저장소의 사본이 아닙니다. RAID1도 삭제·오염·호스트 전체 장애를 막지 못합니다. 중요한 연구 데이터는 별도 사본을 유지하고 대용량 보호가 필요하면 작업 전에 관리자와 범위를 협의하세요. `/blobs`에는 XFS project quota 200GiB가 적용됩니다. 이 용량 제한은 백업의 성공 여부 판정과 별개입니다.
 
 개인 사용량 확인:
 
@@ -43,7 +45,7 @@ graph TD
 du -sh /project/$USER
 ```
 
-전체 source guard 상태는 관리자가 Grafana `SjangLab Jobs`에서 확인합니다.
+백업 완료·실패·관측 누락은 관리자가 Grafana `SjangLab Jobs`와 [백업 가이드](../admin/backup.md) 기준으로 확인합니다. 데이터 복구 요청에는 호스트, 경로, 필요한 시점을 전달하고 키·SQL·연구 원문은 공개 채널에 올리지 않습니다.
 
 ## 시작하기
 

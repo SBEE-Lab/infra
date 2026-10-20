@@ -8,10 +8,14 @@ NixOS-based infrastructure for bioinformatics research with four servers optimiz
 
 | Server  | Role                         | Key Services                                             | Hardware                                                                     |
 | ------- | ---------------------------- | -------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| **PSI** | GPU/CPU Research Computation | Nixbot CI, CUDA workloads, Docling, TEI, Bioinformatics DBs | Ryzen Threadripper PRO 5965WX (24 Core), RTX A6000 48GB, 128GB RAM, 4TB NVMe root + 16TB NVMe workspace + 60TB HDD data |
-| **RHO** | DB/Monitoring/Backup Mirror  | PostgreSQL primary, Grafana, Prometheus, Loki, RustFS S3 mirror | Ryzen 9600X (6 Core), 32GB RAM, 2TB NVMe + 4TB HDD RAID0                     |
-| **TAU** | Apps/Backup Primary          | Nextcloud, n8n, Vaultwarden reverse proxy, RustFS S3 primary | Ryzen 9600X (6 Core), 32GB RAM, 2TB NVMe + 4TB HDD RAID0                     |
-| **ETA** | VPS/Gateway                  | Public edge, Authentik, Headscale, Vaultwarden, Gatus, Upterm relay | EPYC-Rome (2 Core), 4GB RAM, 100GB NVMe, 5TB Bandwidth                       |
+| **PSI** | GPU/CPU Research Computation | Nixbot CI, CUDA workloads, TEI, Bioinformatics DBs, local Borg | Ryzen Threadripper PRO 5965WX (24 Core), RTX A6000 48GB, 128GB RAM, 4TB NVMe root + 16TB NVMe RAID0 workspace + 30TB usable HDD RAID1 data |
+| **RHO** | DB/Monitoring | PostgreSQL primary, Grafana, Prometheus, Loki, local Borg | Ryzen 9600X (6 Core), 32GB RAM, 2TB NVMe + 2TB usable HDD RAID1 |
+| **TAU** | Apps/DB Replica | Nextcloud, n8n, Vaultwarden reverse proxy, PostgreSQL replica, local Borg | Ryzen 9600X (6 Core), 32GB RAM, 2TB NVMe + 2TB usable HDD RAID1 |
+| **ETA** | VPS/Gateway                  | Public edge, Authentik, Headscale, Vaultwarden, Stalwart, Gatus, Upterm relay, R2 Restic | EPYC-Rome (2 Core), 4GB RAM, 100GB virtual disk, 5TB Bandwidth                       |
+
+Borg protects each bare-metal host's system SSD and SQL dumps on that host's HDD RAID1; it is not an off-host copy. Homes, workspace, HDD data, and live PGDATA are excluded. Eta stores PostgreSQL and Vaultwarden Restic backups in a dedicated private R2 bucket. RAID1 is not a backup. See [backup and recovery](docs/admin/backup.md) for scope and checks.
+
+Docling is disabled. TEI uses Naru/WireGuard allowlists, not a public or Headscale HTTP endpoint. Monitoring defaults to `active`: explicitly routed operational alerts reach the Slack bridge, and Watchdog pings healthchecks.io independently. `observe` retains collection and evaluation while discarding external Alertmanager delivery.
 
 ### User Groups
 

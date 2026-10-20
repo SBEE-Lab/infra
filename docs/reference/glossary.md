@@ -12,7 +12,7 @@
 | **Collabora Online** | Nextcloud 통합 오피스 편집기 (LibreOffice 기반) |
 | **direnv** | 디렉토리 진입 시 환경 변수를 자동 로드하는 도구. `nix develop` 자동 활성화에 사용 |
 | **disko** | NixOS 선언적 디스크 관리 도구 |
-| **Docling** | AI 기반 문서 변환 도구. PDF를 마크다운 등으로 변환 |
+| **Docling** | 문서 변환 도구. SBEE Lab 서비스는 [비활성](../guide/docling.md) |
 | **fail2ban** | SSH 인증 실패 기반 자동 IP 차단 도구 |
 | **flake-parts** | Nix flake 모듈화 프레임워크 |
 | **Forward Auth** | nginx에서 외부 인증 서비스로 인증을 위임하는 패턴 |

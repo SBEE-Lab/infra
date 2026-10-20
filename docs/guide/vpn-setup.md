@@ -1,6 +1,6 @@
 # VPN 설정
 
-Vaultwarden, n8n UI, AI API 등 내부 서비스는 Headscale(Tailscale 호환) VPN을 통해 접근합니다. Nextcloud와 Upterm relay는 VPN 없이도 접근할 수 있습니다.
+Vaultwarden과 n8n UI 등 내부 웹 서비스는 Headscale(Tailscale 호환) VPN을 통해 접근합니다. Nextcloud와 Upterm relay는 VPN 없이도 접근할 수 있습니다.
 
 ## 1. Tailscale 설치
 
@@ -121,9 +121,8 @@ VPN 연결 후 Magic DNS로 내부 서비스에 접근할 수 있습니다. Next
 
 ```mermaid
 flowchart LR
-  user["사용자<br/>Tailscale VPN"] --> hs["Headscale<br/>hs.sjanglab.org"]
-  hs --> psi["psi (100.64.0.1)<br/>Docling"]
-  hs --> tau["tau (100.64.0.3)<br/>Nextcloud · n8n · Vaultwarden"]
+  user["사용자<br/>Tailscale VPN"] -. "등록 · 제어" .-> hs["Headscale<br/>hs.sjanglab.org"]
+  user -- "tailnet 데이터 경로" --> tau["tau (100.64.0.3)<br/>Nextcloud · n8n · Vaultwarden proxy"]
   internet["VPN 없는 사용자"] --> eta_edge["eta public edge<br/>Nextcloud"]
   eta_edge --> tau
   internet --> upterm["eta<br/>Upterm relay"]
@@ -134,15 +133,18 @@ flowchart LR
 | `cloud.sjanglab.org` | 100.64.0.3 | tau | Nextcloud |
 | `vault.sjanglab.org` | 100.64.0.3 | tau | Vaultwarden |
 | `n8n.sjanglab.org` | 100.64.0.3 | tau | n8n |
-| `docling.sjanglab.org` | 100.64.0.1 | psi | Docling |
 | `upterm.sjanglab.org` | 141.164.53.203 | eta | Upterm relay |
+
+[Docling](docling.md)은 비활성 상태로 접속 대상이 아닙니다. [TEI](tei.md)는 Headscale 웹 endpoint가 아니라 별도 Naru/WireGuard source allowlist를 사용합니다. Vaultwarden의 실제 서비스는 eta에 있고 위 tau 주소는 tailnet reverse proxy입니다.
 
 ## 접근 권한 (ACL)
 
 | 그룹 | 접근 가능 서비스 |
 |------|----------------|
-| `sjanglab-admins` | AI 서비스 + 앱 + 모니터링 |
-| `sjanglab-researchers` | AI 서비스 + 앱 |
+| `sjanglab-admins` | `tag:ai` + 앱 + 모니터링 정책 |
+| `sjanglab-researchers` | `tag:ai` + 앱 정책 |
 | `sjanglab-students` | 앱만 (Nextcloud, Vaultwarden) |
+
+ACL 권한은 서비스 활성화나 모든 AI API 접근을 보장하지 않습니다. 서비스별 제공 상태와 별도 source 제한도 확인합니다.
 
 다음 단계: [첫 로그인](first-login.md)

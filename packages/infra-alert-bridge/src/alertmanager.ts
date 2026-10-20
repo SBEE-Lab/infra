@@ -42,7 +42,6 @@ export async function processAlert(env: Env, alert: CanonicalAlert, now: number)
 
   const repeats = incident.repeats + 1;
   await updateParent(env, alert, incident.slack_channel_id, incident.slack_ts, now, repeats);
-  await postThread(env, incident.slack_channel_id, incident.slack_ts, `${formatUnix(now)} still firing · repeat ${repeats}`);
   await markFiringUpdate(env, alert, eventKey, now, repeats);
 }
 
@@ -50,7 +49,6 @@ async function createParent(env: Env, alert: CanonicalAlert, eventKey: string, n
   await prepareNewOccurrence(env, alert, now);
   const slackTs = await postParent(env, alert, now);
   await markParentPosted(env, alert.fingerprint, slackTs, eventKey, now);
-  await postThread(env, alert.channelId, slackTs, `${formatUnix(now)} fired`);
 }
 
 async function resolveAlert(

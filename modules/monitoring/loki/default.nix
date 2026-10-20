@@ -6,7 +6,6 @@
 {
   imports = [
     ../../gatus/check.nix
-    ./rules.nix
   ];
 
   gatusCheck.push = [

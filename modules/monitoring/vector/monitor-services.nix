@@ -49,11 +49,17 @@ in
             .task = "unknown"
             if exists(.name) { .task = to_string!(.name) }
 
-            .status = "UNKNOWN"
-            if exists(.status) { .status = to_string!(.status) }
+            if exists(.status) {
+              .status = to_string!(.status)
+            } else {
+              .status = "UNKNOWN"
+            }
 
-            .hostname = "unknown"
-            if exists(.hostname) { .hostname = to_string!(.hostname) }
+            if exists(.hostname) {
+              .hostname = to_string!(.hostname)
+            } else {
+              .hostname = "unknown"
+            }
 
             .timestamp = now()
             if exists(.submit) { .timestamp = .submit }

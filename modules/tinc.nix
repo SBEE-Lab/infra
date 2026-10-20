@@ -8,7 +8,11 @@
     mode = "0400";
   };
 
-  services.tincr.networks.naru.extraConfig = "StrictSubnets = yes";
+  services.tincr.networks.naru = {
+    # Campus TCP 655 dials time out
+    autoConnect = !(builtins.elem "nat-behind" config.networking.sbee.currentHost.tags);
+    extraConfig = "StrictSubnets = yes";
+  };
 
   networking.firewall.interfaces."tinc.naru".allowedTCPPorts = config.services.openssh.ports;
 }

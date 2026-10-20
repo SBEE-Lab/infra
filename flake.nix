@@ -90,11 +90,6 @@
       inputs.treefmt-nix.follows = "treefmt-nix";
     };
 
-    rustfs = {
-      url = "github:rustfs/rustfs";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     rhwp = {
       url = "github:mulatta/rhwp.nix";
       inputs.nixpkgs.follows = "nixpkgs";

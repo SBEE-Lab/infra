@@ -88,7 +88,7 @@ root의 `authorized_keys`에는 관리자 키만 등록됩니다 (`modules/users
 |------|--------|------|----------|
 | `nixbot` | Nixbot CI | isSystemUser | psi의 `nix.settings.extra-allowed-users`에 명시 |
 | `niks3` | Nix 캐시 control plane | system user | R2 credential과 signing key만 읽기 가능 |
-| `rustfs` | RustFS S3 저장소 | isSystemUser | `/srv/rustfs/data` 전용 |
+| `root` (백업 unit) | 로컬 Borg·eta Restic | privileged systemd job | 시스템 파일·SQL 덤프 접근; 저장소 키와 환경 파일은 root 전용 |
 | `acme-sync-*` | TLS 인증서 동기화 | — | rsync 전용, 제한된 경로 |
 | `postgres` | PostgreSQL | isSystemUser | DB 전용 |
 | `nextcloud` | Nextcloud | isSystemUser | — |
@@ -143,26 +143,27 @@ root의 `authorized_keys`에는 관리자 키만 등록됩니다 (`modules/users
 
 | 비밀 파일 | 접근 가능 키 | 내용 |
 |----------|------------|------|
-| `hosts/<host>.yaml` | 해당 호스트 + admin | root 비밀번호 해시, WireGuard 키 |
-| `hosts/rho.yaml`, `hosts/tau.yaml` | 해당 호스트 | RustFS root credential, host-local backup passwords, PostgreSQL 사용자/복제 암호 |
-| `modules/acme/secrets.yaml` | eta | 비공개 인증서용 Cloudflare API 인증, 인증서 동기화 SSH 키 |
-| `modules/buildbot/secrets.yaml` | psi | Nixbot GitHub App/OAuth 시크릿 |
-| `modules/gitea-mq/secrets.yaml` | eta | merge queue GitHub App private key와 webhook secret |
-| `modules/authentik/secrets.yaml` | eta | OIDC 클라이언트 시크릿 |
+| `hosts/<host>.yaml` | 해당 호스트 + admin | root 비밀번호 해시, WireGuard 키, 호스트별 백업 암호·DB credential |
+| `hosts/eta.yaml` | eta + admin | eta Restic repository password와 전용 R2 토큰 |
+| `hosts/psi.yaml`, `hosts/rho.yaml`, `hosts/tau.yaml` | 해당 호스트 + admin | Borg passphrase·암호화된 recovery key; recovery key는 runtime secret으로 배포하지 않음 |
+| `modules/acme/secrets.yaml` | eta·psi·tau + admin (recipient 정책) | 비공개 인증서용 Cloudflare API 인증, 인증서 동기화 SSH 키 |
+| `modules/buildbot/secrets.yaml` | psi + admin | Nixbot GitHub App/OAuth 시크릿 |
+| `modules/gitea-mq/secrets.yaml` | eta + admin | merge queue GitHub App private key와 webhook secret |
+| `modules/authentik/secrets.yaml` | eta + admin | OIDC 클라이언트 시크릿 |
 
 ### 비밀 편집
 
 ```bash
-# 비밀 편집 (age 키 자동 사용)
+# Edit in a protected local editor
 sops hosts/psi.yaml
 
-# 키 교체 후 재암호화
-sops updatekeys hosts/psi.yaml
+# Regenerate policy and recipients after approved key changes
+inv update-sops-files
 ```
 
-자세한 내용은 [비밀 관리](secrets-management.md)를 참조합니다.
+접근 권한은 표의 요약보다 `.sops.nix`·생성된 `.sops.yaml`을 우선합니다. 값 자체는 출력하지 않으며 자세한 편집·전달·회전 절차는 [비밀 관리](secrets-management.md)를 참조합니다.
 
-## TLS 인증서
+## TLS 인증서 { #tls-certificates }
 
 인증서는 eta에서 Let's Encrypt ACME로 발급합니다. 공개 nginx vhost는 HTTP-01을 사용하고, 공개 HTTP endpoint가 없는 비공개 서비스의 certificate-only 항목은 Cloudflare DNS-01을 사용합니다. 다른 호스트에서 사용하는 인증서는 `acme-sync` 서비스가 rsync로 동기화하고, 대상 호스트의 systemd path unit이 파일 변경을 감지하여 nginx를 자동 리로드합니다. Nixbot도 eta 인증서를 psi에 동기화하며, psi에서는 별도 발급이나 Cloudflare 토큰을 사용하지 않습니다.
 
@@ -173,12 +174,13 @@ sops updatekeys hosts/psi.yaml
 | `hs.sjanglab.org` | eta | eta |
 | `cloud.sjanglab.org` | eta | tau (동기화) |
 | `n8n.sjanglab.org` | eta | tau (동기화) |
-| `docling.sjanglab.org` | eta | psi (동기화) |
+| `logging.sjanglab.org` | eta | eta (public edge), rho (동기화, 인증·Grafana) |
+| `status.sjanglab.org` | eta | rho (동기화) |
 | `nixbot.sjanglab.org` | eta | eta (public edge), psi (동기화, service stack) |
 | `mq.sjanglab.org` | eta | eta |
 | `upterm.sjanglab.org` | eta | eta |
 
-인증서 동기화: eta에서 발급 → `acme-sync` 서비스가 rsync로 대상 호스트에 전송 → systemd path unit이 변경 감지 → nginx 자동 리로드. Nixbot 수신 계정은 psi의 `acme-sync-nixbot`이며 기존 Docling 수신 계정과 분리합니다.
+인증서 동기화: eta에서 발급 → `acme-sync` 서비스가 rsync로 대상 호스트에 전송 → systemd path unit이 변경 감지 → nginx 자동 리로드. Nixbot 수신 계정은 psi의 `acme-sync-nixbot`입니다. Docling의 서비스·인증서·동기화 선언은 비활성 상태이며 현재 제공 경로에 포함하지 않습니다.
 
 ### ACME 갱신 실패 대응
 
@@ -196,24 +198,22 @@ Nixbot 동기화 전환 시에는 기존 인증서가 있는 psi에 수신 계�
 
 | 설정 | 값 |
 |------|-----|
-| 바인드 주소 | wg-admin IP만 |
+| 바인드 주소 | rho primary는 wg-admin IP, tau replica는 localhost; 호스트별 서비스 모듈로 제한 |
 | 인증 방식 | SCRAM-SHA-256 (원격), Peer (로컬) |
 | 복제 | WAL 스트리밍 (rho → tau) |
 | 암호 관리 | sops 암호화 |
 
-### RustFS S3 backup store
+### 백업 저장소의 보안 경계
 
-| 설정 | 값 |
-|------|-----|
-| API 바인드 | wg-admin IP만 (`:9100`) |
-| console 바인드 | localhost only (`127.0.0.1:9101`) |
-| 저장소 | `/srv/rustfs/data` |
-| daemon 모듈 | nixpkgs upstream `services.rustfs` |
-| secret 전달 | sops template `EnvironmentFile` |
-| bucket state | `rustfs-bootstrap.service`가 S3 API로 생성/검증 |
-| client 인증 | access key / secret key |
+| 구성 | 범위와 제약 |
+|------|-------------|
+| psi·rho·tau Borg | 시스템 SSD·SQL 덤프를 같은 호스트의 HDD RAID1에 암호화 저장. 홈·workspace·HDD data·live PGDATA 제외 |
+| Borg 키 | 호스트별 SOPS passphrase, repokey-blake2. Git과 별도 위치의 키·identity·저장소 사본이 있어야 호스트 전체 장애에 대비 가능 |
+| eta Restic | 전용 비공개 R2 `eta-restic-backups`, PostgreSQL·Vaultwarden별 prefix와 repository password |
+| eta R2 토큰 | 해당 버킷만 Object Read & Write. root0400 환경 파일로 전달하며 backup/check/prune가 공유하므로 append-only·역할별 격리 없음 |
+| Stalwart blob | runtime은 primary 버킷 전용 토큰, 복사는 source/destination 전용 토큰. DB 메타데이터와 blob의 복구 시점·범위를 함께 확인 |
 
-RustFS root credential은 daemon 시작, bootstrap, break-glass 용도로만 사용합니다. Backup job은 repo별 writer/pruner/reader/mirror credential과 IAM policy를 사용해야 합니다.
+RAID1과 PostgreSQL replica는 삭제·오염·관리자 실수로부터 독립적인 백업이 아닙니다. 복사 토큰이 source에도 쓰기를 허용하면 source 변경 권한이 없는 것으로 오인하지 않습니다. 과거 저장소와 키의 삭제는 보존·복구 검토 후 별도 승인받습니다. 범위와 검증 절차는 [백업](backup.md)을 따릅니다.
 
 ## 감사 및 모니터링
 
@@ -249,6 +249,8 @@ flowchart LR
 | 재부팅 조건 | 커널 변경 시에만 24시간 후 자동 재부팅 |
 | 재부팅 지터 | 최대 20분 지연 (호스트별 분산) |
 
+자동 실행은 보수용 drop-in·실행 조건으로 차단될 수 있습니다. 타이머 존재만으로 실행을 보장하지 않으며 실제 차단·해제 절차는 [모니터링 — 자동 업데이트 차단](monitoring.md)을 따릅니다. 승인 없이 marker 생성으로 우회하거나 hold를 제거하지 않습니다.
+
 ### 서비스 복구
 
-systemd가 서비스 실패 시 자동 재시작합니다. 모니터링은 Gatus(`status.sjanglab.org`)에서 헬스체크를 수행합니다.
+서비스별 systemd 재시작 정책을 확인합니다. 모든 실패가 자동 복구되는 것은 아닙니다. Gatus(`status.sjanglab.org`)의 헬스체크와 로그·완료 메트릭을 함께 확인합니다. 기본 `observe` 모드는 수집·평가를 유지하지만 Alertmanager 외부 알림은 버립니다. 미수집·무알림을 정상이나 복구로 판정하지 않습니다.

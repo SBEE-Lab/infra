@@ -11,56 +11,23 @@ let
     "alertmanager-healthchecks-ping-url"
   ];
 
-  blackboxHttpTargets = [
-    {
-      service = "authentik";
-      scope = "public";
-      target = "https://auth.sjanglab.org";
-    }
-    {
-      service = "headscale";
-      scope = "public";
-      target = "https://hs.sjanglab.org/health";
-    }
-    {
-      service = "n8n";
-      scope = "public";
-      target = "https://n8n.sjanglab.org/healthz";
-    }
-  ];
-
-  blackboxTailnetHttpTargets = [
-    {
-      service = "gatus";
-      target = "https://${hosts.rho.wg-admin}/";
-      hostname = "status.sjanglab.org";
-    }
-    {
-      service = "grafana";
-      target = "https://${hosts.rho.wg-admin}/";
-      hostname = "logging.sjanglab.org";
-    }
-    {
-      service = "n8n-ui";
-      target = "https://${hosts.tau.wg-admin}/";
-      hostname = "n8n.sjanglab.org";
-    }
-    {
-      service = "nextcloud";
-      target = "https://${hosts.tau.wg-admin}/status.php";
-      hostname = "cloud.sjanglab.org";
-    }
-    {
-      service = "vaultwarden";
-      target = "https://${hosts.tau.wg-admin}/alive";
-      hostname = "vault.sjanglab.org";
-    }
-    {
-      service = "docling";
-      target = "https://${hosts.psi.wg-admin}/health";
-      hostname = "docling.sjanglab.org";
-    }
-  ];
+  serviceTargets = import ../targets.nix;
+  httpTargets = lib.mapAttrsToList (service: target: {
+    inherit service;
+    inherit (target) host response;
+    scope = if target.access == "public" then "public" else "tailnet";
+    hostname = builtins.head (lib.splitString "/" (lib.removePrefix "https://" target.url));
+    target =
+      if target.access == "public" then
+        target.url
+      else
+        lib.replaceStrings
+          [ (builtins.head (lib.splitString "/" (lib.removePrefix "https://" target.url))) ]
+          [ hosts.${target.probeHost or target.host}.wg-admin ]
+          target.url;
+  }) serviceTargets;
+  blackboxHttpTargets = lib.filter (target: target.scope == "public") httpTargets;
+  blackboxTailnetHttpTargets = lib.filter (target: target.scope == "tailnet") httpTargets;
 
   blackboxTcpTargets = [
     {
@@ -80,6 +47,8 @@ let
     targets = [ target.target ];
     labels = {
       inherit (target) service;
+      host = target.host or target.service;
+      response = target.response or "observe";
       probe_scope = target.scope;
     };
   };
@@ -87,8 +56,14 @@ let
   mkBlackboxTailnetStaticConfig = target: {
     targets = [ target.target ];
     labels = {
-      inherit (target) service hostname;
+      inherit (target)
+        service
+        hostname
+        host
+        response
+        ;
       probe_scope = "tailnet";
+      probe_module = if target.response == "observe" then "http_2xx_or_redirect" else "http_health";
     };
   };
 
@@ -108,6 +83,10 @@ let
   ];
 
   blackboxTailnetRelabelConfigs = [
+    {
+      source_labels = [ "probe_module" ];
+      target_label = "__param_module";
+    }
     {
       source_labels = [ "__address__" ];
       target_label = "__param_target";
@@ -210,7 +189,7 @@ in
       {
         job_name = "blackbox_tailnet_http";
         metrics_path = "/probe";
-        params.module = [ "http_2xx_or_redirect" ];
+        params.module = [ "http_health" ];
         scrape_interval = "60s";
         static_configs = builtins.map mkBlackboxTailnetStaticConfig blackboxTailnetHttpTargets;
         relabel_configs = blackboxTailnetRelabelConfigs;
@@ -259,19 +238,6 @@ in
               host = "psi";
               service = "tei-rerank";
               model = "BAAI/bge-reranker-v2-m3";
-            };
-          }
-        ];
-      }
-      {
-        job_name = "restic";
-        scrape_interval = "5m";
-        static_configs = [
-          {
-            targets = [ "${hosts.psi.wg-admin}:9753" ];
-            labels = {
-              host = "psi";
-              repository = "psi-protected";
             };
           }
         ];

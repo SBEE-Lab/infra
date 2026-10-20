@@ -135,20 +135,3 @@ export async function markResolved(
     )
     .run();
 }
-
-export async function staleIncidents(env: Env, cutoff: number): Promise<Incident[]> {
-  const result = await env.DB.prepare(
-    "SELECT * FROM incidents WHERE status = 'firing' AND last_seen < ? AND slack_ts IS NOT NULL",
-  )
-    .bind(cutoff)
-    .all<Incident>();
-  return result.results ?? [];
-}
-
-export async function markStale(env: Env, fingerprint: string, eventKey: string, now: number): Promise<void> {
-  await env.DB.prepare(
-    `UPDATE incidents SET status = 'stale', last_event_key = ?, last_event_at = ? WHERE fingerprint = ?`,
-  )
-    .bind(eventKey, now, fingerprint)
-    .run();
-}

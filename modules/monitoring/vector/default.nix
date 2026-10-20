@@ -62,6 +62,11 @@ in
 
     settings = {
       sources = {
+        vector_internal = {
+          type = "internal_metrics";
+          namespace = "vector";
+          scrape_interval_secs = 60;
+        };
         sshd_logs = {
           type = "journald";
           include_units = [ "sshd" ];
@@ -92,6 +97,10 @@ in
             "/etc/shadow"
             "/run/credentials/*"
             "/run/docker/netns/*"
+            # Container overlays duplicate backing capacity and can be root-only.
+            "/var/lib/containers/storage/overlay"
+            "/var/lib/containers/storage/overlay/*/merged"
+            "/var/lib/containers/storage/overlay-containers/*/userdata/shm"
             "/var/lib/docker/overlay2/*/merged"
           ];
         };
@@ -250,6 +259,7 @@ in
           inputs = [
             "host_metrics"
             "network_stats"
+            "vector_internal"
           ]
           ++ lib.optional nginxExporter.enable "nginx_metrics";
           source = ''

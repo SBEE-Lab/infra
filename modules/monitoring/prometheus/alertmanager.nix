@@ -4,6 +4,7 @@
   ...
 }:
 let
+  deliveryEnabled = config.services.sbee.monitoring.mode == "active";
   secretsFile = ../secrets.yaml;
   secretsText = builtins.readFile secretsFile;
   alertBridgeUrl = "https://infra-alert-bridge.sjang-bioe.workers.dev/alertmanager";
@@ -87,19 +88,17 @@ in
               resolve_timeout = "5m";
             };
 
+            # Unclassified alerts cannot become notifications by accident.
             route = {
-              receiver = "infra-alerts";
+              receiver = "discard";
               group_by = [
-                "alertname"
-                "severity"
                 "host"
                 "service"
-                "job"
               ];
               group_wait = "30s";
               group_interval = "5m";
-              repeat_interval = "12h";
-              routes = [
+              repeat_interval = "24h";
+              routes = lib.optionals deliveryEnabled [
                 {
                   matchers = [ ''alertname="Watchdog"'' ];
                   receiver = "healthchecks-deadman";
@@ -108,33 +107,71 @@ in
                   repeat_interval = "5m";
                 }
                 {
-                  matchers = [ ''alert_category="audit"'' ];
-                  receiver = "infra-audit";
-                  repeat_interval = "24h";
+                  matchers = [ ''response="immediate"'' ];
+                  receiver = "infra-alerts";
+                  repeat_interval = "4h";
                 }
                 {
-                  matchers = [ ''severity="critical"'' ];
+                  matchers = [ ''response="business-hours"'' ];
                   receiver = "infra-alerts";
-                  repeat_interval = "2h";
+                  active_time_intervals = [ "business-hours" ];
                 }
               ];
             };
 
+            time_intervals = [
+              {
+                name = "business-hours";
+                time_intervals = [
+                  {
+                    location = "Asia/Seoul";
+                    weekdays = [ "monday:friday" ];
+                    times = [
+                      {
+                        start_time = "09:00";
+                        end_time = "18:00";
+                      }
+                    ];
+                  }
+                ];
+              }
+            ];
+
             inhibit_rules = [
               {
+                source_matchers = [ ''alertname="DiskSpaceCritical"'' ];
+                target_matchers = [ ''alertname="DiskSpaceLow"'' ];
+                equal = [
+                  "host"
+                  "mountpoint"
+                ];
+              }
+              {
+                source_matchers = [ ''severity="critical"'' ];
+                target_matchers = [ ''severity="warning"'' ];
+                equal = [
+                  "alertname"
+                  "host"
+                  "service"
+                  "mountpoint"
+                ];
+              }
+              {
                 source_matchers = [ ''alertname="HostMetricsMissing"'' ];
-                target_matchers = [ ''alertname=~"DiskSpaceLow|DiskSpaceCritical|MemoryLow|HighCPULoad"'' ];
+                target_matchers = [ ''signal="host-metrics"'' ];
                 equal = [ "host" ];
               }
               {
                 source_matchers = [ ''alertname="BlackboxExporterDown"'' ];
-                target_matchers = [ ''alertname="BlackboxProbeFailed"'' ];
+                target_matchers = [ ''signal="probe"'' ];
               }
             ];
 
             receivers = [
+              { name = "discard"; }
+            ]
+            ++ lib.optionals deliveryEnabled [
               (mkBridgeReceiver "infra-alerts")
-              (mkBridgeReceiver "infra-audit")
               {
                 name = "healthchecks-deadman";
                 webhook_configs = [

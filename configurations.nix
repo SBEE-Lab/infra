@@ -49,6 +49,7 @@ let
     ./modules/cleanup-usr.nix
     ./modules/hosts.nix
     ./modules/network.nix
+    ./modules/monitoring
     ./modules/nix-daemon.nix
     ./modules/nix-index.nix
     ./modules/packages.nix
@@ -75,6 +76,7 @@ let
     ./modules/sops
     ({ lib, ... }: {
       time.timeZone = lib.mkForce "Asia/Seoul";
+      services.sbee.monitoring.mode = lib.mkDefault "active";
     })
   ];
 

@@ -7,11 +7,8 @@
     ../modules/wake-on-lan.nix
     ../modules/tailscale
     ../modules/postgresql
-    ../modules/rustfs
     ../modules/neko
-    ../modules/backup/mirror.nix
-    ../modules/backup/stalwart-r2-blobs-mirror.nix
-    ../modules/backup/postgresql.nix
+    ../modules/backup/borg.nix
     ../modules/monitoring/vector/monitor-systems.nix
     ../modules/monitoring/exporters/systemd-status.nix
     ../modules/monitoring/proxy/reverse.nix
@@ -22,8 +19,9 @@
   disko.xfsMdadm = {
     enable = true;
     arrays = {
-      # HDD RAID0 for data (4TB total)
+      # HDD RAID1 for data (2TB usable)
       data = {
+        level = 1;
         disks.hdd1 = "/dev/disk/by-id/ata-WDC_WD20SPZX-00UA7T0_WD-WXB2A153H96N";
         disks.hdd2 = "/dev/disk/by-id/ata-WDC_WD20SPZX-00UA7T0_WD-WXB2A153H6KD";
         mountpoint = "/srv";
@@ -41,37 +39,6 @@
   systemd.services."serial-getty@ttyS0".enable = false;
 
   networking.hostName = "rho";
-
-  sops.secrets = {
-    rustfs-access-key = {
-      owner = "rustfs";
-      group = "rustfs";
-      mode = "0400";
-    };
-    rustfs-secret-key = {
-      owner = "rustfs";
-      group = "rustfs";
-      mode = "0400";
-    };
-  };
-
-  services.rustfs.enable = true;
-  services.sbee.backups = {
-    mirror.psiProtected.enable = true;
-    postgresql = {
-      enable = true;
-      databases = [
-        "nextcloud"
-        "n8n"
-      ];
-      startAt = "*-*-* 04:30:00";
-    };
-    mirror = {
-      postgresql.enable = true;
-      vaultwarden.enable = true;
-    };
-    stalwartR2BlobsMirror.enable = true;
-  };
 
   services.sbee.systemdStatusExporter = {
     enable = true;

@@ -346,63 +346,22 @@ in
     }
     {
       id = 9;
-      title = "psi systemd status";
-      type = "table";
-      datasource = loki;
+      title = "Job completion records";
+      type = "text";
       gridPos = {
-        h = 8;
+        h = 4;
         w = 24;
         x = 0;
         y = 20;
       };
       options = {
-        showHeader = true;
-        cellHeight = "sm";
-        footer.show = false;
+        mode = "markdown";
+        content = ''
+          [Open Jobs](/d/sjanglab-jobs) for recorded Borg and PostgreSQL dump completions.
+
+          Missing records mean unknown, not success. Execution state and biodb lifecycle are not collected.
+        '';
       };
-      transformations = [
-        {
-          id = "extractFields";
-          options = {
-            source = "Line";
-            format = "json";
-            replace = true;
-            keepTime = true;
-          };
-        }
-        {
-          id = "organize";
-          options = {
-            excludeByName = {
-              host = true;
-              log_type = true;
-              message = true;
-            };
-            indexByName = {
-              Time = 0;
-              health = 1;
-              unit = 2;
-              active_state = 3;
-              sub_state = 4;
-              result = 5;
-              last_exit_status = 6;
-              description = 7;
-            };
-            renameByName = {
-              active_state = "active";
-              sub_state = "sub";
-              last_exit_status = "exit";
-            };
-          };
-        }
-      ];
-      targets = [
-        {
-          refId = "A";
-          datasource = loki;
-          expr = ''{host="psi", log_type="systemd_status"}'';
-        }
-      ];
     }
   ];
 }

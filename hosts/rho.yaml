@@ -7,15 +7,10 @@ pg-terraform-password: ENC[AES256_GCM,data:uGQTzWtY3dU/H6Mqh9QsYF4B36V+V+1rY5Q1I
 wg-admin-key: ENC[AES256_GCM,data:NCw7huSQBoKeh09YrT9VfSOwZ9Ip00ZaNo2CNp8bMhxzJxZJwaPym7nDAEE=,iv:baZQQKTKkyhhFDsnyK7drTumxaXbVI/TYL4bhH3mUj0=,tag:zMMWU96o3zSreMRg4YCtOA==,type:str]
 pg-nextcloud-password: ENC[AES256_GCM,data:iowxIWcLZCVU7aI3qLaXZecEsHzo1QXZMMpDbvG2Hw==,iv:lT3EXQg7V7G213YDNF3rdns930RdAXpAEhRBQdo4npc=,tag:y0u20SW3eEKUO7mzUDV+RQ==,type:str]
 pg-n8n-password: ENC[AES256_GCM,data:lDYHV5Frqbtv7pE1IYFETb6LrySRxHBQOI53mURkZuqC5Up1JyDr7lrdR3s=,iv:+SudBZVMQGQsyPOAFKmM+sFuz0fcnHf5E7lMGhEj5bQ=,tag:iCWGInApJoSqNiHxTgJCaQ==,type:str]
-rustfs-access-key: ENC[AES256_GCM,data:j1x+adcGZVlQAp9D7SZpMB28cg2Gqr9E693PH4hpk2SkwpQ=,iv:PaQ1GzSyvSm7LWr9S2iLlFZsAdhPxp9/IJnxA+zrVy0=,tag:iZQMhDUtogixxn0jpo7UAw==,type:str]
-rustfs-secret-key: ENC[AES256_GCM,data:IczMb9f9lGewbKVCK//IClrg6WGkf6iUf6ET3XactQvDnlw0UGzJiSPFx9GrxbA8KHizOVSZsx7e+r3FS2s/TA==,iv:HB+x9rJFnNublLB4vtEjAYL9Dx1uQw40NCnLxFPRZfM=,tag:A85bk35AL5NscJPp6tonlQ==,type:str]
-psi-restic-protected-mirror-secret-key: ENC[AES256_GCM,data:QnYbGCTniJ/218FFIXFc9WDmEz1BuDmxQtPj6OBfu25gSxbC01uFsI9umMRbXeNLlTata1uqEbFzaJpkYhlAuw==,iv:1CiRdAQToekXl9maAO3IAH9CJbKJOIw0Rh8f/y54TKA=,tag:grx9R0QgwuAevbLbjWYTCg==,type:str]
 rho-postgresql-repository-password: ENC[AES256_GCM,data:cVawM85FJNESfkclnD/MeD1FBw+nGN6HfVjg8ius/4c4zbg7oGClQvhpbiYmCgE8HsOJDPFebxueoPSaOJAreg==,iv:YAyWPWYZYIkQD/cGB9bw6+GX1e8ZfpnXEsHYdazvnfk=,tag:U0l00OMw0TUq6j5lXhONdA==,type:str]
-rho-postgresql-mirror-secret-key: ENC[AES256_GCM,data:G/xp7MN3E9pvsoNBM3/dnTqWKY1/OjvCT9tDiBbb9EgWZv+H1YSstss3xKl3XS3TDtQ4QD4aMznAXLfE6EZ6Mg==,iv:zW2vj01fF7VOZyqS1LGaElqDNVbOCcmO9qDvMXVdK8g=,tag:5JRnN7kli705dbfKEmINnA==,type:str]
-psi-postgresql-mirror-secret-key: ENC[AES256_GCM,data:rzUpjwo5XBtTXTB2UJMCivgan3tU4FAeVhfnyzGHzFs+4UFYPu8QlIh2cDr29LPMJ7ptm0wz7VWvcqCnw3A5SA==,iv:mXVxYoB+7BlmTy8tmBECpIRzhedzUhgHn3qXvdKvuBQ=,tag:tdNq097vtVLR+4wAZN57oA==,type:str]
-eta-postgresql-mirror-secret-key: ENC[AES256_GCM,data:05sPRw/20hiv8AX9GWwYnxqGtIYZ7bu6hLkMly28EQ4/egvf/tE6iYaz4LbAmPJBZjEt6UDEzIS487W24Zuvrg==,iv:K3i6X9OcM1lH+X21whlx1coZm/UrHjPXF63TL7dx4Zo=,tag:03OmOSi1n1KkNdIJBiEEdg==,type:str]
-eta-vaultwarden-mirror-secret-key: ENC[AES256_GCM,data:em5S+0LXnmnUHkYsmMj38eE6LdTpYVd/HlGgI9mZYRxoIJmg7i7kedOKJCcug+I3qK8jcCCG0wu0speLGGdP9Q==,iv:qS1jbUibFQ8eoXRJ89DEPi6rqySX4ctsMjYUWviHLJY=,tag:rKvlQqqENMQAR7RNgXrCWA==,type:str]
 tinc-naru-key: ENC[AES256_GCM,data:d9OGnA51sM6csV9Y/wHAQ0MoQNyDVeAs125936VOazPThZTdGrpmiP3PeZAZvJNpMvKXA6bPA/Qbuw1iWHb2/afGtjjo6Xa74WuFc2e+AQhzHdRGxVvdKxtE2xOQebHB2VCNlXIWMcejdDihDg+WPLMcQYuH8WcFeEKUTL/L+6rE5+uwXDLRN8ZWn65MTjvKuhpPrdOsVsFM/g84EE7wnMovVCA9/MHC72xo0HhQPS9fb/sHUPYyqvZ6rVnFhaeDnmLyGsewCfo=,iv:7z4nadZq2pTmsDcSEJPjn0BWXXIyLclvrc78AnYr6Oc=,tag:D4cG6BGGjP4EXS2ZrNKFfA==,type:str]
+borg-passphrase: ENC[AES256_GCM,data:DlYKzC2dlabgmKzClstzyfgfUsUxrSw0MyMiDznKs3MhDQYAMlCwGWogOJ9WKoQ8NI1Gh2BxMtkKRl2Uv/URLA==,iv:CnPko7Fdc8bOizglxUXjE7ISA71WgqdyqpmS2ZfhJJ0=,tag:9gV1VVyiQbTHlUYXTcif9Q==,type:str]
+borg-recovery-key: ENC[AES256_GCM,data:DJxWTB/glJTsEaSLLpmDzVffjEzeb050rZyVzlasCK+j2DpQeSjLl1HlzRuIF4oj+a9cTJ76EpdnV0qWaqedLck4vOMD8i0I8oMhtsobWCyKMaPHhpUji3CAHG2tGo0/Ii4B4qf47yDYls7rNcQzkkQaakMNeNIN230FiuQKAubSCEF90wLJvOMSn/VncQCIAaiGlmpKw/XZU2/qlNg8hdhZnGRIrrCx6rw4SlGkbT8cPYnNSBM1XGZmO8ZKDhPMHY9Pj8eRrKRxl1KDZ+IQEffD3NYqu4wleSWFVb63yBPIEa0CaZ7Ii90BSmAACSRMUtblQ7luZifSSakY4hyD1W8qduCPFX34HTQJIvwcksT/1EfJ2Ex0EBddMe3IsxSaag7JPecLJE04gk4Txbvh9Ans4+tHko6wR4Ah4gOsTS3Qw4/8TViG/mbPhiFHFVREU4LCN1Jlgw3jvn2GcehWUO/+hUs6MPjWPpCPt8gbrV4IlM1gkyBaoIIP8QEEX9sfp31din4zshZCHwSBHBhWAYH/2WNSOXeXN1rM0gErvrXRvtlJiKj5wZSRQzHlToOaHVmzcDnZ7GJZm24uXyfME19KjhpxVw3G4CzXnrZvmrbDYk1nVZ/WcxEtmLz/5WlKXbdz5c0dqyZeiCb7N0CDcWNrzu+JbtZ+me90FA3q6UhaQzvtz4GKta1I+tbciMerqCh3twOCOu8cfnwFoEZFNn327Rgj3I/vu/o7eu7lwjFzgzFxdWj4dgyJWeRGFKbvZJUroAmF8rj7DL5TLiEMu8wsU+HzNLeZ3y4THZiIJxxaTa1XaDr1iGMEG+nKQvcek0xchChk10agNYI2tMvRVol2tnN5zQDWBGRiMDRyG+xSh0hrU2xlbBKSU+oGE+ohcvftSIe/M1QVbbIe1sDOzDIU7wNUt86rp79EVUs/4wITsjQd+fNk1jFMvb+bNj0P7y7HiGLl1GhxH31Rb6gv6dlV7MObaU3nayITDk7I1XHXTqiRoGMkC3KjnUpDUHLRNacIoZ2JbEGBwzEYb0MC2Hj+4Yih/D6eI+E+mVwzVl8HAca9uFI/pLH3w162,iv:VFeJKlpahFfTca7/0Cg8Z3yFLS1SsFSdNTIMgctz8hw=,tag:QdeE6OVPb+swRwnGxe9I9A==,type:str]
 sops:
     age:
         - enc: |
@@ -36,7 +31,7 @@ sops:
             tV8Bmgls8Y4H+yeDK4tNtsggFZUhGo/k6wGqN+gw7EjhfQWO91NPPA==
             -----END AGE ENCRYPTED FILE-----
           recipient: age1730f3cxdyh56zw8xcvlmpa7u2x7353wu4u0e58kyx24rsefgp98sxehm6s
-    lastmodified: "2026-08-19T09:00:38Z"
-    mac: ENC[AES256_GCM,data:aug3A+miiM7hUJU0k5wrWUc/hojF/AdIKhDJsQnQM2wQ9x0vucGpXMlE+YrKeCIBH+T4dTKlM5aCwaI1S3YKxiD6PgYADmnmf3JaHxYdkddgJPwwDPJs4Zp06lsuDMtgEG+BgUwW/vWGyA31yj+V8yKEwkbBh5KqnYrNsCdUYCU=,iv:glK4UuJkPiv1Tf46EVaJTZyfefqpdT1zzEmwckXaUiw=,tag:hk2/X3AkjhZ1Bibad6rn2g==,type:str]
+    lastmodified: "2026-10-20T17:49:06Z"
+    mac: ENC[AES256_GCM,data:VXzoa5E9Y9mgj2IwlbuDd2+OhPnTEwP6AwNhxvjJzWly/zvxNOml+6oyEnbnQq+SVIeNIiiZwzMuUmVhxXoJeCp0N6RqYPhbR1xzoFAkPgWo/CHlVuIAcWRLI+0ucfIvjiqNaTZrF6b+W9GuSQu0xabarnsWYi4XQbcH+dfr4ls=,iv:KCqxIDNT3+AeTe8hfhl3/DZOhdu9xthv6YhwTo8RSFo=,tag:7g1JScyUXeN6Kdgdh88WoA==,type:str]
     unencrypted_suffix: _unencrypted
     version: 3.13.2

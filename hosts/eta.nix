@@ -16,6 +16,19 @@ let
             fail_if_not_ssl = true;
           };
         };
+        http_health = {
+          prober = "http";
+          timeout = "10s";
+          http = {
+            preferred_ip_protocol = "ip4";
+            follow_redirects = false;
+            fail_if_not_ssl = true;
+            valid_status_codes = [
+              200
+              204
+            ];
+          };
+        };
         http_2xx_or_redirect = {
           prober = "http";
           timeout = "10s";
@@ -59,8 +72,7 @@ in
     ../modules/authentik
     ../modules/stalwart
     ../modules/vaultwarden
-    ../modules/backup/postgresql.nix
-    ../modules/backup/vaultwarden.nix
+    ./eta/restic
     ../modules/buildbot/edge-proxy.nix
     ../modules/gitea-mq
     ../modules/container-registry
@@ -69,6 +81,7 @@ in
     ../modules/uptermd
     ../modules/gatus
     ../modules/monitoring/vector
+    ../modules/monitoring/proxy/edge.nix
     ../modules/monitoring/exporters/systemd-status.nix
     ../modules/n8n/reverse-proxy.nix
     ../modules/nextcloud/reverse-proxy.nix
@@ -81,11 +94,11 @@ in
       serviceName = "acme-sync-to-tau";
       remoteHost = hosts.tau.wg-admin;
     }
-    {
-      domain = "docling.sjanglab.org";
-      serviceName = "acme-sync-docling-to-psi";
-      remoteHost = hosts.psi.wg-admin;
-    }
+    # {
+    #   domain = "docling.sjanglab.org";
+    #   serviceName = "acme-sync-docling-to-psi";
+    #   remoteHost = hosts.psi.wg-admin;
+    # }
     {
       domain = "status.sjanglab.org";
       serviceName = "acme-sync-status-to-rho";
@@ -111,29 +124,14 @@ in
   # ACME certificates for internal services
 
   services.sbee.nginx.localCertificates = {
-    "docling.sjanglab.org".group = "acme";
-    "logging.sjanglab.org".group = "acme";
+    # "docling.sjanglab.org".group = "acme";
     "status.sjanglab.org".group = "acme";
     "vault.sjanglab.org".group = "acme";
   };
 
   networking.hostName = "eta";
 
-  services.sbee = {
-    systemdStatusExporter.enable = true;
-    backups = {
-      postgresql = {
-        enable = true;
-        databases = [
-          "authentik"
-          "gitea-mq"
-          "stalwart-mail"
-        ];
-        startAt = "*-*-* 03:30:00";
-      };
-      vaultwarden.enable = true;
-    };
-  };
+  services.sbee.systemdStatusExporter.enable = true;
 
   services.prometheus.exporters.blackbox = {
     enable = true;

@@ -31,13 +31,13 @@ inv wake --host rho
 inv wake --host tau
 ```
 
-`inv wake`는 WoL 매직 패킷을 전송하며, \*\*같은 L2 네트워크(랩 내부)\*\*에서만 동작합니다.
+`inv wake`는 WoL 매직 패킷을 전송하며 \*\*같은 L2 네트워크(랩 내부)\*\*에서만 동작합니다.
 
 | 호스트 | `inv wake` 가능 여부 | 비고 |
 |--------|---------------------|------|
 | rho | O (랩 내부에서만) | 랩 네트워크 브로드캐스트 |
 | tau | O (랩 내부에서만) | 랩 네트워크 브로드캐스트 |
-| psi | X | IDC IPMI 또는 현장 수동 기동 |
+| psi | X | 승인된 IDC 원격 관리 수단 또는 현장 수동 기동 |
 | eta | X | Vultr 콘솔에서 수동 기동 |
 
 ### 종료/재부팅
@@ -49,24 +49,23 @@ inv reboot --host <host>
 
 ## 하드웨어 점검
 
-> 아래 명령은 모두 root 권한(`sudo`)이 필요합니다.
+관리자 SSH alias와 eta ProxyJump를 먼저 설정합니다. psi·rho·tau는 공개 SSH를 수신하지 않으며 [SSH 접속](../dev/ssh-access.md) 경로를 따릅니다. 읽기 권한이 필요한 명령에만 `sudo`를 사용합니다.
 
 ### 디스크 상태
 
 ```bash
-ssh -p 10022 root@<host> smartctl -a /dev/sda
-ssh -p 10022 root@<host> df -h
-ssh -p 10022 root@<host> cat /proc/mdstat   # RAID 상태
+ssh rho 'ls -l /dev/disk/by-id/'
+ssh rho 'sudo smartctl -a /dev/disk/by-id/<disk-id>'
+ssh rho 'df -h; cat /proc/mdstat; findmnt /srv'
+ssh psi 'df -h; cat /proc/mdstat; findmnt --target /workspace; findmnt --target /data'
 ```
 
 ### 네트워크
 
 ```bash
-# WireGuard 피어 상태 (sudo 필요)
-ssh -p 10022 root@<host> wg show wg-admin
-
-# Tailscale 연결 상태 (sudo 필요)
-ssh -p 10022 root@<host> tailscale status
+# Inspect transport from an approved administrator account
+ssh rho 'sudo wg show wg-admin'
+ssh rho 'tailscale status'
 ```
 
 ## psi GPU 냉각수 점검
@@ -79,8 +78,8 @@ psi 서버는 **분기별 1회 (연 4회)** GPU 냉각수 점검을 받습니다
 flowchart TD
   A["1. 사전 공지"] --> B["2. 실행 중인 작업 확인<br/>(nvidia-smi, docker ps)"]
   B --> C["3. Nixbot 중지"]
-  C --> D["4. 서버 종료<br/>(inv shutdown)"]
-  D --> E["5. 점검 완료 후 복구<br/>(IPMI 원격 기동)"]
+  C --> D["4. 승인된 서버 종료<br/>(inv shutdown)"]
+  D --> E["5. 점검 후 기동<br/>(IDC 원격 관리 · 현장)"]
   E --> F["6. 서비스 상태 확인<br/>(systemctl --failed, nvidia-smi)"]
 ```
 
@@ -89,14 +88,14 @@ flowchart TD
 **2단계 — 실행 중인 작업 확인**:
 
 ```bash
-ssh -p 10022 root@psi nvidia-smi   # GPU 사용 상태
-ssh -p 10022 root@psi docker ps    # 실행 중인 컨테이너
+ssh psi nvidia-smi
+ssh psi docker ps
 ```
 
-**3단계 — Nixbot 중지** (빌드 중단 방지):
+**3단계 — 작업 drain과 Nixbot 중지**: 새 작업 유입을 제한하고 실행 중인 빌드·연구 작업의 완료 또는 승인된 중단을 확인합니다. service stop은 기존 작업을 안전하게 완료시키는 drain의 대체가 아닙니다.
 
 ```bash
-ssh -p 10022 root@psi systemctl stop nixbot
+ssh psi sudo systemctl stop nixbot
 ```
 
 **4단계 — 서버 종료**:
@@ -105,34 +104,37 @@ ssh -p 10022 root@psi systemctl stop nixbot
 inv shutdown --host psi
 ```
 
-**5단계 — 점검 완료 후 복구**: IDC 업체에서 전원을 켜거나, IPMI로 원격 기동합니다.
+**5단계 — 점검 완료 후 복구**: IDC 업체와 협의한 원격 관리 또는 현장 절차로 기동합니다. 접근 수단과 담당자를 종료 전에 확보합니다.
 
 **6단계 — 서비스 상태 확인**:
 
 ```bash
-ssh -p 10022 root@psi systemctl --failed
-ssh -p 10022 root@psi nvidia-smi
+ssh psi systemctl --failed
+ssh psi nvidia-smi
+ssh psi 'cat /proc/mdstat; findmnt --target /workspace; findmnt --target /data'
+ssh psi 'systemctl status nixbot borgbackup-job-local.timer borgbackup-verify-local.timer'
 ```
 
 ## 비상 시 대처
 
 ### 전원 차단
 
-1. 서버가 응답하지 않으면 물리적으로 전원 버튼을 눌러 종료합니다
+1. 네트워크 장애와 호스트 정지를 구분하고 콘솔·승인된 원격 관리 수단으로 상태를 확인합니다. 정상 종료를 우선하며 강제 전원 차단은 데이터 손상 위험을 검토하고 승인받은 최후 수단으로만 사용합니다
 1. 전원 복구 후:
    - rho/tau: 랩 내부에서 `inv wake --host <host>`
-   - psi: IDC IPMI 또는 현장 수동 기동
+   - psi: 승인된 IDC 원격 관리 또는 현장 수동 기동
    - eta: Vultr 콘솔에서 기동
 1. 기동 후 서비스 상태를 확인합니다: `systemctl --failed`
 
 ### 네트워크 장애
 
-1. WireGuard 연결이 끊어지면 공인 IP로 직접 접근을 시도합니다 (eta, psi만 가능)
-1. NAT 뒤 호스트(rho, tau)는 같은 네트워크의 물리 접근이 필요합니다
+1. eta의 공개 bastion `jump.sjanglab.org:10022`와 호스트의 wg-admin 연결을 구분해 확인합니다. psi는 공인 IP가 있어도 공개 SSH를 수신하지 않습니다.
+1. wg-admin 경로가 복구되지 않으면 rho/tau는 현장 콘솔, psi는 승인된 IDC 콘솔·현장 접근을 사용합니다. 장애 대응을 위해 공개 SSH나 방화벽 우회를 임의 추가하지 않습니다.
 1. `wg-admin` 복구 후 `wg show wg-admin`으로 피어 상태를 확인합니다
 
 ## 물리 접근 시 주의사항
 
 - 서버 전원 케이블을 분리하기 전에 반드시 `inv shutdown`으로 정상 종료합니다
-- 디스크 교체 시 RAID 구성(disko 설정)을 확인합니다
+- 디스크 교체 시 by-id 식별자·현재 RAID 상태·disko 선언을 대조합니다. psi workspace만 RAID0이며 HDD data와 rho/tau `/srv`는 RAID1입니다. 장치명 추정이나 재포맷으로 장애를 우회하지 않습니다.
+- 재기동 후 서비스·RAID·마운트·백업 타이머·GPU와 기존 유지보수 hold를 확인합니다. 승인 없이 자동 업데이트/재부팅 hold나 `observe` 모드를 변경하지 않습니다.
 - 네트워크 케이블 변경 시 IP/게이트웨이 설정을 `modules/hosts.nix`와 대조합니다

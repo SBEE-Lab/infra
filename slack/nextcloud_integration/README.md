@@ -47,5 +47,4 @@ From a Slack CLI shell:
 slack manifest info --source local --skip-update | jq -e . >/dev/null
 ```
 
-Create or link app with Slack CLI from this directory. Do not commit Slack
-CLI link state or credentials under `.slack/`.
+Create or link the app with Slack CLI from this directory after confirming its workspace/app IDs. `.slack/apps.json` is tracked deployed identity state; review changes before committing. `.slack/config.json`, `.slack/apps.dev.json`, cache, and logs remain ignored local operator state. Never put credentials in the deployed link file or Git.

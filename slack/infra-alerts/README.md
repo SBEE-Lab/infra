@@ -28,7 +28,7 @@ The shell provides:
 
 This directory is a minimal Slack CLI project. `.slack/hooks.json` exposes
 `slack-app-manifest.json` through the CLI `get-manifest` hook, while
-`.slack/apps.json` remains ignored because app links are local operator state.
+`.slack/apps.json` is tracked deployed-app identity state (workspace/app IDs), not a credential store. Review changes to those IDs. `.slack/config.json`, `.slack/apps.dev.json`, cache, and logs remain ignored local operator state.
 
 ## First-time Slack CLI login
 
@@ -61,9 +61,7 @@ slack app link \
   --environment deployed
 ```
 
-The Slack CLI writes local app link state to ignored files under `.slack/`.
-Repeat this link step on each new checkout or operator machine. For an already
-installed app, manifest drift checks do not require running `slack app install`.
+Inspect the tracked deployed link before linking. Confirm the intended workspace/app IDs, and review any `.slack/apps.json` changes before committing. Local auth/config and development links stay ignored; never commit credentials. For an already installed app, manifest drift checks do not require running `slack app install`.
 
 Only when confirming that no app exists, create/install from this directory:
 
@@ -133,11 +131,7 @@ webhook URLs may remain in SOPS until Alertmanager is switched to the bridge.
 
 ## Why not Terraform for Slack
 
-Terraform can manage some Slack resources, but the available providers do not
-cover the Slack Lists/Canvas resources this alerting flow will use. They can
-also place Slack app credentials in Terraform state. For this alerting app,
-manifest-in-git plus Slack CLI installation gives enough declaration without
-expanding secret state.
+App identity and OAuth scopes are declared in manifests, while administrators use Slack CLI for installation and drift checks. Credentials remain outside Git and Terraform state. Do not add a second app owner or credential store without reviewing ownership, secret exposure, and recovery.
 
 ## CI policy
 

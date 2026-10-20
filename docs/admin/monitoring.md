@@ -1,17 +1,71 @@
 # 모니터링
 
+## 운영 모드
+
+공통 설정은 현재 `active`입니다. 수집·대시보드·Prometheus 규칙 평가를 유지하며 명시적으로 분류된 operational alert를 Slack bridge로 전송하고 Watchdog은 healthchecks.io로 직접 보냅니다. 미분류 알림은 discard 처리합니다. `observe`는 수집·평가를 유지하면서 외부 전송을 중단하고, `paused`는 수집·평가도 중단합니다. 모드 전환과 실제 알림·복구 전송 테스트는 별도 승인 대상입니다.
+
+`active`에서는 즉시 대응과 업무시간 대응을 구분합니다. 업무시간은 평일 09:00–18:00 Asia/Seoul이며 공휴일 예외나 요약 발송은 없습니다. 아래 알림 연결도는 활성 모드의 경로입니다. 설정만으로 전달 성공을 판정하지 않고 실제 수신을 확인합니다.
+
+### 보수 중 자동 업데이트 차단
+
+자동 업데이트 차단 여부는 각 호스트에서 `systemctl cat auto-upgrade.service auto-upgrade.timer auto-reboot.service auto-reboot.timer`로 확인합니다. 런타임 drop-in의 존재를 Git 선언만으로 추정하지 않습니다.
+
+`/etc/systemd/system.control/{auto-upgrade,auto-reboot}.{service,timer}.d/90-migration-pause.conf`가 있으면 재부팅과 일반 Nix 배포 후에도 차단될 수 있습니다. `/run/systemd/system/`의 동일 이름 drop-in도 확인합니다. `/run/infra-maintenance-resume-automatic-updates` marker 생성으로 실행 조건을 우회하지 않습니다.
+
+차단 해제는 변경 검토·배포·운영 검증을 마친 뒤 별도 승인으로 수행합니다. 해당 drop-in을 제거하고 daemon reload·timer 재활성화 후 다음 실행 시각과 실제 적용 상태를 확인합니다.
+
 ## 대시보드
 
-- **Grafana**: `https://logging.sjanglab.org` (익명 Viewer 접근 가능, wg-admin 경유)
+- **Grafana**: `https://logging.sjanglab.org` (Authentik Forward Auth, localhost upstream, 신규 인증 사용자 Viewer)
   - `SjangLab Infrastructure` (홈): 현재 건강 상태와 감사 요약 카운트
   - `SjangLab Hosts`: 호스트 리소스, 메트릭 freshness, Headscale 노드 상태
   - `SjangLab Apps`: Gatus 앱 smoke 상태와 앱 인증/거부 흐름
-  - `SjangLab Jobs`: db-sync 및 batch/sync/backup 상태
+  - `SjangLab Jobs`: Borg 백업·무결성 검사와 PostgreSQL 덤프의 마지막 완료 기록
   - `SjangLab Access & Audit`: SSH bastion, Authentik, Headscale 감사 드릴다운
   - `SjangLab AI Resources`: AI 서비스 smoke, psi 리소스, 데이터 동기화 상태
   - `SjangLab PostgreSQL`: rho primary, tau replica, streaming lag, slot WAL 여유, replication 감사 이력
 - **Gatus**: `https://status.sjanglab.org` (tailnet 내부 공개 상태 페이지)
   - PostgreSQL은 `primary rho`와 `replica tau`를 별도 endpoint로 표시합니다.
+
+## Grafana 사용 순서
+
+1. [Grafana](https://logging.sjanglab.org)에 접속해 Authentik으로 로그인합니다. 공개 HTTPS 경로는 VPN이 필요 없으며 기존 `sjanglab-admins` 인가 정책을 유지합니다. 신규 사용자는 Viewer이며 공유 관리자 계정이나 별도 API 토큰이 필요하지 않습니다. 접근 거부는 Authentik 인가·그룹을 확인하고, 헤더 위조나 인증 우회로 해결하지 않습니다.
+1. 우측 상단 시간 범위를 평소에는 최근 6시간, 야간 작업 점검에는 최근 24시간으로 선택합니다. 패널이 비어 있으면 기간을 늘리고 수집 상태부터 확인합니다. `No data`를 성공이나 0건으로 해석하지 않습니다.
+1. [Hosts](https://logging.sjanglab.org/d/sjanglab-hosts)에서 `Metrics freshness`, `Prometheus targets`, 디스크·CPU·메모리를 먼저 봅니다. 수집 경로가 끊긴 상태에서 다른 패널의 과거 값을 현재 상태로 판정하지 않습니다.
+1. [Jobs](https://logging.sjanglab.org/d/sjanglab-jobs)에서 `Latest recorded outcome`과 `Last completion time`을 함께 봅니다. `Success`만으로 예약 실행·무결성·복원을 판정하지 않습니다.
+1. 앱 장애는 [Apps](https://logging.sjanglab.org/d/sjanglab-apps), DB 복제는 [PostgreSQL](https://logging.sjanglab.org/d/sjanglab-postgresql), 로그인·권한 문제는 [Access & Audit](https://logging.sjanglab.org/d/sjanglab-access-audit)에서 같은 시간대를 확인합니다.
+
+공개 경로는 eta nginx → rho nginx → localhost Grafana입니다. eta는 rho 인증서의 CA·hostname을 검증하고 외부에서 받은 identity 헤더를 버립니다. 교차 서명된 중간 CA 체인을 허용하도록 TLS 검증 깊이는 4로 설정합니다. 502가 발생하면 실제 upstream 인증서 체인을 확인하며 인증서 검증을 끄지 않습니다. rho가 Authentik 인가 후 identity를 다시 설정하며, 클라이언트 주소 헤더도 eta peer에서 온 경우에만 신뢰합니다. 익명 접근은 끄고 신규 Grafana 계정 기본 역할은 Viewer로 유지합니다. Viewer도 데이터소스 조회가 가능하므로 SSO 접근 그룹을 확대할 때 로그 열람 범위를 함께 검토합니다.
+
+Headscale split DNS는 내부 rho 경로를 유지합니다. `/prometheus/`와 `/alertmanager/`는 공개 eta 경로에서 404이며, 내부 경로 또는 SSH 터널을 사용합니다. Grafana의 자체 `/api/`·WebSocket은 인증 뒤에 제공하며 직접 Prometheus/Loki API를 공개하는 설정이 아닙니다.
+
+공개 경로 변경은 `terraform/dns`의 `logging.sjanglab.org` 레코드와 eta·rho 설정을 함께 적용해야 합니다. rho의 인증·헤더 신뢰 설정을 먼저 적용하고, eta의 public ACME 발급·rho 인증서 동기화를 확인한 뒤 공개 접속을 검증합니다. 선언 추가나 기존 인증서 파일만으로 적용 완료를 판정하지 않습니다. 검증 기준은 VPN 없는 접속의 로그인 유도, 승인 사용자 dashboard·Live 연결, identity 헤더 위조 거부, public 관리 경로 404, 내부 관리 경로 유지입니다. public DNS를 추가해 HTTP-01 발급을 시작하기 전에는 기존 DNS-01 인증서를 제거하지 않습니다.
+
+인증서 동기화에서 `failed to set times`가 발생하면 rho의 수신 디렉토리와 파일·심볼릭 링크 자체의 소유권을 수신 계정 `acme-sync-logging`과 비교합니다. 링크 소유권 수정에는 `chown -h`를 사용해 대상을 따라가지 않으며, 개인키·인증서 본문을 로그에 출력하지 않습니다. 동기화 서비스 정상 종료와 nginx reload까지 확인합니다.
+
+### Access & Audit 패널 판독
+
+`SSH Access audit`와 `Tailnet app access`는 원본 SSH·nginx 로그가 아니라 rho의 두 correlator가 가공한 기록입니다. `observe`에서도 수집하며 timer 활성화 60초 뒤 첫 실행, 이후 60초 간격으로 실행합니다. `active (elapsed)`이면서 다음 실행이 없으면 정상 수집 상태가 아닙니다. 다음 trigger, 최근 서비스 완료, `correlator_heartbeat`와 원본 로그를 함께 확인합니다. 수집 재개만으로 과거 공백이 자동 복구되지는 않습니다. 공개 Grafana 요청은 tailnet audit 대상이 아니며 원본 `nginx_access`에서 확인합니다.
+
+### Jobs 패널 판독
+
+| 표시 | 의미 | 추가 확인 |
+|------|------|----------|
+| `Success` | 마지막으로 기록한 실행이 정상 종료 | 완료 시각이 충분히 최근인지 확인 |
+| `Unsuccessful` | 마지막 완료가 비정상 종료 | 같은 실행의 systemd 결과·원인 확인 |
+| `No completion data` / 행 없음 | 완료 관측 없음 | 미실행과 수집 누락 구분 |
+| `scheduled=true` | 선언에 일정 있음 | 실제 timer 활성화·다음 시각·마지막 trigger는 systemd 확인 |
+| 결과 시계열의 연속 0 | 마지막 성공 값이 반복 수집됨 | 성공 실행 횟수나 매분 백업을 뜻하지 않음 |
+
+Jobs는 psi·rho·tau의 Borg와 PostgreSQL 덤프만 표시합니다. eta Restic·Stalwart 작업은 이 패널에 없으므로 전체 백업 상태판으로 사용하지 않습니다. eta는 systemd timer/service와 Loki의 backup snapshot을 별도로 확인합니다. Explore 권한이 있는 사용자는 Loki에서 다음 쿼리로 작업별 `unit`, `health`, `health_reason`을 확인할 수 있습니다. Explore가 보이지 않으면 권한을 요청하며 익명 접근을 열지 않습니다.
+
+```logql
+{host="eta", log_type="systemd_status", event="job_snapshot"} | json | job_class="backup"
+```
+
+로그 자체가 없으면 정상이라는 뜻이 아닙니다. 서비스가 `inactive (dead)`여도 oneshot은 정상 종료 후 그렇게 표시됩니다. `Result`, `ExecMainStatus`, 시작·종료 시각을 같은 실행 기준으로 함께 봅니다. 예약 성공을 확인하려면 timer의 `LastTriggerUSec`가 서비스 시작 시각과 연결되고, 그 실행이 정상 종료했는지 확인합니다. 수동 실행 성공만으로 자동 예약 검증을 완료하지 않습니다.
+
+Grafana는 관측 화면이며 백업 실행기나 알림 전송 확인서가 아닙니다. `observe`에서도 같은 대시보드를 사용합니다. `active` 승인은 실제 firing/resolved 수신과 독립 Watchdog 전달을 확인하는 절차와 분리하지 않습니다.
 
 ## 스택 구성
 
@@ -64,7 +118,8 @@ flowchart LR
 | Headscale 컨트롤플레인 이벤트 (eta) | Loki (rho:3100) | 실시간 |
 | Headscale 노드 인벤토리 스냅샷 (eta) | Loki (rho:3100) | 300초 |
 | 호스트 메트릭 | Prometheus (rho:9090) | 60초 |
-| psi job freshness/status snapshot | Loki (rho:3100) | 60초 |
+| Borg·PostgreSQL 작업 완료 결과 | Prometheus (rho:9090) | 60초 |
+| RAID·SMART exporter metrics (psi/rho/tau) | Prometheus (rho:9090) | 60초 |
 | PostgreSQL exporter metrics (rho/tau) | Prometheus (rho:9090) | 30초 |
 | PostgreSQL replication audit snapshot (rho/tau) | Loki (rho:3100) | 60초 |
 
@@ -76,9 +131,13 @@ eta는 SSH 인증 로그와 같은 PID의 outbound socket을 관찰해 `ssh_bast
 
 대상 호스트의 SSH 로그와 맞출 때는 `target_host`, `bastion_user`, 시간대, `bastion_local_port`를 함께 봅니다. 대상 호스트 sshd 로그의 `source_port`가 eta에서 기록한 `bastion_local_port`입니다.
 
-### Job freshness (psi, rho)
+### 백업 완료 결과
 
-psi는 `db-sync-*.service`, protected data backup, Nixbot PostgreSQL backup 상태를 60초마다 snapshot으로 기록합니다. rho는 PostgreSQL backup과 delayed mirror units 상태를 같은 형식으로 기록합니다 (`log_type="systemd_status"`, `event="job_snapshot"`). 각 행은 `health=OK|WARN|FAIL`, `health_reason`, `last_success_age_seconds`, `next_due_seconds`, `max_success_age_seconds`를 포함합니다. `FAIL`은 systemd 실패/비정상 exit, `WARN`은 성공 기록이 없거나 마지막 성공이 freshness 한계를 넘은 상태입니다.
+psi·rho·tau의 Borg·PostgreSQL 덤프는 종료 시각과 정상 완료 여부만 기록합니다. Vector가 `infra_job_last_completion_timestamp_seconds`와 `infra_job_last_result`를 전송하며, 최초 완료 전에는 값을 생성하지 않습니다. 결과 0은 정상 완료, 1은 비정상 완료입니다. 실행 중 상태나 별도로 보존된 마지막 성공 이력으로 해석하지 않습니다.
+
+Jobs 대시보드는 마지막 완료 결과와 경과 시간을 표시합니다. 예약 백업·주간 Borg 무결성 검사의 실패, 선행 덤프 실패, 백업 36시간·검사 9일 완료 지연, 완료 관측 누락을 구분합니다. 주간 검사는 파일 추출이나 DB 복원을 하지 않습니다. 누락은 실패나 복구의 증거가 아닙니다. 일정·범위·복원 절차는 [백업 문서](backup.md)를 봅니다.
+
+Docling은 구성에서 비활성화되어 있습니다. 활성화하려면 host import, Gatus 등록, probe target, 인증서 동기화 선언을 함께 검토하고 승인 후 적용합니다. 감시 대상에서 빠진 상태를 서비스 정상 동작으로 해석하지 않습니다.
 
 ### 접근 감사 (Authentik / Headscale)
 
@@ -104,13 +163,13 @@ eta의 Vector가 journald에서 수집해 이벤트를 분류합니다 (`modules
   - `blackbox_exporter`: eta blackbox exporter 자체 health
   - `alertmanager`: rho Alertmanager health (Alertmanager SOPS keys가 있을 때)
   - `blackbox_http`: eta vantage public HTTPS probes (`auth`, `hs`, `n8n`)
-  - `blackbox_tailnet_http`: eta vantage wg-admin HTTPS probes with Host/SNI override for tailnet-only apps (`n8n-ui`, `grafana`, `nextcloud`, etc.)
+  - `blackbox_tailnet_http`: eta vantage wg-admin HTTPS probes with Host/SNI override for tailnet-only apps (`n8n-ui`, `nextcloud`, etc.). Grafana는 공개 HTTPS/login 경로를 검사하며 인증 후 dashboard 내용까지 검증하지는 않습니다.
   - `blackbox_tcp`: eta vantage TCP probe for Upterm
   - `blackbox_icmp`: eta vantage ICMP probe for wg-admin host reachability
   - `nvidia-gpu`: psi GPU exporter
   - `postgresql`: rho/tau local postgres_exporter metrics relayed through Vector
-- Alert rules: 호스트 메트릭 freshness, 디스크 부족/심각 부족, 메모리 부족, 높은 CPU, generic scrape target down, Gatus non-app heartbeat down, PostgreSQL DB/exporter/role/streaming/lag/slot WAL 상태, blackbox exporter down, blackbox probe failed, GPU exporter down, Watchdog dead-man
-- Alert delivery: Alertmanager는 operational alert를 `#infra-alerts`로, audit alert를 `#infra-audit`로 Cloudflare Worker/D1 bridge를 통해 전송합니다. `Watchdog`은 healthchecks.io로 직접 ping하며, ping이 끊기면 healthchecks.io가 `#infra-alerts`에 알립니다.
+- Alert rules: 호스트 관측 누락, 공간 부족, PostgreSQL 상태·replication, 등록 서비스 probe 실패·관측 누락, TLS 만료, Vector 전송 오류, 규칙 평가 실패, 예약 작업·백업 덤프 실패·완료 지연·관측 누락, RAID·SMART 상태와 수집 누락, Watchdog
+- Alert delivery: 현재 `active`에서 정책상 대응이 필요한 operational alert를 Cloudflare Worker/D1 bridge로 전송합니다. `observe`로 되돌리면 외부 전송을 discard 처리합니다. 서비스별 소유 호스트·접근 경로·대응 정책은 `modules/monitoring/targets.nix`에 선언하며, 의존 대상 장애는 종속 경보를 억제합니다.
 - Alert bridge: Bridge는 자체 healthchecks.io heartbeat를 사용합니다. healthchecks.io 알림은 별도 cutover 전까지 기존 Slack integration을 유지합니다.
 
 ### Alert response runbook
@@ -129,13 +188,10 @@ alert별 1차 확인:
 |-------|----------|----------|
 | `HostMetricsMissing` | `systemctl status vector`, 네트워크, rho Prometheus target | Vector 재시작 또는 wg-admin 연결 복구 |
 | `DiskSpaceLow` / `DiskSpaceCritical` | `df -h`, `du -xhd1 <mount>` | GC, 오래된 workspace 정리, root filesystem 증설 |
-| `RustFSStoreMetricsMissing` | rho/tau Vector와 `/srv` mount 상태 | Vector 또는 mount 복구 후 metrics 수신 확인 |
-| `RustFSStoreSpaceLow` / `RustFSStoreSpaceCritical` | `df -h /srv`, RustFS object 증가량 | 불필요한 object 검토, 보관 정책 확인, 저장소 증설 |
-| `MemoryLow` / `HighCPULoad` | Grafana Hosts, `systemd-cgtop`, `ps` | 원인 process 확인 후 부하 제한·서비스 재시작 |
-| `PrometheusTargetDown` | Prometheus Targets의 job/instance와 대상 service | exporter/service 또는 wg-admin 연결 복구 |
-| `GatusEndpointDown` | Gatus endpoint와 해당 push unit journal | 서비스 health push unit 재시작 |
+| RAID·SMART 하드웨어 경보 | `/proc/mdstat`, `smartctl`, 대상 by-id 디스크 | 실제 장애 여부 확인 후 디스크 교체·배열 복구 계획 |
+| RAID·SMART 수집 누락 경보 | node/smartctl exporter, Vector와 원격 전송 | 수집 경로 복구. 관측 누락만으로 디스크 고장 판정 금지 |
 | `BlackboxExporterDown` | eta의 `prometheus-blackbox-exporter.service` | exporter 재시작, listen address와 방화벽 확인 |
-| `BlackboxProbeFailed` | eta blackbox exporter, DNS, nginx 인증서 | ACME/프록시/방화벽 확인 |
+| `ServiceUnavailable` / `ServiceObservationMissing` | 대상 probe, 접근 경로, DNS, nginx 인증서 | 실제 접근 실패와 관측 누락을 구분해 조사 |
 | `TlsCertificateExpiringSoon` | eta ACME timer와 대상 `acme-sync-*` unit | 인증서 갱신 후 대상 호스트 동기화 확인 |
 | `AcmeRenewalFailed` | eta의 `acme-order-renew-*` journal과 `log_type="systemd_status"`, `job_class="acme"` | HTTP-01은 공개 DNS·80번 포트·nginx challenge 경로, DNS-01은 resolver·TXT 전파·토큰 권한 확인. 원인 해결 후 재검증·필요 시 unpause |
 | `NvidiaGpuExporterDown` | psi exporter service와 `nvidia-smi` | NVIDIA driver/GPU 상태 확인 후 exporter 복구 |
@@ -143,7 +199,10 @@ alert별 1차 확인:
 | `PostgresqlReplicaNotStreaming` / `PostgresqlReplicationLagHigh` | rho `pg_stat_replication`, tau `pg_stat_wal_receiver` | 연결·WAL 상태 확인, WAL 유실이면 tau 재-bootstrap |
 | `PostgresqlReplicationSlotInactive` / `PostgresqlReplicationSlotWalRisk` | rho `pg_replication_slots` | tau 상태 복구. `wal_status=lost`면 새 basebackup 수행 |
 | `PostgresqlAuditSnapshotsMissing` | rho/tau audit timer와 Vector/Loki | timer·전송 경로 복구 후 누락 구간 기록 |
-| `BackupJobFailed` / `BackupJobStale` | `log_type="systemd_status"`, 대상 timer/service | 백업 unit 수정 후 수동 실행, 새 snapshot 확인 |
+| `ScheduledJobFailed` / `BackupDumpFailed` | 백업·덤프 journal, 종료 결과 | 원인 수정 후 systemd 백업 서비스로 재실행 |
+| `BackupCompletionOverdue` | 05:30 타이머, 덤프 의존성, Borg 실행 여부 | 36시간 완료 지연 원인 조사 |
+| `BackupVerificationOverdue` | 일요일 09:00 타이머, Borg 검사 journal | 9일 완료 지연 원인 조사 |
+| `BackupObservationMissing` | 최초 실행 여부, 완료 기록 파일, Vector job source·sink | 초기 검사 또는 관측 경로 복구. 실패·성공 추정 금지 |
 | `AuditJobFailed` / `AuditJobStale` | `log_type="systemd_status"`, 대상 audit timer/service | 감사 수집 unit 복구 후 누락 구간 확인 |
 | `AuditCorrelatorHeartbeatMissing` | rho audit correlator service와 Loki 수신 | correlator·Loki 연결 복구 후 heartbeat 확인 |
 | `NginxAccessLogsMissing` | nginx access log, Vector source, Loki | 로그 파일 권한과 Vector pipeline 복구 |
@@ -208,13 +267,13 @@ alertmanager-slack-infra-audit-webhook: ENC[...]
 
 ### Alert bridge cutover
 
-현재 Alertmanager 운영 경로는 Cloudflare Worker bridge입니다.
+`active` 모드의 Alertmanager 전송 경로는 Cloudflare Worker bridge입니다. 새 활성화나 재활성화에서는 별도 승인 후 아래 절차를 수행합니다. 실제 Slack firing/resolved 수신과 healthchecks.io의 독립 Watchdog 수신을 확인하지 못하면 `observe`로 되돌립니다.
 
 1. `terraform/alert-bridge` apply 완료 확인
 1. `packages/infra-alert-bridge`에서 D1 migration 실행
 1. Worker `GET /healthz`와 cron heartbeat 확인
 1. Alertmanager receiver가 bridge `POST /alertmanager`와 bearer token을 사용하는지 확인
-1. `#infra-alerts`, `#infra-audit`에 firing/resolved/update 메시지가 같은 thread로 정상 생성되는지 확인
+1. 실제 선언된 receiver의 대상인 `#infra-alerts`에서 firing/resolved/update 메시지가 같은 thread로 정상 생성되는지 확인. bridge의 `#infra-audit` 지원만으로 감사 채널 전송을 가정하지 않으며, 전용 receiver 추가 시 별도 검증
 1. rollback window 동안 legacy Slack webhook secret 유지
 1. 안정화 후 `incoming-webhook` Slack scope와 webhook SOPS key 제거
 
@@ -234,4 +293,4 @@ healthchecks.io webhook integration은 아직 legacy Slack integration을 유지
 - External endpoint heartbeat: 15분 동안 push가 없으면 실패 처리
 - 그룹: `apps`, `ai`, `ci`, `monitoring`, `platform`, `storage`
 - 기본 정렬: group 기준
-- 알림: 직접 전송 없음. Prometheus가 Gatus metrics를 평가하고, Alertmanager SOPS keys가 있을 때 Alertmanager가 Slack으로 라우팅합니다.
+- 알림: Gatus 직접 전송 없음. `observe`에서는 외부 알림을 보내지 않습니다. 서비스 경보는 등록된 probe와 대응 정책을 기준으로 평가합니다.

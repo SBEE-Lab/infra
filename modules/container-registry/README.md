@@ -19,7 +19,7 @@ license prohibits redistribution.
 
 ## Health image
 
-Deployment verification published a tiny data-only OCI image:
+Use the data-only OCI health image for anonymous pull checks:
 
 ```text
 registry.sjanglab.org/sjanglab/registry-healthcheck@sha256:1634c441a4f34568a2c451544653bee64c85cee0030a778be1a8a9612233729c

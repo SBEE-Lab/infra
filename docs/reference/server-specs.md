@@ -1,13 +1,15 @@
 # 서버 스펙
 
+구성과 역할은 `hosts/<host>.nix`를 기준으로 합니다. TB 용량은 제조사 명목 십진수이며 filesystem 여유 공간과 같지 않습니다. 실제 장치·메모리·PCI inventory는 [호스트 보고서](../hosts/README.md), 운영 상태는 `findmnt`, `df`, `/proc/mdstat`, `nvidia-smi`로 확인합니다. 생성 보고서는 직접 고치지 않습니다.
+
 ## eta (Vultr VPS)
 
 - **위치**: Vultr 클라우드
 - **공인 IP**: 141.164.53.203
-- **역할**: 게이트웨이, 리버스 프록시, 인증, Upterm relay
+- **역할**: 게이트웨이, 인증, Vaultwarden, Stalwart, Gatus, Upterm relay, R2 Restic
 - **CPU**: AMD EPYC Rome, 2 cores
 - **메모리**: 4GB
-- **스토리지**: 100GB NVMe
+- **스토리지**: 100GB 가상 디스크 (`/`, ext4)
 - **네트워크**: 월 5TB bandwidth
 - **태그**: `public-ip`, `vps-network`
 
@@ -22,30 +24,30 @@
 - **스토리지**:
   - Root: Samsung 990 PRO 4TB NVMe (`/`)
   - Workspace: Samsung 9100 PRO 8TB x2 NVMe RAID0 (`/workspace`, `allocsize=16m`)
-  - Data: Seagate 30TB x2 HDD RAID0 (`/data`, `allocsize=64m`)
-- **GPU**: NVIDIA (CUDA, Production 드라이버 570.x)
+  - Data: Seagate 30TB x2 HDD RAID1 (명목 usable 30TB) (`/data`, `allocsize=64m`)
+- **GPU**: NVIDIA RTX A6000 48GB. 드라이버는 `modules/nvidia.nix`의 `nvidiaPackages.production`을 사용하며 실제 버전은 `nvidia-smi`로 확인합니다.
 - **소프트웨어**: Apptainer, Docker + NVIDIA Container Toolkit
 
 ## rho (DB/모니터링)
 
 - **위치**: 랩 내부 (NAT)
 - **내부 IP**: 10.80.169.39
-- **역할**: PostgreSQL 프라이머리, 모니터링 스택, RustFS S3 백업 미러
+- **역할**: PostgreSQL 프라이머리, 모니터링 스택, 로컬 Borg
 - **CPU**: AMD Ryzen 5 9600X, 6 cores
 - **메모리**: 32GB
 - **태그**: `nat-behind`, `lab-network`, `kren-dns`
 - **스토리지**:
   - Root: 2TB NVMe (`/`)
-  - Data: 2TB HDD x2 RAID0 (`/srv`, 4TB total)
+  - Data: 2TB HDD x2 RAID1 (`/srv`, 명목 usable 2TB)
 
 ## tau (앱 서버/백업)
 
 - **위치**: 랩 내부 (NAT)
 - **내부 IP**: 10.80.169.40
-- **역할**: Nextcloud, n8n, PostgreSQL 레플리카, RustFS S3 primary 백업 저장소
+- **역할**: Nextcloud, n8n, Vaultwarden tailnet proxy, PostgreSQL 레플리카, 로컬 Borg
 - **CPU**: AMD Ryzen 5 9600X, 6 cores
 - **메모리**: 32GB
 - **태그**: `nat-behind`, `lab-network`, `kren-dns`
 - **스토리지**:
   - Root: 2TB NVMe (`/`)
-  - Data: 2TB HDD x2 RAID0 (`/srv`, 4TB total)
+  - Data: 2TB HDD x2 RAID1 (`/srv`, 명목 usable 2TB)

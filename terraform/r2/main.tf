@@ -42,6 +42,17 @@ resource "cloudflare_r2_bucket" "stalwart_mail_blobs_backup" {
   }
 }
 
+resource "cloudflare_r2_bucket" "eta_restic_backups" {
+  account_id    = data.sops_file.secrets.data["CLOUDFLARE_ACCOUNT_ID"]
+  name          = "eta-restic-backups"
+  location      = "apac"
+  storage_class = "Standard"
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
 resource "cloudflare_r2_custom_domain" "niks3_cache" {
   account_id  = data.sops_file.secrets.data["CLOUDFLARE_ACCOUNT_ID"]
   bucket_name = cloudflare_r2_bucket.niks3.name
