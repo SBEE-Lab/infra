@@ -60,6 +60,7 @@ in
           (mkExtEndpoint "Nixbot" "ci")
           (mkExtEndpoint "Docling" "apps")
           (mkExtEndpoint "TEI" "ai")
+          (mkExtEndpoint "niks3" "cache")
           # tau
           (mkExtEndpoint "Nextcloud" "apps")
           (mkExtEndpoint "n8n" "apps")
