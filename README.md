@@ -15,7 +15,7 @@ NixOS-based infrastructure for bioinformatics research with four servers optimiz
 
 Borg protects each bare-metal host's system SSD and SQL dumps on that host's HDD RAID1; it is not an off-host copy. Homes, workspace, HDD data, and live PGDATA are excluded. Eta stores PostgreSQL and Vaultwarden Restic backups in a dedicated private R2 bucket. RAID1 is not a backup. See [backup and recovery](docs/admin/backup.md) for scope and checks.
 
-Docling is disabled. TEI uses Naru/WireGuard allowlists, not a public or Headscale HTTP endpoint. Monitoring defaults to `observe`: collection and evaluation continue without external Alertmanager delivery.
+Docling is disabled. TEI uses Naru/WireGuard allowlists, not a public or Headscale HTTP endpoint. Monitoring defaults to `active`: explicitly routed operational alerts reach the Slack bridge, and Watchdog pings healthchecks.io independently. `observe` retains collection and evaluation while discarding external Alertmanager delivery.
 
 ### User Groups
 

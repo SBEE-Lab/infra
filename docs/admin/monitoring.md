@@ -2,9 +2,9 @@
 
 ## 운영 모드
 
-공통 설정은 현재 `observe`입니다. 수집·대시보드·Prometheus 규칙 평가는 유지하지만 Alertmanager의 외부 전송은 discard 처리합니다. `paused`는 수집·평가를 중단하며, `active` 전환과 실제 알림·복구 전송 테스트는 별도 승인 대상입니다.
+공통 설정은 현재 `active`입니다. 수집·대시보드·Prometheus 규칙 평가를 유지하며 명시적으로 분류된 operational alert를 Slack bridge로 전송하고 Watchdog은 healthchecks.io로 직접 보냅니다. 미분류 알림은 discard 처리합니다. `observe`는 수집·평가를 유지하면서 외부 전송을 중단하고, `paused`는 수집·평가도 중단합니다. 모드 전환과 실제 알림·복구 전송 테스트는 별도 승인 대상입니다.
 
-`active`에서는 즉시 대응과 업무시간 대응을 구분합니다. 업무시간은 평일 09:00–18:00 Asia/Seoul이며 공휴일 예외나 요약 발송은 없습니다. 아래 알림 연결도는 활성 모드의 경로이며 현재 외부 알림 전송을 뜻하지 않습니다.
+`active`에서는 즉시 대응과 업무시간 대응을 구분합니다. 업무시간은 평일 09:00–18:00 Asia/Seoul이며 공휴일 예외나 요약 발송은 없습니다. 아래 알림 연결도는 활성 모드의 경로입니다. 설정만으로 전달 성공을 판정하지 않고 실제 수신을 확인합니다.
 
 ### 보수 중 자동 업데이트 차단
 
@@ -169,7 +169,7 @@ eta의 Vector가 journald에서 수집해 이벤트를 분류합니다 (`modules
   - `nvidia-gpu`: psi GPU exporter
   - `postgresql`: rho/tau local postgres_exporter metrics relayed through Vector
 - Alert rules: 호스트 관측 누락, 공간 부족, PostgreSQL 상태·replication, 등록 서비스 probe 실패·관측 누락, TLS 만료, Vector 전송 오류, 규칙 평가 실패, 예약 작업·백업 덤프 실패·완료 지연·관측 누락, RAID·SMART 상태와 수집 누락, Watchdog
-- Alert delivery: 현재 `observe`에서는 외부 전송하지 않습니다. `active`에서 정책상 대응이 필요한 operational alert를 Cloudflare Worker/D1 bridge로 전송합니다. 서비스별 소유 호스트·접근 경로·대응 정책은 `modules/monitoring/targets.nix`에 선언하며, 의존 대상 장애는 종속 경보를 억제합니다.
+- Alert delivery: 현재 `active`에서 정책상 대응이 필요한 operational alert를 Cloudflare Worker/D1 bridge로 전송합니다. `observe`로 되돌리면 외부 전송을 discard 처리합니다. 서비스별 소유 호스트·접근 경로·대응 정책은 `modules/monitoring/targets.nix`에 선언하며, 의존 대상 장애는 종속 경보를 억제합니다.
 - Alert bridge: Bridge는 자체 healthchecks.io heartbeat를 사용합니다. healthchecks.io 알림은 별도 cutover 전까지 기존 Slack integration을 유지합니다.
 
 ### Alert response runbook
@@ -267,13 +267,13 @@ alertmanager-slack-infra-audit-webhook: ENC[...]
 
 ### Alert bridge cutover
 
-`active` 모드에서 사용할 Alertmanager 전송 경로는 Cloudflare Worker bridge입니다. 현재 `observe`의 discard 라우팅을 확인한 상태에서 아래 cutover는 별도 승인 후 수행합니다.
+`active` 모드의 Alertmanager 전송 경로는 Cloudflare Worker bridge입니다. 새 활성화나 재활성화에서는 별도 승인 후 아래 절차를 수행합니다. 실제 Slack firing/resolved 수신과 healthchecks.io의 독립 Watchdog 수신을 확인하지 못하면 `observe`로 되돌립니다.
 
 1. `terraform/alert-bridge` apply 완료 확인
 1. `packages/infra-alert-bridge`에서 D1 migration 실행
 1. Worker `GET /healthz`와 cron heartbeat 확인
 1. Alertmanager receiver가 bridge `POST /alertmanager`와 bearer token을 사용하는지 확인
-1. `#infra-alerts`, `#infra-audit`에 firing/resolved/update 메시지가 같은 thread로 정상 생성되는지 확인
+1. 실제 선언된 receiver의 대상인 `#infra-alerts`에서 firing/resolved/update 메시지가 같은 thread로 정상 생성되는지 확인. bridge의 `#infra-audit` 지원만으로 감사 채널 전송을 가정하지 않으며, 전용 receiver 추가 시 별도 검증
 1. rollback window 동안 legacy Slack webhook secret 유지
 1. 안정화 후 `incoming-webhook` Slack scope와 webhook SOPS key 제거
 

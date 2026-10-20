@@ -291,7 +291,7 @@ Enabled tailnet-relevant reverse-proxied apps, including Grafana/logging, Gatus/
 
 Check `services.sbee.monitoring.mode` before testing delivery. In `observe`, collection and rule evaluation continue but external Alertmanager delivery is discarded. In `paused`, collection and evaluation stop. Changing to `active` and sending external test notifications require approval.
 
-In `active`, Alertmanager routes eligible operational alerts through the bridge to Slack `#infra-alerts`, audit/security alerts to `#infra-audit`, and `Watchdog` to healthchecks.io. Verify routing, Slack updates/resolution, and dead-man delivery independently; collection or a healthy dashboard does not prove notification delivery.
+In `active`, Alertmanager routes explicitly eligible alerts through the bridge to Slack `#infra-alerts`, and sends `Watchdog` directly to healthchecks.io. The bridge supports `#infra-audit`, but the current Alertmanager configuration does not declare a dedicated audit receiver; do not infer audit-channel delivery from bridge capability. Verify routing, Slack updates/resolution, and dead-man delivery independently; collection or a healthy dashboard does not prove notification delivery.
 
 The Slack app source of truth lives in `../../slack/infra-alerts`. The external bridge implementation lives in `../../packages/infra-alert-bridge`, with Cloudflare deployment in `../../terraform/alert-bridge`. Keep legacy incoming webhook secrets only during the rollback window; remove the Slack app `incoming-webhook` scope and SOPS webhook secrets after the bridge path is stable.
 

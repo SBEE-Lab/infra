@@ -152,3 +152,11 @@ restic-eta-vaultwarden check --read-data
 Stalwart R2 blob 복사는 Restic과 별도입니다. 복사 토큰에는 원본 버킷 읽기·목록 조회와 백업 버킷 쓰기·읽기·목록 조회 권한이 필요합니다. 작업 종료 코드와 백업 객체 존재를 확인하고, 선택한 객체를 양쪽에서 읽어 SHA-256을 비교합니다. 빈 버킷에서의 점검 생략이나 샘플 한 개의 일치는 전체 메일 복구의 증거가 아닙니다.
 
 메일 복구에는 DB 메타데이터가 참조하는 본문·첨부 blob이 함께 필요합니다. DB snapshot과 blob 백업의 시점·범위를 맞춰 검증합니다. R2 object·bucket 삭제나 credential rotation은 백업 점검과 분리해 승인받습니다.
+
+별도 승인된 application 복구 시험은 다음 경계를 유지합니다.
+
+1. Restic snapshot에서 Stalwart DB dump를 `--verify`로 추출하고, blob은 **백업 버킷**에서 별도 임시 디렉터리로 내려받아 해시를 확인합니다. 원본 버킷으로 대체하지 않습니다.
+1. 별도 PGDATA·Unix socket에서 DB를 복원하고 운영과 같은 Stalwart 바이너리를 실행합니다. 네트워크 namespace를 격리하고 SMTP listener·외부 통신·운영 credential은 제공하지 않습니다. blob은 격리 namespace의 읽기 전용 S3 endpoint로 제공합니다.
+1. 복원한 도메인·계정을 확인하고 JMAP으로 메일과 첨부를 실제 내려받아 크기·해시를 검증합니다. SQL 복원 성공이나 HTTP 응답만으로 메일 복구를 판정하지 않습니다.
+1. 복원본에 메일이 없으면 본문·첨부 검증은 미실시로 남깁니다. 합성 메일을 사용한 절차 검증은 별도 복제본에서만 수행하고, 새 PGDATA·Stalwart process·blob 복사본으로 cold restore한 뒤 원본 합성 본문·첨부와 해시를 비교합니다. 이 결과를 실제 사용자 메일 복구 증거로 대체하지 않습니다.
+1. 임시 process·socket·DB·blob·credential을 정리하고 운영 서비스가 유지되는지 확인합니다. 복구 데이터·SQL·메일 본문을 로그나 Nix store에 남기지 않습니다.
