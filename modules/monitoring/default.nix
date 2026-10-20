@@ -3,6 +3,7 @@
   imports = [
     ./paused.nix
     ./exporters/job-results.nix
+    ./exporters/storage.nix
   ];
 
   options.services.sbee.monitoring.mode = lib.mkOption {

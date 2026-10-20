@@ -54,7 +54,14 @@ in
     }
     (lib.mkIf (config.services.sbee.monitoring.mode == "paused") {
       gatusCheck.push = lib.mkForce [ ];
-      systemd.services = disableUnits ([ "vector" ] ++ hostUnits.${config.networking.hostName});
+      systemd.services = disableUnits (
+        [
+          "vector"
+          "prometheus-node-exporter"
+          "prometheus-smartctl-exporter"
+        ]
+        ++ hostUnits.${config.networking.hostName}
+      );
       systemd.timers = disableUnits (hostTimers.${config.networking.hostName} or [ ]);
     })
   ];

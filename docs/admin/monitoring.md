@@ -1,5 +1,17 @@
 # 모니터링
 
+## 운영 모드
+
+공통 설정은 현재 `observe`입니다. 수집·대시보드·Prometheus 규칙 평가는 유지하지만 Alertmanager의 외부 전송은 discard 처리합니다. `paused`는 수집·평가를 중단하며, `active` 전환과 실제 알림·복구 전송 테스트는 별도 승인 대상입니다.
+
+`active`에서는 즉시 대응과 업무시간 대응을 구분합니다. 업무시간은 평일 09:00–18:00 Asia/Seoul이며 공휴일 예외나 요약 발송은 없습니다. 아래 알림 연결도는 활성 모드의 경로이며 현재 외부 알림 전송을 뜻하지 않습니다.
+
+### 보수 중 자동 업데이트 차단
+
+psi·rho·tau·eta에는 보수용 영구 drop-in이 직접 적용되어 있습니다. `/etc/systemd/system.control/{auto-upgrade,auto-reboot}.{service,timer}.d/90-migration-pause.conf`가 `/run/infra-maintenance-resume-automatic-updates`의 존재를 실행 조건으로 요구하며, 해당 marker는 만들지 않습니다. 재부팅 후에도 차단됩니다. 일반 Nix 배포만으로 해제되지 않습니다.
+
+main이 검토된 스토리지·백업·모니터링 선언과 일치하고 운영 검증을 마친 뒤, 별도 승인으로 영구 drop-in과 남아 있는 동일 이름의 `/run/systemd/system/` drop-in을 제거하고 daemon reload·timer 재활성화를 수행합니다. marker 생성으로 우회하지 않습니다.
+
 ## 대시보드
 
 - **Grafana**: `https://logging.sjanglab.org` (익명 Viewer 접근 가능, wg-admin 경유)
@@ -65,6 +77,7 @@ flowchart LR
 | Headscale 노드 인벤토리 스냅샷 (eta) | Loki (rho:3100) | 300초 |
 | 호스트 메트릭 | Prometheus (rho:9090) | 60초 |
 | Borg·PostgreSQL 작업 완료 결과 | Prometheus (rho:9090) | 60초 |
+| RAID·SMART exporter metrics (psi/rho/tau) | Prometheus (rho:9090) | 60초 |
 | PostgreSQL exporter metrics (rho/tau) | Prometheus (rho:9090) | 30초 |
 | PostgreSQL replication audit snapshot (rho/tau) | Loki (rho:3100) | 60초 |
 
@@ -113,8 +126,8 @@ eta의 Vector가 journald에서 수집해 이벤트를 분류합니다 (`modules
   - `blackbox_icmp`: eta vantage ICMP probe for wg-admin host reachability
   - `nvidia-gpu`: psi GPU exporter
   - `postgresql`: rho/tau local postgres_exporter metrics relayed through Vector
-- Alert rules: 호스트 메트릭 freshness, 디스크 부족/심각 부족, 메모리 부족, 높은 CPU, generic scrape target down, Gatus non-app heartbeat down, PostgreSQL DB/exporter/role/streaming/lag/slot WAL 상태, blackbox exporter down, blackbox probe failed, GPU exporter down, Watchdog dead-man
-- Alert delivery: Alertmanager는 operational alert를 `#infra-alerts`로, audit alert를 `#infra-audit`로 Cloudflare Worker/D1 bridge를 통해 전송합니다. `Watchdog`은 healthchecks.io로 직접 ping하며, ping이 끊기면 healthchecks.io가 `#infra-alerts`에 알립니다.
+- Alert rules: 호스트 관측 누락, 공간 부족, PostgreSQL 상태·replication, 등록 서비스 probe 실패·관측 누락, TLS 만료, Vector 전송 오류, 규칙 평가 실패, 예약 작업·백업 덤프 실패·완료 지연·관측 누락, RAID·SMART 상태와 수집 누락, Watchdog
+- Alert delivery: 현재 `observe`에서는 외부 전송하지 않습니다. `active`에서 정책상 대응이 필요한 operational alert를 Cloudflare Worker/D1 bridge로 전송합니다. 서비스별 소유 호스트·접근 경로·대응 정책은 `modules/monitoring/targets.nix`에 선언하며, 의존 대상 장애는 종속 경보를 억제합니다.
 - Alert bridge: Bridge는 자체 healthchecks.io heartbeat를 사용합니다. healthchecks.io 알림은 별도 cutover 전까지 기존 Slack integration을 유지합니다.
 
 ### Alert response runbook
@@ -133,13 +146,10 @@ alert별 1차 확인:
 |-------|----------|----------|
 | `HostMetricsMissing` | `systemctl status vector`, 네트워크, rho Prometheus target | Vector 재시작 또는 wg-admin 연결 복구 |
 | `DiskSpaceLow` / `DiskSpaceCritical` | `df -h`, `du -xhd1 <mount>` | GC, 오래된 workspace 정리, root filesystem 증설 |
-| `RustFSStoreMetricsMissing` | rho/tau Vector와 `/srv` mount 상태 | Vector 또는 mount 복구 후 metrics 수신 확인 |
-| `RustFSStoreSpaceLow` / `RustFSStoreSpaceCritical` | `df -h /srv`, RustFS object 증가량 | 불필요한 object 검토, 보관 정책 확인, 저장소 증설 |
-| `MemoryLow` / `HighCPULoad` | Grafana Hosts, `systemd-cgtop`, `ps` | 원인 process 확인 후 부하 제한·서비스 재시작 |
-| `PrometheusTargetDown` | Prometheus Targets의 job/instance와 대상 service | exporter/service 또는 wg-admin 연결 복구 |
-| `GatusEndpointDown` | Gatus endpoint와 해당 push unit journal | 서비스 health push unit 재시작 |
+| RAID·SMART 하드웨어 경보 | `/proc/mdstat`, `smartctl`, 대상 by-id 디스크 | 실제 장애 여부 확인 후 디스크 교체·배열 복구 계획 |
+| RAID·SMART 수집 누락 경보 | node/smartctl exporter, Vector와 원격 전송 | 수집 경로 복구. 관측 누락만으로 디스크 고장 판정 금지 |
 | `BlackboxExporterDown` | eta의 `prometheus-blackbox-exporter.service` | exporter 재시작, listen address와 방화벽 확인 |
-| `BlackboxProbeFailed` | eta blackbox exporter, DNS, nginx 인증서 | ACME/프록시/방화벽 확인 |
+| `ServiceUnavailable` / `ServiceObservationMissing` | 대상 probe, 접근 경로, DNS, nginx 인증서 | 실제 접근 실패와 관측 누락을 구분해 조사 |
 | `TlsCertificateExpiringSoon` | eta ACME timer와 대상 `acme-sync-*` unit | 인증서 갱신 후 대상 호스트 동기화 확인 |
 | `AcmeRenewalFailed` | eta의 `acme-order-renew-*` journal과 `log_type="systemd_status"`, `job_class="acme"` | HTTP-01은 공개 DNS·80번 포트·nginx challenge 경로, DNS-01은 resolver·TXT 전파·토큰 권한 확인. 원인 해결 후 재검증·필요 시 unpause |
 | `NvidiaGpuExporterDown` | psi exporter service와 `nvidia-smi` | NVIDIA driver/GPU 상태 확인 후 exporter 복구 |
@@ -215,7 +225,7 @@ alertmanager-slack-infra-audit-webhook: ENC[...]
 
 ### Alert bridge cutover
 
-현재 Alertmanager 운영 경로는 Cloudflare Worker bridge입니다.
+`active` 모드에서 사용할 Alertmanager 전송 경로는 Cloudflare Worker bridge입니다. 현재 `observe`의 discard 라우팅을 확인한 상태에서 아래 cutover는 별도 승인 후 수행합니다.
 
 1. `terraform/alert-bridge` apply 완료 확인
 1. `packages/infra-alert-bridge`에서 D1 migration 실행
@@ -241,4 +251,4 @@ healthchecks.io webhook integration은 아직 legacy Slack integration을 유지
 - External endpoint heartbeat: 15분 동안 push가 없으면 실패 처리
 - 그룹: `apps`, `ai`, `ci`, `monitoring`, `platform`, `storage`
 - 기본 정렬: group 기준
-- 알림: 직접 전송 없음. Prometheus가 Gatus metrics를 평가하고, Alertmanager SOPS keys가 있을 때 Alertmanager가 Slack으로 라우팅합니다.
+- 알림: Gatus 직접 전송 없음. `observe`에서는 외부 알림을 보내지 않습니다. 서비스 경보는 등록된 probe와 대응 정책을 기준으로 평가합니다.

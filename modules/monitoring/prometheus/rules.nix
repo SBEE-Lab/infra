@@ -63,6 +63,8 @@ let
   }) alertingTargets;
 in
 {
+  imports = [ ./storage-rules.nix ];
+
   services.prometheus.rules = [
     (builtins.toJSON {
       groups = [
