@@ -29,7 +29,6 @@ flowchart LR
 | [Nextcloud](nextcloud.md) | `cloud.sjanglab.org` | 공개 | OIDC |
 | [Vaultwarden](vaultwarden.md) | `vault.sjanglab.org` | VPN 필수 | OIDC |
 | [n8n](n8n.md) | `n8n.sjanglab.org` | VPN 필수 | Forward Auth |
-
 | [Upterm](upterm.md) | `upterm.sjanglab.org` | 공개 relay | GitHub user allow-list |
 
 Nextcloud와 Upterm relay는 VPN 없이도 접근 가능합니다. Vaultwarden과 나머지 내부 서비스는 [VPN 연결](vpn-setup.md) 후 사용할 수 있습니다.
