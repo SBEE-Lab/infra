@@ -13,7 +13,7 @@
 ```mermaid
 graph LR
   eta["<b>eta</b><br/>게이트웨이 · 인증<br/>nginx · Authentik · Headscale · gitea-mq"]
-  psi["<b>psi</b><br/>GPU · CI/CD<br/>Nixbot · niks3 · TEI · BioDB · 로컬 Borg"]
+  psi["<b>psi</b><br/>GPU · CI/CD<br/>Nixbot · niks3 · BioDB · 로컬 Borg"]
   rho["<b>rho</b><br/>DB · 모니터링<br/>PostgreSQL primary · Grafana · Loki · 로컬 Borg"]
   tau["<b>tau</b><br/>앱 · DB replica<br/>Nextcloud · n8n · 로컬 Borg"]
   r2["Cloudflare R2<br/>eta Restic 저장소"]
@@ -28,11 +28,11 @@ graph LR
 | 호스트 | 위치 | 주요 서비스 |
 |--------|------|------------|
 | **eta** | Vultr VPS | nginx 리버스 프록시, Authentik SSO, Headscale VPN, gitea-mq, Vaultwarden, Gatus, Upterm relay, ACME 인증서 |
-| **psi** | KREN 베어메탈 | Nixbot+PostgreSQL+nginx/TLS, niks3 control plane, TEI, Apptainer, db-sync, 로컬 Borg; workspace 16TB RAID0, data 30TB usable RAID1 |
+| **psi** | KREN 베어메탈 | Nixbot+PostgreSQL+nginx/TLS, niks3 control plane, Apptainer, db-sync, 로컬 Borg; workspace 16TB RAID0, data 30TB usable RAID1 |
 | **rho** | 랩 내부 베어메탈 | PostgreSQL primary, Grafana, Prometheus, Loki, Vector, 로컬 Borg; `/srv` 2TB usable RAID1 |
 | **tau** | 랩 내부 베어메탈 | Nextcloud, Collabora, n8n, Vaultwarden tailnet proxy, PostgreSQL replica, 로컬 Borg; `/srv` 2TB usable RAID1 |
 
-Docling은 비활성 상태입니다. TEI는 [별도 Naru/WireGuard allowlist](../guide/tei.md)를 사용하며 Headscale 웹 서비스가 아닙니다. 각 bare-metal 호스트의 Borg는 해당 시스템 SSD와 SQL 덤프를 같은 호스트의 HDD에 저장합니다. 홈·workspace·HDD data·live PGDATA는 제외되며 RAID1이나 DB replica가 독립적인 백업을 대신하지 않습니다. eta는 R2 Restic으로 DB·Vaultwarden을 보호합니다. 상세 범위는 [백업](backup.md)을 따릅니다.
+각 bare-metal 호스트의 Borg는 해당 시스템 SSD와 SQL 덤프를 같은 호스트의 HDD에 저장합니다. 홈·workspace·HDD data·live PGDATA는 제외되며 RAID1이나 DB replica가 독립적인 백업을 대신하지 않습니다. eta는 R2 Restic으로 DB·Vaultwarden을 보호합니다. 상세 범위는 [백업](backup.md)을 따릅니다.
 
 호스트별 IP, 네트워크 위치, 방화벽 정책은 [네트워크](network.md)를 참조하세요.
 

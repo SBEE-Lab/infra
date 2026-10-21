@@ -36,13 +36,6 @@
     response = "business-hours";
     failureFor = "15m";
   };
-  # docling = {
-  #   host = "psi";
-  #   url = "https://docling.sjanglab.org/health";
-  #   access = "private";
-  #   response = "business-hours";
-  #   failureFor = "15m";
-  # };
   gatus = {
     host = "eta";
     probeHost = "rho";

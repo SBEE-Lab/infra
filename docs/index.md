@@ -17,8 +17,6 @@ SBEE Lab의 NixOS 기반 연구 인프라 문서입니다.
 | n8n | [n8n.sjanglab.org](https://n8n.sjanglab.org) | 워크플로우 자동화 | VPN 필수 |
 | Upterm | [upterm.sjanglab.org](https://upterm.sjanglab.org) | 임시 터미널 공유 | 공개 relay |
 
-Docling은 [비활성 서비스](guide/docling.md)입니다. TEI의 임베딩·리랭킹 접근은 일반 VPN 웹 서비스와 다르므로 [TEI 가이드](guide/tei.md)를 따릅니다.
-
 ## 어떤 가이드를 봐야 하나요?
 
 | 역할 | 가이드 | 설명 |

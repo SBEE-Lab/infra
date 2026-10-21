@@ -47,7 +47,6 @@
             # the link checker's HTTP GET/HEAD requests.
             "http://localhost:8000/?$"
             "https://nixbot\\.sjanglab\\.org/(auth/github/callback|webhooks/github)$"
-            "https://docling\\.sjanglab\\.org(/.*)?$"
             # Generated source links for new pages do not exist on main until
             # the documentation PR is merged.
             "https://github\\.com/sbee-lab/infra/(raw|edit)/main/docs/.*$"

@@ -31,7 +31,7 @@
           "rho-observe",
           "tau-apps"
         ],
-        "note": "Headscale은 VPN 등록·ACL 제어를 맡습니다. TEI는 별도 Naru/WireGuard source 제한을 사용하며 Docling은 비활성입니다."
+        "note": "Headscale은 VPN 등록·ACL 제어를 맡습니다."
       },
       {
         "id": "data-protection",
@@ -246,21 +246,6 @@
       "tag": "KREN"
     },
     {
-      "id": "psi-ai",
-      "type": "backend",
-      "label": "psi TEI",
-      "sublabel": "embedding · reranking",
-      "pos": [
-        930,
-        240
-      ],
-      "size": [
-        155,
-        68
-      ],
-      "tag": "GPU"
-    },
-    {
       "id": "rho-db",
       "type": "database",
       "label": "rho DB",
@@ -366,20 +351,6 @@
       "tag": "외부 사본 아님"
     },
     {
-      "id": "naru",
-      "type": "external",
-      "label": "허용된 Naru",
-      "sublabel": "source allowlist",
-      "pos": [
-        1135,
-        90
-      ],
-      "size": [
-        160,
-        62
-      ]
-    },
-    {
       "id": "eta-data",
       "type": "database",
       "label": "eta DB · 앱",
@@ -433,8 +404,7 @@
       "kind": "region",
       "label": "KREN 베어메탈",
       "wraps": [
-        "psi-ci",
-        "psi-ai"
+        "psi-ci"
       ]
     },
     {
@@ -640,24 +610,6 @@
       "route": "orthogonal-h"
     },
     {
-      "id": "naru-tei",
-      "from": "naru",
-      "to": "psi-ai",
-      "label": "8201 허용 source",
-      "variant": "security",
-      "labelAt": [
-        1109,
-        197
-      ]
-    },
-    {
-      "id": "wg-tei",
-      "from": "wg-admin",
-      "to": "psi-ai",
-      "label": "8201 · 8202",
-      "variant": "security"
-    },
-    {
       "id": "psi-borg",
       "from": "psi-ci",
       "to": "local-borg",
@@ -729,7 +681,7 @@
       "dot": "cyan",
       "title": "서비스 배치",
       "items": [
-        "psi: Nixbot, niks3, TEI, BioDB; Docling 비활성",
+        "psi: Nixbot, niks3, BioDB",
         "rho: PostgreSQL primary, Grafana, Loki",
         "tau: Nextcloud, n8n, PostgreSQL standby; Vaultwarden proxy"
       ]

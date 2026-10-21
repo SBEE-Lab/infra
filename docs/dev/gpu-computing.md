@@ -42,5 +42,5 @@ docker run --rm --gpus all -it \
 
 - GPU 자원은 공유됩니다. 장시간 점유 시 다른 사용자와 조율하세요.
 - 대용량 데이터는 `/workspace/<username>/`에 저장합니다 (SSD RAID0, 고속).
-- TEI는 모델을 상시 적재합니다. Docling은 비활성 상태입니다. 서비스 이름만으로 가용 VRAM을 추정하지 말고 실제 사용량을 확인하세요.
+- 가용 VRAM은 실행 중인 작업에 따라 달라집니다. 서비스 이름만으로 추정하지 말고 실제 사용량을 확인하세요.
 - `/workspace`는 백업되지 않습니다. 보존할 결과는 root filesystem의 `/project/$USER`와 독립적인 사본으로 옮기세요. [스토리지 구조](index.md)를 참조합니다.

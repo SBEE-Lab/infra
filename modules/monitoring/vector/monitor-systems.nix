@@ -220,28 +220,6 @@ in
           }
         ];
       }
-      {
-        job_name = "tei";
-        scrape_interval = "30s";
-        static_configs = [
-          {
-            targets = [ "${hosts.psi.wg-admin}:8201" ];
-            labels = {
-              host = "psi";
-              service = "tei-embed";
-              model = "Qwen/Qwen3-Embedding-0.6B";
-            };
-          }
-          {
-            targets = [ "${hosts.psi.wg-admin}:8202" ];
-            labels = {
-              host = "psi";
-              service = "tei-rerank";
-              model = "BAAI/bge-reranker-v2-m3";
-            };
-          }
-        ];
-      }
     ];
   };
 

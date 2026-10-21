@@ -135,7 +135,7 @@ flowchart LR
 | `n8n.sjanglab.org` | 100.64.0.3 | tau | n8n |
 | `upterm.sjanglab.org` | 141.164.53.203 | eta | Upterm relay |
 
-[Docling](docling.md)은 비활성 상태로 접속 대상이 아닙니다. [TEI](tei.md)는 Headscale 웹 endpoint가 아니라 별도 Naru/WireGuard source allowlist를 사용합니다. Vaultwarden의 실제 서비스는 eta에 있고 위 tau 주소는 tailnet reverse proxy입니다.
+Vaultwarden의 실제 서비스는 eta에 있고 위 tau 주소는 tailnet reverse proxy입니다.
 
 ## 접근 권한 (ACL)
 

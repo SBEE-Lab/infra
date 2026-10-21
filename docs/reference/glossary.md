@@ -12,7 +12,6 @@
 | **Collabora Online** | Nextcloud 통합 오피스 편집기 (LibreOffice 기반) |
 | **direnv** | 디렉토리 진입 시 환경 변수를 자동 로드하는 도구. `nix develop` 자동 활성화에 사용 |
 | **disko** | NixOS 선언적 디스크 관리 도구 |
-| **Docling** | 문서 변환 도구. SBEE Lab 서비스는 [비활성](../guide/docling.md) |
 | **fail2ban** | SSH 인증 실패 기반 자동 IP 차단 도구 |
 | **flake-parts** | Nix flake 모듈화 프레임워크 |
 | **Forward Auth** | nginx에서 외부 인증 서비스로 인증을 위임하는 패턴 |
@@ -32,7 +31,6 @@
 | **Ollama** | 로컬 LLM 추론 서버. 현재 운영 배포에서는 비활성 |
 | **sops-nix** | NixOS에서 sops 암호화 시크릿을 관리하는 도구 |
 | **Tailscale** | WireGuard 기반 메시 VPN 클라이언트 |
-| **TEI** | Text Embeddings Inference. 임베딩/리랭킹 모델 서빙 API |
 | **treefmt-nix** | Nix 기반 다중 언어 코드 포매터 통합 도구 |
 | **Vaultwarden** | Bitwarden 호환 자체 호스팅 비밀번호 관리자 |
 | **Vector** | 로그/메트릭 수집 및 전송 에이전트 |

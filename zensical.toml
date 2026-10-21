@@ -19,8 +19,6 @@ nav = [
     { "첫 로그인" = "guide/first-login.md" },
     { "Nextcloud" = "guide/nextcloud.md" },
     { "Vaultwarden" = "guide/vaultwarden.md" },
-    { "Docling" = "guide/docling.md" },
-    { "TEI" = "guide/tei.md" },
     { "n8n" = "guide/n8n.md" },
     { "Upterm" = "guide/upterm.md" },
   ] },

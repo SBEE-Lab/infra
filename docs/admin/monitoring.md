@@ -137,8 +137,6 @@ psi·rho·tau의 Borg·PostgreSQL 덤프는 종료 시각과 정상 완료 여�
 
 Jobs 대시보드는 마지막 완료 결과와 경과 시간을 표시합니다. 예약 백업·주간 Borg 무결성 검사의 실패, 선행 덤프 실패, 백업 36시간·검사 9일 완료 지연, 완료 관측 누락을 구분합니다. 주간 검사는 파일 추출이나 DB 복원을 하지 않습니다. 누락은 실패나 복구의 증거가 아닙니다. 일정·범위·복원 절차는 [백업 문서](backup.md)를 봅니다.
 
-Docling은 구성에서 비활성화되어 있습니다. 활성화하려면 host import, Gatus 등록, probe target, 인증서 동기화 선언을 함께 검토하고 승인 후 적용합니다. 감시 대상에서 빠진 상태를 서비스 정상 동작으로 해석하지 않습니다.
-
 ### 접근 감사 (Authentik / Headscale)
 
 eta의 Vector가 journald에서 수집해 이벤트를 분류합니다 (`modules/authentik/audit.nix`, `modules/headscale/audit.nix`):

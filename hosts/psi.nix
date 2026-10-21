@@ -40,8 +40,6 @@ in
     # ../modules/vllm
     ../modules/biodb
     ../modules/biodb/databases.nix
-    # ../modules/docling
-    ../modules/tei
   ];
 
   disko.rootDisk = "/dev/disk/by-id/nvme-Samsung_SSD_990_PRO_4TB_S7DPNU0Y404280K";
@@ -161,36 +159,6 @@ in
     databases = biodbDatabases;
   };
 
-  services.tei = {
-    enable = true;
-    listenAddress = "::";
-    openFirewall = false;
-    models = {
-      embed = {
-        model = "Qwen/Qwen3-Embedding-0.6B";
-        port = 8201;
-        extraArgs = [
-          "--pooling"
-          "last-token"
-          "--max-batch-tokens"
-          "16384"
-          "--max-concurrent-requests"
-          "512"
-        ];
-      };
-      rerank = {
-        model = "BAAI/bge-reranker-v2-m3";
-        port = 8202;
-        extraArgs = [
-          "--max-batch-tokens"
-          "16384"
-          "--max-concurrent-requests"
-          "512"
-        ];
-      };
-    };
-  };
-
   services.prometheus.exporters.nvidia-gpu = {
     enable = true;
     listenAddress = config.networking.sbee.currentHost.wg-admin;
@@ -200,14 +168,8 @@ in
 
   networking.firewall = {
     interfaces."wg-admin".allowedTCPPorts = [
-      8201 # TEI embed API and Prometheus metrics
-      8202 # TEI rerank API and Prometheus metrics
       9835 # nvidia-gpu exporter
     ];
-    extraCommands = ''
-      iptables -A nixos-fw -i tinc.naru -s 10.208.0.6 -p tcp --dport 8201 -j nixos-fw-accept
-      ip6tables -A nixos-fw -i tinc.naru -s fdec:ca5f:90ad:b0c7:d0dc:cc85:1781:f55e -p tcp --dport 8201 -j nixos-fw-accept
-    '';
   };
 
   programs.singularity = {

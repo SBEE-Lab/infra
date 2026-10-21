@@ -5018,7 +5018,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 
         <rect data-graph-role="structural-frame" data-composition-frame-kind="security-group" data-composition-frame-id="1" data-composition-frame-label="인증 게이트" x="425" y="210" width="210" height="380" rx="8" class="c-security-group" stroke-width="1"/>
 
-        <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="2" data-composition-frame-label="KREN 베어메탈" x="900" y="85" width="215" height="243" rx="12" class="c-region" stroke-width="1"/>
+        <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="2" data-composition-frame-label="KREN 베어메탈" x="900" y="85" width="215" height="118" rx="12" class="c-region" stroke-width="1"/>
 
         <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="3" data-composition-frame-label="랩 내부 NAT" x="900" y="337" width="410" height="376" rx="12" class="c-region" stroke-width="1"/>
 
@@ -5045,8 +5045,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <path data-edge-from="eta-edge" data-edge-to="wg-admin" data-edge-label="프록시" data-edge-key="5" data-edge-id="edge-to-wg" data-composition-points="605,275;647.5,275;647.5,401;690,401" d="M 605 275 L 639.5 275 Q 647.5 275 647.5 283 L 647.5 393 Q 647.5 401 655.5 401 L 690 401" class="a-security" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
         <path data-edge-from="wg-admin" data-edge-to="psi-ci" data-edge-label="Nixbot" data-edge-key="6" data-edge-id="wg-to-psi-ci" data-composition-points="832,401;860,401;860,149;930,149" d="M 832 401 L 852 401 Q 860 401 860 393 L 860 157 Q 860 149 868 149 L 930 149" class="a-security" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
         <g data-graph-role="automatic-crossover" style="--step:7">
-          <path data-graph-role="automatic-crossover-underlay" d="M 832 408 L 930 408" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="wg-admin" data-edge-to="rho-db" data-edge-label="SSH · DB" data-edge-key="7" data-edge-id="wg-to-rho-db" data-composition-points="832,408;930,408" data-composition-crossover="halo" data-composition-independent="true" d="M 832 408 L 930 408" class="a-security" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 832 401 L 930 401" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="wg-admin" data-edge-to="rho-db" data-edge-label="SSH · DB" data-edge-key="7" data-edge-id="wg-to-rho-db" data-composition-points="832,401;930,401" data-composition-crossover="halo" data-composition-independent="true" d="M 832 401 L 930 401" class="a-security" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
         </g>
         <path data-edge-from="wg-admin" data-edge-to="rho-observe" data-edge-label="Grafana" data-edge-key="8" data-edge-id="wg-to-rho-observe" data-composition-points="832,401;881,401;881,531;930,531" d="M 832 401 L 873 401 Q 881 401 881 409 L 881 523 Q 881 531 889 531 L 930 531" class="a-security" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
         <path data-edge-from="wg-admin" data-edge-to="tau-apps" data-edge-label="앱 upstream" data-edge-key="9" data-edge-id="wg-to-tau-apps" data-composition-points="832,401;860,401;860,659;930,659" d="M 832 401 L 852 401 Q 860 401 860 409 L 860 651 Q 860 659 868 659 L 930 659" class="a-security" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
@@ -5068,40 +5068,32 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <path data-edge-from="terraform" data-edge-to="headscale" data-edge-label="ACL" data-edge-key="16" data-edge-id="terraform-to-headscale" data-composition-points="357,451;406,451;406,535;455,535" d="M 357 451 L 398 451 Q 406 451 406 459 L 406 527 Q 406 535 414 535 L 455 535" class="a-security" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
         <path data-edge-from="sops" data-edge-to="eta-edge" data-edge-label="ACME secrets" data-edge-key="17" data-edge-id="sops-to-edge" data-composition-points="291,560;410.5,560;410.5,310;530,310" d="M 291 560 L 402.5 560 Q 410.5 560 410.5 552 L 410.5 318 Q 410.5 310 418.5 310 L 530 310" class="a-security" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
         <g data-graph-role="automatic-crossover" style="--step:18">
-          <path data-graph-role="automatic-crossover-underlay" d="M 1135 121 L 1117 121 Q 1109 121 1109 129 L 1109 266 Q 1109 274 1101 274 L 1085 274" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="naru" data-edge-to="psi-ai" data-edge-label="8201 허용 source" data-edge-key="18" data-edge-id="naru-tei" data-composition-points="1135,121;1109,121;1109,274;1085,274" data-composition-crossover="halo" d="M 1135 121 L 1117 121 Q 1109 121 1109 129 L 1109 266 Q 1109 274 1101 274 L 1085 274" class="a-security" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 1085 149 L 1102 149 Q 1110 149 1110 157 L 1110 259 Q 1110 267 1118 267 L 1135 267" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="psi-ci" data-edge-to="local-borg" data-edge-label="각 로컬 SSD·SQL" data-edge-key="18" data-edge-id="psi-borg" data-composition-points="1085,149;1110,149;1110,267;1135,267" data-composition-crossover="halo" data-composition-independent="true" d="M 1085 149 L 1102 149 Q 1110 149 1110 157 L 1110 259 Q 1110 267 1118 267 L 1135 267" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:19">
-          <path data-graph-role="automatic-crossover-underlay" d="M 761 370 L 761 347 Q 761 339 769 339 L 999.5 339 Q 1007.5 339 1007.5 331 L 1007.5 308" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="wg-admin" data-edge-to="psi-ai" data-edge-label="8201 · 8202" data-edge-key="19" data-edge-id="wg-tei" data-composition-points="761,370;761,339;1007.5,339;1007.5,308" data-composition-crossover="halo" data-composition-independent="true" d="M 761 370 L 761 347 Q 761 339 769 339 L 999.5 339 Q 1007.5 339 1007.5 331 L 1007.5 308" class="a-security" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 1007.5 367 L 1007.5 351 Q 1007.5 343 1015.5 343 L 1103 343 Q 1111 343 1111 335 L 1111 289 Q 1111 281 1119 281 L 1135 281" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="rho-db" data-edge-to="local-borg" data-edge-label="각 로컬 SSD·SQL" data-edge-key="19" data-edge-id="rho-borg" data-composition-points="1007.5,367;1007.5,343;1111,343;1111,281;1135,281" data-composition-crossover="halo" data-composition-independent="true" d="M 1007.5 367 L 1007.5 351 Q 1007.5 343 1015.5 343 L 1103 343 Q 1111 343 1111 335 L 1111 289 Q 1111 281 1119 281 L 1135 281" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:20">
-          <path data-graph-role="automatic-crossover-underlay" d="M 1085 149 L 1102 149 Q 1110 149 1110 157 L 1110 259 Q 1110 267 1118 267 L 1135 267" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="psi-ci" data-edge-to="local-borg" data-edge-label="각 로컬 SSD·SQL" data-edge-key="20" data-edge-id="psi-borg" data-composition-points="1085,149;1110,149;1110,267;1135,267" data-composition-crossover="halo" data-composition-independent="true" d="M 1085 149 L 1102 149 Q 1110 149 1110 157 L 1110 259 Q 1110 267 1118 267 L 1135 267" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 1207.5 370 L 1207.5 347 Q 1207.5 339 1215.5 339 L 1217 339 Q 1225 339 1225 331 L 1225 308" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="tau-db" data-edge-to="local-borg" data-edge-label="각 로컬 SSD·SQL" data-edge-key="20" data-edge-id="tau-borg" data-composition-points="1207.5,370;1207.5,339;1225,339;1225,308" data-composition-crossover="halo" data-composition-independent="true" d="M 1207.5 370 L 1207.5 347 Q 1207.5 339 1215.5 339 L 1217 339 Q 1225 339 1225 331 L 1225 308" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:21">
-          <path data-graph-role="automatic-crossover-underlay" d="M 1007.5 367 L 1007.5 351 Q 1007.5 343 1015.5 343 L 1103 343 Q 1111 343 1111 335 L 1111 289 Q 1111 281 1119 281 L 1135 281" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="rho-db" data-edge-to="local-borg" data-edge-label="각 로컬 SSD·SQL" data-edge-key="21" data-edge-id="rho-borg" data-composition-points="1007.5,367;1007.5,343;1111,343;1111,281;1135,281" data-composition-crossover="halo" data-composition-independent="true" d="M 1007.5 367 L 1007.5 351 Q 1007.5 343 1015.5 343 L 1103 343 Q 1111 343 1111 335 L 1111 289 Q 1111 281 1119 281 L 1135 281" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 761 562 L 761 614 Q 761 622 769 622 L 1103 622 Q 1111 622 1111 630 L 1111 651 Q 1111 659 1119 659 L 1135 659" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="tailnet" data-edge-to="vaultwarden-proxy" data-edge-label="vault HTTPS" data-edge-key="21" data-edge-id="tailnet-vault" data-composition-points="761,562;761,622;1111,622;1111,659;1135,659" data-composition-crossover="halo" d="M 761 562 L 761 614 Q 761 622 769 622 L 1103 622 Q 1111 622 1111 630 L 1111 651 Q 1111 659 1119 659 L 1135 659" class="a-security" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:22">
-          <path data-graph-role="automatic-crossover-underlay" d="M 1207.5 370 L 1207.5 347 Q 1207.5 339 1215.5 339 L 1217 339 Q 1225 339 1225 331 L 1225 308" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="tau-db" data-edge-to="local-borg" data-edge-label="각 로컬 SSD·SQL" data-edge-key="22" data-edge-id="tau-borg" data-composition-points="1207.5,370;1207.5,339;1225,339;1225,308" data-composition-crossover="halo" data-composition-independent="true" d="M 1207.5 370 L 1207.5 347 Q 1207.5 339 1215.5 339 L 1217 339 Q 1225 339 1225 331 L 1225 308" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 1207.5 690 L 1207.5 758 Q 1207.5 766 1199.5 766 L 553 766 Q 545 766 545 774 L 545 790" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="vaultwarden-proxy" data-edge-to="eta-data" data-edge-label="wg upstream" data-edge-key="22" data-edge-id="vault-upstream" data-composition-points="1207.5,690;1207.5,766;545,766;545,790" data-composition-crossover="halo" data-composition-independent="true" d="M 1207.5 690 L 1207.5 758 Q 1207.5 766 1199.5 766 L 553 766 Q 545 766 545 774 L 545 790" class="a-security" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:23">
-          <path data-graph-role="automatic-crossover-underlay" d="M 761 562 L 761 614 Q 761 622 769 622 L 1103 622 Q 1111 622 1111 630 L 1111 651 Q 1111 659 1119 659 L 1135 659" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="tailnet" data-edge-to="vaultwarden-proxy" data-edge-label="vault HTTPS" data-edge-key="23" data-edge-id="tailnet-vault" data-composition-points="761,562;761,622;1111,622;1111,659;1135,659" data-composition-crossover="halo" d="M 761 562 L 761 614 Q 761 622 769 622 L 1103 622 Q 1111 622 1111 630 L 1111 651 Q 1111 659 1119 659 L 1135 659" class="a-security" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 635 831 L 730 831" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="eta-data" data-edge-to="eta-restic" data-edge-label="SQL · SQLite" data-edge-key="23" data-edge-id="eta-source" data-composition-points="635,831;730,831" data-composition-crossover="halo" data-composition-independent="true" d="M 635 831 L 730 831" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:24">
-          <path data-graph-role="automatic-crossover-underlay" d="M 1207.5 690 L 1207.5 758 Q 1207.5 766 1199.5 766 L 553 766 Q 545 766 545 774 L 545 790" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="vaultwarden-proxy" data-edge-to="eta-data" data-edge-label="wg upstream" data-edge-key="24" data-edge-id="vault-upstream" data-composition-points="1207.5,690;1207.5,766;545,766;545,790" data-composition-crossover="halo" data-composition-independent="true" d="M 1207.5 690 L 1207.5 758 Q 1207.5 766 1199.5 766 L 553 766 Q 545 766 545 774 L 545 790" class="a-security" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
-        </g>
-        <g data-graph-role="automatic-crossover" style="--step:25">
-          <path data-graph-role="automatic-crossover-underlay" d="M 635 831 L 730 831" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="eta-data" data-edge-to="eta-restic" data-edge-label="SQL · SQLite" data-edge-key="25" data-edge-id="eta-source" data-composition-points="635,831;730,831" data-composition-crossover="halo" data-composition-independent="true" d="M 635 831 L 730 831" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
-        </g>
-        <g data-graph-role="automatic-crossover" style="--step:26">
           <path data-graph-role="automatic-crossover-underlay" d="M 900 824 L 1080 824 Q 1088 824 1088 816 L 1088 594 Q 1088 586 1096 586 L 1199.5 586 Q 1207.5 586 1207.5 578 L 1207.5 562" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="eta-restic" data-edge-to="eta-r2" data-edge-label="암호화 S3" data-edge-key="26" data-edge-id="eta-restic-r2" data-composition-points="900,824;1088,824;1088,586;1207.5,586;1207.5,562" data-composition-crossover="halo" d="M 900 824 L 1080 824 Q 1088 824 1088 816 L 1088 594 Q 1088 586 1096 586 L 1199.5 586 Q 1207.5 586 1207.5 578 L 1207.5 562" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
+          <path data-edge-from="eta-restic" data-edge-to="eta-r2" data-edge-label="암호화 S3" data-edge-key="24" data-edge-id="eta-restic-r2" data-composition-points="900,824;1088,824;1088,586;1207.5,586;1207.5,562" data-composition-crossover="halo" d="M 900 824 L 1080 824 Q 1088 824 1088 816 L 1088 594 Q 1088 586 1096 586 L 1199.5 586 Q 1207.5 586 1207.5 578 L 1207.5 562" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
         </g>
 
         <!-- Components -->
@@ -5261,18 +5253,6 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <text data-detail="fine" x="1007.5" y="175" class="t-backend" font-size="7" text-anchor="middle">KREN</text>
         </g>
 
-        <g id="node-psi-ai" data-node-id="psi-ai" data-node-label="psi TEI" tabindex="0" role="button" aria-label="Focus psi TEI, embedding · reranking, KREN 베어메탈" aria-pressed="false" data-node-kind="backend" data-node-sublabel="embedding · reranking" data-node-tag="GPU" data-node-context="KREN 베어메탈">
-          <title>psi TEI · embedding · reranking · KREN 베어메탈 · GPU</title>
-          <rect x="930" y="240" width="155" height="68" rx="6" class="c-mask"/>
-          <rect x="930" y="240" width="155" height="68" rx="6" class="c-backend" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(936 246) scale(0.6875)">
-            <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
-          </g>
-          <text data-node-label="" data-detail-anchor="" x="1007.5" y="272" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">psi TEI</text>
-        <text data-detail="context" x="1007.5" y="288" class="t-muted" font-size="9" text-anchor="middle">embedding · reranking</text>
-        <text data-detail="fine" x="1007.5" y="300" class="t-backend" font-size="7" text-anchor="middle">GPU</text>
-        </g>
-
         <g id="node-rho-db" data-node-id="rho-db" data-node-label="rho DB" tabindex="0" role="button" aria-label="Focus rho DB, PostgreSQL primary, 운영 관리 평면 › 랩 내부 NAT" aria-pressed="false" data-node-kind="database" data-node-sublabel="PostgreSQL primary" data-node-tag="lab" data-node-context="운영 관리 평면 › 랩 내부 NAT">
           <title>rho DB · PostgreSQL primary · 운영 관리 평면 › 랩 내부 NAT · lab</title>
           <rect x="930" y="367" width="155" height="68" rx="6" class="c-mask"/>
@@ -5362,18 +5342,6 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <text data-detail="fine" x="1225" y="300" class="t-database" font-size="7" text-anchor="middle">외부 사본 아님</text>
         </g>
 
-        <g id="node-naru" data-node-id="naru" data-node-label="허용된 Naru" tabindex="0" role="button" aria-label="Focus 허용된 Naru, source allowlist, Architecture component" aria-pressed="false" data-node-kind="external" data-node-sublabel="source allowlist" data-node-context="Architecture component">
-          <title>허용된 Naru · source allowlist · Architecture component</title>
-          <rect x="1135" y="90" width="160" height="62" rx="6" class="c-mask"/>
-          <rect x="1135" y="90" width="160" height="62" rx="6" class="c-external" stroke-width="1.5"/>
-          <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(1141 96) scale(0.6875)">
-            <rect x="2.5" y="5" width="8.5" height="8" rx="1.5"/>
-            <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
-          </g>
-          <text data-node-label="" data-detail-anchor="" x="1215" y="119" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">허용된 Naru</text>
-        <text data-detail="context" x="1215" y="135" class="t-muted" font-size="9" text-anchor="middle">source allowlist</text>
-        </g>
-
         <g id="node-eta-data" data-node-id="eta-data" data-node-label="eta DB · 앱" tabindex="0" role="button" aria-label="Focus eta DB · 앱, PostgreSQL · Vaultwarden, Vultr 공개 엣지" aria-pressed="false" data-node-kind="database" data-node-sublabel="PostgreSQL · Vaultwarden" data-node-context="Vultr 공개 엣지">
           <title>eta DB · 앱 · PostgreSQL · Vaultwarden · Vultr 공개 엣지</title>
           <rect x="455" y="790" width="180" height="68" rx="6" class="c-mask"/>
@@ -5427,8 +5395,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           <text x="860" y="265" class="t-edge-security" font-size="8" text-anchor="middle">Nixbot</text>
         </g>
         <g data-detail="context" data-edge-from="wg-admin" data-edge-to="rho-db" data-edge-label="SSH · DB" data-edge-key="7" data-edge-id="wg-to-rho-db">
-          <rect x="856.8" y="388" width="48.4" height="14" rx="3" class="c-mask"/>
-          <text x="881" y="398" class="t-edge-security" font-size="8" text-anchor="middle">SSH · DB</text>
+          <rect x="856.8" y="381" width="48.4" height="14" rx="3" class="c-mask"/>
+          <text x="881" y="391" class="t-edge-security" font-size="8" text-anchor="middle">SSH · DB</text>
         </g>
         <g data-detail="context" data-edge-from="wg-admin" data-edge-to="rho-observe" data-edge-label="Grafana" data-edge-key="8" data-edge-id="wg-to-rho-observe">
           <rect x="859.2" y="446" width="43.6" height="14" rx="3" class="c-mask"/>
@@ -5470,39 +5438,31 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           <rect x="376.7" y="415" width="67.6" height="14" rx="3" class="c-mask"/>
           <text x="410.5" y="425" class="t-edge-security" font-size="8" text-anchor="middle">ACME secrets</text>
         </g>
-        <g data-detail="context" data-edge-from="naru" data-edge-to="psi-ai" data-edge-label="8201 허용 source" data-edge-key="18" data-edge-id="naru-tei">
-          <rect x="1065.6" y="187" width="86.8" height="14" rx="3" class="c-mask"/>
-          <text x="1109" y="197" class="t-edge-security" font-size="8" text-anchor="middle">8201 허용 source</text>
-        </g>
-        <g data-detail="context" data-edge-from="wg-admin" data-edge-to="psi-ai" data-edge-label="8201 · 8202" data-edge-key="19" data-edge-id="wg-tei">
-          <rect x="852.85" y="319" width="62.8" height="14" rx="3" class="c-mask"/>
-          <text x="884.25" y="329" class="t-edge-security" font-size="8" text-anchor="middle">8201 · 8202</text>
-        </g>
-        <g data-detail="context" data-edge-from="psi-ci" data-edge-to="local-borg" data-edge-label="각 로컬 SSD·SQL" data-edge-key="20" data-edge-id="psi-borg">
+        <g data-detail="context" data-edge-from="psi-ci" data-edge-to="local-borg" data-edge-label="각 로컬 SSD·SQL" data-edge-key="18" data-edge-id="psi-borg">
           <rect x="1069" y="188" width="82" height="14" rx="3" class="c-mask"/>
           <text x="1110" y="198" class="t-edge-dashed" font-size="8" text-anchor="middle">각 로컬 SSD·SQL</text>
         </g>
-        <g data-detail="context" data-edge-from="rho-db" data-edge-to="local-borg" data-edge-label="각 로컬 SSD·SQL" data-edge-key="21" data-edge-id="rho-borg">
+        <g data-detail="context" data-edge-from="rho-db" data-edge-to="local-borg" data-edge-label="각 로컬 SSD·SQL" data-edge-key="19" data-edge-id="rho-borg">
           <rect x="1018.25" y="323" width="82" height="14" rx="3" class="c-mask"/>
           <text x="1059.25" y="333" class="t-edge-dashed" font-size="8" text-anchor="middle">각 로컬 SSD·SQL</text>
         </g>
-        <g data-detail="context" data-edge-from="tau-db" data-edge-to="local-borg" data-edge-label="각 로컬 SSD·SQL" data-edge-key="22" data-edge-id="tau-borg">
+        <g data-detail="context" data-edge-from="tau-db" data-edge-to="local-borg" data-edge-label="각 로컬 SSD·SQL" data-edge-key="20" data-edge-id="tau-borg">
           <rect x="1175.25" y="319" width="82" height="14" rx="3" class="c-mask"/>
           <text x="1216.25" y="329" class="t-edge-dashed" font-size="8" text-anchor="middle">각 로컬 SSD·SQL</text>
         </g>
-        <g data-detail="context" data-edge-from="tailnet" data-edge-to="vaultwarden-proxy" data-edge-label="vault HTTPS" data-edge-key="23" data-edge-id="tailnet-vault">
+        <g data-detail="context" data-edge-from="tailnet" data-edge-to="vaultwarden-proxy" data-edge-label="vault HTTPS" data-edge-key="21" data-edge-id="tailnet-vault">
           <rect x="895.6" y="569" width="62.8" height="14" rx="3" class="c-mask"/>
           <text x="927" y="579" class="t-edge-security" font-size="8" text-anchor="middle">vault HTTPS</text>
         </g>
-        <g data-detail="context" data-edge-from="vaultwarden-proxy" data-edge-to="eta-data" data-edge-label="wg upstream" data-edge-key="24" data-edge-id="vault-upstream">
+        <g data-detail="context" data-edge-from="vaultwarden-proxy" data-edge-to="eta-data" data-edge-label="wg upstream" data-edge-key="22" data-edge-id="vault-upstream">
           <rect x="844.85" y="746" width="62.8" height="14" rx="3" class="c-mask"/>
           <text x="876.25" y="756" class="t-edge-security" font-size="8" text-anchor="middle">wg upstream</text>
         </g>
-        <g data-detail="context" data-edge-from="eta-data" data-edge-to="eta-restic" data-edge-label="SQL · SQLite" data-edge-key="25" data-edge-id="eta-source">
+        <g data-detail="context" data-edge-from="eta-data" data-edge-to="eta-restic" data-edge-label="SQL · SQLite" data-edge-key="23" data-edge-id="eta-source">
           <rect x="648.7" y="811" width="67.6" height="14" rx="3" class="c-mask"/>
           <text x="682.5" y="821" class="t-edge-dashed" font-size="8" text-anchor="middle">SQL · SQLite</text>
         </g>
-        <g data-detail="context" data-edge-from="eta-restic" data-edge-to="eta-r2" data-edge-label="암호화 S3" data-edge-key="26" data-edge-id="eta-restic-r2">
+        <g data-detail="context" data-edge-from="eta-restic" data-edge-to="eta-r2" data-edge-label="암호화 S3" data-edge-key="24" data-edge-id="eta-restic-r2">
           <rect x="1061.4" y="697" width="53.199999999999996" height="14" rx="3" class="c-mask"/>
           <text x="1088" y="707" class="t-edge-dashed" font-size="8" text-anchor="middle">암호화 S3</text>
         </g>
@@ -5755,7 +5715,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           <h3>서비스 배치</h3>
         </div>
         <ul>
-          <li>psi: Nixbot, niks3, TEI, BioDB; Docling 비활성</li>
+          <li>psi: Nixbot, niks3, BioDB</li>
           <li>rho: PostgreSQL primary, Grafana, Loki</li>
           <li>tau: Nextcloud, n8n, PostgreSQL standby; Vaultwarden proxy</li>
         </ul>

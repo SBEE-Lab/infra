@@ -94,11 +94,6 @@ in
       serviceName = "acme-sync-to-tau";
       remoteHost = hosts.tau.wg-admin;
     }
-    # {
-    #   domain = "docling.sjanglab.org";
-    #   serviceName = "acme-sync-docling-to-psi";
-    #   remoteHost = hosts.psi.wg-admin;
-    # }
     {
       domain = "status.sjanglab.org";
       serviceName = "acme-sync-status-to-rho";
@@ -124,7 +119,6 @@ in
   # ACME certificates for internal services
 
   services.sbee.nginx.localCertificates = {
-    # "docling.sjanglab.org".group = "acme";
     "status.sjanglab.org".group = "acme";
     "vault.sjanglab.org".group = "acme";
   };

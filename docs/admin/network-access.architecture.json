@@ -43,7 +43,7 @@
           "rho-tail",
           "tau-tail"
         ],
-        "note": "Headscale은 제어 평면이며 실제 서비스 데이터는 tailnet으로 흐릅니다. TEI는 별도 Naru/WireGuard 경로, Docling은 비활성입니다."
+        "note": "Headscale은 제어 평면이며 실제 서비스 데이터는 tailnet으로 흐릅니다."
       }
     ]
   },
@@ -186,34 +186,6 @@
       "pos": [
         940,
         450
-      ]
-    },
-    {
-      "id": "naru",
-      "type": "external",
-      "label": "허용된 Naru",
-      "sublabel": "malt ai-memory",
-      "pos": [
-        50,
-        800
-      ],
-      "size": [
-        160,
-        68
-      ]
-    },
-    {
-      "id": "tei",
-      "type": "backend",
-      "label": "psi TEI",
-      "sublabel": "8201 embed · 8202 rerank",
-      "pos": [
-        1120,
-        800
-      ],
-      "size": [
-        190,
-        68
       ]
     }
   ],
@@ -398,20 +370,6 @@
         330,
         600
       ]
-    },
-    {
-      "id": "naru-tei",
-      "from": "naru",
-      "to": "tei",
-      "label": "8201 allowlist",
-      "variant": "security"
-    },
-    {
-      "id": "wg-tei",
-      "from": "psi-wg",
-      "to": "tei",
-      "label": "관리망 API",
-      "variant": "security"
     }
   ],
   "cards": [
@@ -422,8 +380,7 @@
         "wg-admin 인터페이스는 신뢰 관리망",
         "rho/tau는 NAT 뒤에서 WireGuard로 연결",
         "사용자 서비스는 Headscale ACL tag로 제한",
-        "psi 공인 IP가 있어도 공개 SSH는 없음; eta bastion 또는 콘솔 사용",
-        "TEI는 공개·Headscale nginx/TLS endpoint 없음"
+        "psi 공인 IP가 있어도 공개 SSH는 없음; eta bastion 또는 콘솔 사용"
       ]
     }
   ]

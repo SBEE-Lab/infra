@@ -41,8 +41,6 @@ services.sbee.nginx.streamProxies.example = {
 
 psi·rho·tau는 노출 범위와 인증서 전달 방식이 다르므로 명시적인 vhost를 유지합니다. 인증서는 `modules/acme/sync.nix`로 동기화하고 방화벽은 의도한 wg-admin/Tailscale 인터페이스로 제한합니다. 이 호스트들에 공개 edge 모듈을 import하지 않습니다.
 
-TEI는 nginx·공개 DNS·TLS endpoint가 아니라 [Naru/WireGuard 직접 접근](../guide/tei.md)을 사용합니다. Docling의 endpoint·인증서·감시 선언은 비활성 상태입니다.
-
 ## 인증서 소유권과 검증
 
 발급 주체는 eta입니다. `edgeVhosts`는 공개 HTTP-01을, `localCertificates`는 공개 challenge endpoint 없이 DNS-01을 사용합니다. DNS 전파 확인 resolver는 `8.8.8.8:53`이며 시스템 resolver나 Headscale split DNS를 변경하는 설정이 아닙니다. 같은 hostname을 두 집합에 선언하면 edge 모듈이 거부합니다.

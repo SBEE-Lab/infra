@@ -32,8 +32,6 @@ flowchart LR
 
 | [Upterm](upterm.md) | `upterm.sjanglab.org` | 공개 relay | GitHub user allow-list |
 
-[Docling](docling.md)은 비활성 상태이며 위 사용 가능 서비스에 포함하지 않습니다. [TEI](tei.md)는 별도 Naru/WireGuard allowlist 경로를 사용합니다.
-
 Nextcloud와 Upterm relay는 VPN 없이도 접근 가능합니다. Vaultwarden과 나머지 내부 서비스는 [VPN 연결](vpn-setup.md) 후 사용할 수 있습니다.
 
 ## 접근 권한

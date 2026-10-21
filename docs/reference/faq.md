@@ -36,10 +36,6 @@ eta는 공개키 인증만 허용합니다. 일반 `sshd` fail2ban jail은 10분
 
 A: `https://cloud.sjanglab.org` 도메인으로 접속해야 합니다. 직접 IP 접근은 지원하지 않습니다. VPN 연결 여부와 관계없이 같은 URL을 사용합니다.
 
-**Q: AI API 요청이 느립니다.**
-
-A: TEI는 psi GPU를 연구 작업과 공유합니다. `nvidia-smi`로 GPU·VRAM 사용량을 확인하고 요청 크기와 동시성을 조절하세요. 접근 경로는 [TEI 가이드](../guide/tei.md)의 Naru/WireGuard allowlist를 따릅니다. Docling은 비활성 상태이므로 요청 재시도로 해결되지 않습니다.
-
 **Q: n8n에서 외부 웹훅이 작동하지 않습니다.**
 
 A: 외부에서 접근 가능한 웹훅 URL은 `https://n8n.sjanglab.org/webhook/...`입니다. eta를 통해 외부로 노출됩니다.

@@ -47,7 +47,7 @@ Terraform이 `terraform/authentik/users.yaml`의 그룹 membership으로 생성�
 | 태그 | 소유 그룹 | 설명 |
 |------|----------|------|
 | `tag:server` | `sjanglab-admins` | 서버 노드 |
-| `tag:ai` | `sjanglab-admins` | AI 서비스용 정책 태그; Docling 비활성, TEI는 별도 Naru/WireGuard 제한 |
+| `tag:ai` | `sjanglab-admins` | AI 서비스용 정책 태그; 현재 서비스 endpoint 없음 |
 | `tag:apps` | `sjanglab-admins` | 앱 서비스 (Nextcloud, n8n, Vaultwarden) |
 | `tag:monitoring` | `sjanglab-admins` | 모니터링 (Grafana) |
 
@@ -81,11 +81,9 @@ Headscale은 `policy.mode = "database"`로 동작합니다. ACL 변경 후 즉�
 | 호스트 | 외부 개방 포트 | wg-admin 개방 포트 |
 |--------|--------------|-------------------|
 | eta | 80, 443, 10022 (공개키 SSH), 2323 (Upterm relay) | 10022, 8000 (Vaultwarden), 8081 (Gatus) |
-| psi | — | 80/443 (Nixbot upstream), 10022, 5751 (niks3 API), 5432 (Nixbot/niks3 PostgreSQL), 8201/8202 (TEI API와 metrics) |
+| psi | — | 80/443 (Nixbot upstream), 10022, 5751 (niks3 API), 5432 (Nixbot/niks3 PostgreSQL) |
 | rho | — | 10022, 443 (인증 nginx; Grafana public edge의 upstream), 5432 (PostgreSQL), 3100/9090 (ingest만) |
 | tau | — | 10022, 5678 (n8n 웹훅) |
-
-psi의 Naru 인터페이스에서는 malt의 IPv4/IPv6 source 주소만 TEI 임베딩 포트 `8201`에 접근할 수 있습니다. 리랭킹 포트 `8202`는 Naru에 개방하지 않습니다.
 
 ## ACME 인증서
 

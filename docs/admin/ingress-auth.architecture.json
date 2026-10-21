@@ -3,7 +3,7 @@
   "diagram_type": "architecture",
   "meta": {
     "title": "Ingress와 인증 게이트",
-    "subtitle": "공개 Nextcloud·Grafana, tailnet 웹 앱, OIDC·Forward Auth, private TEI",
+    "subtitle": "공개 Nextcloud·Grafana, tailnet 웹 앱, OIDC·Forward Auth",
     "output": "docs/admin/ingress-auth-architecture.html",
     "visual_preset": "blueprint",
     "quality_profile": "standard",
@@ -44,15 +44,6 @@
           "tailnet"
         ],
         "note": "Headscale은 등록·ACL 제어 평면입니다. 서비스 데이터는 tailnet으로 흐르며 Headscale 서버를 프록시로 통과하지 않습니다."
-      },
-      {
-        "id": "private-ai",
-        "label": "Private TEI",
-        "focus": [
-          "naru-wg",
-          "tei"
-        ],
-        "note": "TEI는 Naru/WireGuard source 제한을 사용합니다. 공개·Headscale nginx/TLS endpoint는 없으며 Docling은 비활성입니다."
       }
     ]
   },
@@ -182,34 +173,6 @@
         180,
         68
       ]
-    },
-    {
-      "id": "naru-wg",
-      "type": "external",
-      "label": "허용된 Naru · wg",
-      "sublabel": "source 제한",
-      "pos": [
-        60,
-        850
-      ],
-      "size": [
-        180,
-        68
-      ]
-    },
-    {
-      "id": "tei",
-      "type": "backend",
-      "label": "psi TEI",
-      "sublabel": "8201 embed · 8202 rerank",
-      "pos": [
-        390,
-        850
-      ],
-      "size": [
-        180,
-        68
-      ]
     }
   ],
   "boundaries": [],
@@ -297,8 +260,28 @@
       "variant": "security",
       "fromSide": "top",
       "toSide": "bottom",
-      "via": [[150, 560], [650, 560], [650, 460], [810, 460]],
-      "labelAt": [650, 510]
+      "via": [
+        [
+          150,
+          560
+        ],
+        [
+          650,
+          560
+        ],
+        [
+          650,
+          460
+        ],
+        [
+          810,
+          460
+        ]
+      ],
+      "labelAt": [
+        650,
+        510
+      ]
     },
     {
       "id": "edge-oidc-app",
@@ -347,13 +330,6 @@
         1300,
         550
       ]
-    },
-    {
-      "id": "private-tei",
-      "from": "naru-wg",
-      "to": "tei",
-      "label": "허용된 API",
-      "variant": "security"
     }
   ],
   "cards": [
@@ -362,8 +338,7 @@
       "title": "인증과 네트워크",
       "items": [
         "OIDC 로그인과 네트워크 허가는 별도 조건",
-        "Vaultwarden runtime은 eta, tailnet proxy는 tau",
-        "TEI와 비활성 Docling을 tailnet 웹 서비스로 안내하지 않음"
+        "Vaultwarden runtime은 eta, tailnet proxy는 tau"
       ]
     },
     {

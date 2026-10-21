@@ -14,8 +14,6 @@
 | n8n | Forward Auth | 관리자/연구원용 워크플로우 UI (Headscale ACL + Forward Auth 이중 보호) |
 | Grafana | Forward Auth | 공개 HTTPS + `sjanglab-admins` 인가; 신규 Grafana 계정은 Viewer |
 | Gatus | 없음 | Tailnet에서만 접근 가능한 공개 상태 페이지 (Authentik dashboard tile만 표시) |
-| Docling | 비활성 | ACL 권한이 있어도 제공되지 않음; [상태 안내](../guide/docling.md) |
-| TEI | Naru/WireGuard source allowlist | malt ai-memory embedding과 관리망 모니터링 |
 | Nixbot | GitHub OAuth | CI/CD 대시보드 접근 |
 
 ### 폐기 서비스의 SSO 객체 정리
