@@ -30,4 +30,5 @@ SBEE Lab의 NixOS 기반 연구 인프라 문서입니다.
 - **[사용자 가이드](guide/index.md)** — VPN 설정, SSO 로그인, 웹 서비스 사용법
 - **[연구·개발 환경](dev/index.md)** — SSH, GPU, 컨테이너, 생물정보 DB, Nix
 - **[관리자 가이드](admin/index.md)** — 배포, 모니터링, CI/CD, 네트워크, 보안
+- **[아키텍처 도식](admin/architecture-diagrams.md)** — 전체 서비스·인증·네트워크·백업·운영 경로를 탐색하는 HTML 지도
 - **[참조](reference/faq.md)** — FAQ, 용어집, 서버 스펙
