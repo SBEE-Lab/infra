@@ -10,6 +10,9 @@ in
     ../gatus/check.nix
   ];
 
+  # The name has no public record; the local push check must hit this vhost.
+  networking.hosts."127.0.0.1" = [ domain ];
+
   gatusCheck.push = [
     {
       name = "Vaultwarden";

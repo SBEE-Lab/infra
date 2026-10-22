@@ -18,6 +18,9 @@
       "--login-server=https://hs.sjanglab.org"
       "--advertise-tags=tag:server"
     ];
+    # Servers reach each other over wg-admin; MagicDNS would send public names
+    # to tailnet IPs that the ACL does not let servers reach.
+    extraSetFlags = [ "--accept-dns=false" ];
   };
 
   sops.secrets.tailscale-authkey = {
