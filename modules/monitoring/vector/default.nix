@@ -260,12 +260,32 @@ in
             "host_metrics"
             "network_stats"
             "vector_internal"
+            "public_server_error_metrics"
           ]
           ++ lib.optional nginxExporter.enable "nginx_metrics";
           source = ''
             .host = "${hostName}"
             .tags.host = "${hostName}"
           '';
+        };
+
+        # Server errors to public clients become a counter so Prometheus can alert on bursts.
+        public_server_errors = {
+          type = "filter";
+          inputs = [ "parse_nginx_access" ];
+          condition = ''.ingress_network == "public" && (to_int(.status) ?? 0) >= 500'';
+        };
+        public_server_error_metrics = {
+          type = "log_to_metric";
+          inputs = [ "public_server_errors" ];
+          metrics = [
+            {
+              type = "counter";
+              field = "status";
+              name = "nginx_public_server_errors_total";
+              tags.service = "{{ service }}";
+            }
+          ];
         };
 
         parse_nginx_access = {

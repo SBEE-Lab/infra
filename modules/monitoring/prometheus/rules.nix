@@ -399,6 +399,19 @@ in
                 };
               }
               {
+                alert = "PublicHttpServerErrorBurst";
+                expr = "sum by (host, service) (increase(nginx_public_server_errors_total[10m])) > 20";
+                for = "5m";
+                labels = opsWarning // {
+                  signal = "service";
+                };
+                annotations = {
+                  summary = "Public HTTP server errors are bursting";
+                  description = "{{ $labels.host }} {{ $labels.service }}: more than 20 server errors to public clients in 10 minutes. Check the upstream service; crashing upstreams and exploit attempts both surface here first.";
+                  runbook_url = runbook;
+                };
+              }
+              {
                 alert = "ScheduledJobFailed";
                 expr = ''infra_job_last_result{scheduled="true"} > 0'';
                 for = "15m";
