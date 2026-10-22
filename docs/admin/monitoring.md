@@ -209,6 +209,8 @@ alert별 1차 확인:
 
 알림 판정은 Prometheus만 합니다. Loki는 원인 조사와 감사 조회용이며, 로그에서 나온 신호는 Vector `log_to_metric`으로 숫자로 바꾼 뒤 Prometheus 규칙이 판정합니다. 보안 알림(`SshLoginUnclassified`, `SensitivePathServed`, `HeadscaleNodeAdded`)도 `#infra-alerts`로 갑니다. 사용자명, source IP, app/node 정보를 기록하고 계정 탈취 가능성이 있으면 Authentik 계정 비활성화와 Headscale ACL apply를 우선합니다. 공격 압력(스캔, 차단, forward-auth 거부)은 알림 없이 Security & audit 대시보드에서 추세로 봅니다.
 
+`#infra-audit`에는 rho의 `infra-audit-digest.timer`가 매주 금요일 15:30 KST에 주간 감사 요약을 게시합니다. 침해 징후 4개(평소 0), 새 tailnet 노드, SSH 로그인 출처, 공격 압력(fail2ban, 인증 전 거부, forward-auth 거부, 스캐너 출처와 404 범주)을 담고, 0건이어도 게시합니다. 요약이 오지 않으면 파이프라인 고장입니다. 쿼리가 실패하면 요약에 실패 항목을 표시하고 서비스가 실패로 끝나 `ScheduledJobFailed`가 `#infra-alerts`로 갑니다. 수동 실행은 `systemctl start infra-audit-digest`, 게시 없이 확인은 rho에서 `digest.py --dry-run`입니다.
+
 ### PostgreSQL replica recovery
 
 일시적인 네트워크 장애는 slot이 보존한 WAL로 자동 복구됩니다. `requested WAL segment ... has already been removed` 또는 `wal_status=lost`이면 기존 PGDATA를 다시 시작하지 않습니다.

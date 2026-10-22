@@ -112,6 +112,7 @@ in
     ../proxy/ingest.nix
     ../audit/ssh-access.nix
     ../audit/tailnet-app-access.nix
+    ../audit/digest.nix
     ../grafana
     ../prometheus
     ../../gatus/check.nix
