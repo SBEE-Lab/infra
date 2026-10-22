@@ -136,6 +136,49 @@ in
     };
   };
 
+  # App and PHP-FPM logs otherwise stay in tau's journal, out of reach of Loki and alerts.
+  services.vector.settings = {
+    sources = {
+      nextcloud_app_journal = {
+        type = "journald";
+        include_matches.SYSLOG_IDENTIFIER = [ "Nextcloud" ];
+      };
+      nextcloud_phpfpm_journal = {
+        type = "journald";
+        include_units = [ "phpfpm-nextcloud" ];
+      };
+    };
+    transforms.parse_nextcloud_logs = {
+      type = "remap";
+      inputs = [
+        "nextcloud_app_journal"
+        "nextcloud_phpfpm_journal"
+      ];
+      source = ''
+        .log_type = "nextcloud"
+        .system_host = "${config.networking.hostName}"
+        .source = if (string(.SYSLOG_IDENTIFIER) ?? "") == "Nextcloud" { "app" } else { "php-fpm" }
+        parsed = object(parse_json(string(.message) ?? "") ?? {}) ?? {}
+        .level = to_int(parsed.level) ?? -1
+        # The app logs at info; warnings and above are enough for review and alerts.
+        if .source == "app" && .level < 2 { abort }
+      '';
+    };
+    sinks.nextcloud_logs_loki = lib.sbee.monitoring.mkVectorLokiSink {
+      input = "parse_nextcloud_logs";
+      endpoint = "http://${hosts.rho.wg-admin}:3100";
+      labels = {
+        system_host = config.networking.hostName;
+        log_type = "nextcloud";
+        source = "{{ source }}";
+      };
+      batch = {
+        max_bytes = 1048576;
+        timeout_secs = 10;
+      };
+    };
+  };
+
   sops.secrets.nextcloud-db-password = {
     sopsFile = ./secrets.yaml;
     owner = "nextcloud";

@@ -287,6 +287,8 @@ in
             .user_agent = to_string(parsed.user_agent) ?? ""
             .request_id = to_string(parsed.request_id) ?? ""
             .bytes_sent = to_int(parsed.bytes_sent) ?? 0
+            .request_length = to_int(parsed.request_length) ?? 0
+            .forwarded_for = to_string(parsed.forwarded_for) ?? ""
             .request_time = to_float(parsed.request_time) ?? 0.0
             .protocol = to_string(parsed.protocol) ?? ""
 
@@ -296,6 +298,11 @@ in
                 .ingress_network = "tailnet"
               } else if (ip_cidr_contains("10.100.0.0/24", .source_ip) ?? false) {
                 .ingress_network = "wg-admin"
+                # The edge appends the real client last; earlier entries are client-supplied.
+                hops = split(.forwarded_for, ",")
+                if length(hops) > 0 {
+                  .client_ip = strip_whitespace(to_string(hops[-1]))
+                }
               } else {
                 .ingress_network = "public"
               }

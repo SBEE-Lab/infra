@@ -39,6 +39,8 @@ in
           '"http_method":"$request_method",'
           '"status":$status,'
           '"bytes_sent":$body_bytes_sent,'
+          '"request_length":$request_length,'
+          '"forwarded_for":"$http_x_forwarded_for",'
           '"request_time":$request_time,'
           '"request_id":"$request_id",'
           '"user_agent":"$http_user_agent",'

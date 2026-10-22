@@ -117,6 +117,8 @@ flowchart LR
 | Authentik 감사 이벤트 (eta) | Loki (rho:3100) | 실시간 |
 | Headscale 컨트롤플레인 이벤트 (eta) | Loki (rho:3100) | 실시간 |
 | Headscale 노드 인벤토리 스냅샷 (eta) | Loki (rho:3100) | 300초 |
+| nginx 원본 접근 로그 (요청 크기, eta 경유 시 실제 클라이언트 IP 포함) | Loki (rho:3100) | 실시간 |
+| Nextcloud 경고 이상·PHP-FPM 로그 (tau) | Loki (rho:3100) | 실시간 |
 | 호스트 메트릭 | Prometheus (rho:9090) | 60초 |
 | Borg·PostgreSQL 작업 완료 결과 | Prometheus (rho:9090) | 60초 |
 | RAID·SMART exporter metrics (psi/rho/tau) | Prometheus (rho:9090) | 60초 |
@@ -279,7 +281,7 @@ healthchecks.io webhook integration은 아직 legacy Slack integration을 유지
 
 ### Loki (rho)
 
-- 리텐션: 기본 7일, 감사 스트림(`log_type=~"ssh|ssh_bastion|access_audit|audit|authentik|headscale|postgresql_audit"`)은 90일
+- 리텐션: 기본 7일, 감사·원본 접근·Nextcloud 스트림(`log_type=~"ssh|ssh_bastion|access_audit|audit|authentik|headscale|postgresql_audit|nginx_access|nextcloud"`)은 90일
   - `headscale_nodes` 스냅샷은 반복 상태 데이터라 기본 7일 적용
 - 스토리지: 로컬 파일시스템 (`/var/lib/loki`)
 
