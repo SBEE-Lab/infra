@@ -12,7 +12,6 @@
     ../modules/monitoring/vector/monitor-systems.nix
     ../modules/monitoring/exporters/systemd-status.nix
     ../modules/monitoring/proxy/reverse.nix
-    ../modules/gatus/reverse-proxy.nix
   ];
 
   disko.rootDisk = "/dev/disk/by-id/nvme-eui.00000000000000006479a79cdac0038a";

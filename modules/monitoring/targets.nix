@@ -38,9 +38,8 @@
   };
   gatus = {
     host = "eta";
-    probeHost = "rho";
     url = "https://status.sjanglab.org";
-    access = "private";
+    access = "public";
     response = "observe";
     failureFor = "15m";
   };

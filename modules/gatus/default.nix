@@ -1,6 +1,8 @@
 { config, lib, ... }:
 let
   inherit (config.networking.sbee) hosts;
+  authentikAuth = import ../authentik/nginx-locations.nix { inherit hosts; };
+  domain = "status.sjanglab.org";
   port = 8081; # 8080 is used by headscale
   systemCollector = hosts.rho.wg-admin;
   cfg = config.gatusCheck;
@@ -11,7 +13,38 @@ let
   ];
 in
 {
-  imports = [ ./check.nix ];
+  imports = [
+    ./check.nix
+    ../monitoring/audit/nginx-access-logs.nix
+  ];
+
+  # Public so the status page stays reachable when the tailnet is down.
+  services.sbee.nginx.edgeVhosts.${domain} = { };
+
+  services.nginx.virtualHosts.${domain} = {
+    extraConfig = ''
+      access_log /var/log/nginx/access-audit/gatus.log nginx_access_json;
+    '';
+
+    locations = authentikAuth.locations // {
+      "/" = {
+        proxyPass = "http://127.0.0.1:${toString port}";
+        proxyWebsockets = true;
+        extraConfig = authentikAuth.protectLocation;
+      };
+
+      # Hosts push results over wg-admin; the public edge never accepts them.
+      "~ ^/api/v1/endpoints/[^/]+/external$".return = "404";
+    };
+  };
+
+  gatusCheck.push = [
+    {
+      name = "Gatus";
+      group = "monitoring";
+      url = "http://127.0.0.1:${toString port}/health";
+    }
+  ];
 
   services.gatus = {
     enable = true;

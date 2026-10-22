@@ -43,7 +43,7 @@ R2 bucket 선언은 백업 데이터 이전이나 NixOS 목적지 변경을 수�
 | Vaultwarden | OIDC provider/client |
 | n8n | admins·researchers Forward Auth |
 | Grafana/logging | admins Forward Auth |
-| Gatus/status | 인증 없는 dashboard tile |
+| Gatus/status | 구성원 Forward Auth |
 
 Nextcloud 내부 OIDC 설정은 NixOS의 `nextcloud-oidc-authentik.service`가 관리합니다. Terraform의 provider/application과 앱 내부 설정을 혼동하지 않습니다.
 

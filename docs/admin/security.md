@@ -175,7 +175,7 @@ inv update-sops-files
 | `cloud.sjanglab.org` | eta | tau (동기화) |
 | `n8n.sjanglab.org` | eta | tau (동기화) |
 | `logging.sjanglab.org` | eta | eta (public edge), rho (동기화, 인증·Grafana) |
-| `status.sjanglab.org` | eta | rho (동기화) |
+| `status.sjanglab.org` | eta | eta |
 | `nixbot.sjanglab.org` | eta | eta (public edge), psi (동기화, service stack) |
 | `mq.sjanglab.org` | eta | eta |
 | `upterm.sjanglab.org` | eta | eta |

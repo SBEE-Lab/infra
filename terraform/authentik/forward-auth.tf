@@ -8,13 +8,9 @@ locals {
       name           = "sjanglab-forward-auth-access"
       allowed_groups = ["sjanglab-admins", "sjanglab-researchers"]
     }
-  }
-
-  launch_only_apps = {
-    status = {
-      name            = "Gatus"
-      slug            = "status"
-      meta_launch_url = "https://status.sjanglab.org"
+    members = {
+      name           = "sjanglab-forward-auth-member-access"
+      allowed_groups = ["sjanglab-admins", "sjanglab-researchers", "sjanglab-students"]
     }
   }
 
@@ -25,6 +21,13 @@ locals {
       slug          = "n8n"
       external_host = "https://n8n.sjanglab.org"
       access_policy = "researchers"
+    }
+    status = {
+      name          = "Gatus"
+      provider_name = "Gatus"
+      slug          = "status"
+      external_host = "https://status.sjanglab.org"
+      access_policy = "members"
     }
     logging = {
       name          = "Grafana"
@@ -47,14 +50,9 @@ resource "authentik_policy_expression" "forward_auth" {
   EOF
 }
 
-resource "authentik_application" "launch_only" {
-  for_each = local.launch_only_apps
-
-  name               = each.value.name
-  slug               = each.value.slug
-  policy_engine_mode = "any"
-  meta_launch_url    = each.value.meta_launch_url
-  open_in_new_tab    = true
+moved {
+  from = authentik_application.launch_only["status"]
+  to   = authentik_application.app["status"]
 }
 
 resource "authentik_provider_proxy" "app" {

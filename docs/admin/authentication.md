@@ -13,7 +13,7 @@
 | Vaultwarden | OIDC (PKCE) | SSO 로그인 |
 | n8n | Forward Auth | 관리자/연구원용 워크플로우 UI (Headscale ACL + Forward Auth 이중 보호) |
 | Grafana | Forward Auth | 공개 HTTPS + `sjanglab-admins` 인가; 신규 Grafana 계정은 Viewer |
-| Gatus | 없음 | Tailnet에서만 접근 가능한 공개 상태 페이지 (Authentik dashboard tile만 표시) |
+| Gatus | Forward Auth | 공개 HTTPS + 구성원(admins·researchers·students) 인가 상태 페이지 |
 | Nixbot | GitHub OAuth | CI/CD 대시보드 접근 |
 
 ### 폐기 서비스의 SSO 객체 정리

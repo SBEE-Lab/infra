@@ -9,7 +9,7 @@ This directory contains the Nix-owned monitoring stack for rho/eta/psi/tau.
 - **all hosts** run Vector for host metrics and logs.
 - **psi** exports biodb job freshness snapshots and NVIDIA GPU metrics.
 - **Grafana** has public HTTPS ingress on eta, forwarded over verified TLS to rho's Authentik-protected nginx. It is reachable through `https://logging.sjanglab.org/` behind Authentik forward auth; identity comes from the `X-authentik-email` header and users auto-provision as Viewer. It binds `127.0.0.1` and has no direct wg-admin/tailnet port.
-- **Gatus** is tailnet-only at `https://status.sjanglab.org/` and remains the user-facing status page.
+- **Gatus** is the user-facing status page at `https://status.sjanglab.org/`, served on eta's public edge behind Authentik forward auth for lab members. Hosts push results over wg-admin `:8081`; the public edge rejects the push API.
 
 ## Network exposure and trust planes
 

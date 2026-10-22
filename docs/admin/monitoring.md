@@ -24,7 +24,7 @@
   - `SjangLab Access & Audit`: SSH bastion, Authentik, Headscale 감사 드릴다운
   - `SjangLab AI Resources`: AI 서비스 smoke, psi 리소스, 데이터 동기화 상태
   - `SjangLab PostgreSQL`: rho primary, tau replica, streaming lag, slot WAL 여유, replication 감사 이력
-- **Gatus**: `https://status.sjanglab.org` (tailnet 내부 공개 상태 페이지)
+- **Gatus**: `https://status.sjanglab.org` (eta 공개 HTTPS + Authentik 구성원 인증 상태 페이지)
   - PostgreSQL은 `primary rho`와 `replica tau`를 별도 endpoint로 표시합니다.
 
 ## Grafana 사용 순서
@@ -291,6 +291,7 @@ healthchecks.io webhook integration은 아직 legacy Slack integration을 유지
 
 - Pull 방식: eta에서 직접 접근 가능한 서비스 (Authentik, Headscale, Upterm 등)
 - Push 방식: 내부 서비스가 로컬/사용자 경로를 확인한 뒤 상태 보고
+- 접근: eta 공개 vhost에서 Authentik Forward Auth로 보호. tailnet 장애 중에도 열람 가능. push API(`/api/v1/endpoints/*/external`)는 공개 경로에서 404이고 wg-admin `:8081`로만 받음
 - 저장소: SQLite (`/var/lib/gatus/gatus.sqlite`)로 재시작 후 uptime 유지
 - External endpoint heartbeat: 15분 동안 push가 없으면 실패 처리
 - 그룹: `apps`, `ai`, `ci`, `monitoring`, `platform`, `storage`

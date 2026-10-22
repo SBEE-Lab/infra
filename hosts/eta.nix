@@ -95,12 +95,6 @@ in
       remoteHost = hosts.tau.wg-admin;
     }
     {
-      domain = "status.sjanglab.org";
-      serviceName = "acme-sync-status-to-rho";
-      remoteUser = "acme-sync-status";
-      remoteHost = hosts.rho.wg-admin;
-    }
-    {
       domain = "logging.sjanglab.org";
       serviceName = "acme-sync-logging-to-rho";
       remoteUser = "acme-sync-logging";
@@ -119,7 +113,6 @@ in
   # ACME certificates for internal services
 
   services.sbee.nginx.localCertificates = {
-    "status.sjanglab.org".group = "acme";
     "vault.sjanglab.org".group = "acme";
   };
 

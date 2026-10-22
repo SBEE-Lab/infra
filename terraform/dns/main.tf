@@ -195,6 +195,16 @@ resource "cloudflare_dns_record" "grafana" {
   comment = "Grafana authenticated public edge (eta -> rho)"
 }
 
+resource "cloudflare_dns_record" "status" {
+  zone_id = data.sops_file.secrets.data["CLOUDFLARE_ZONE_ID"]
+  name    = "status.sjanglab.org"
+  content = "141.164.53.203"
+  type    = "A"
+  ttl     = 300
+  proxied = false
+  comment = "Gatus authenticated public status page (eta)"
+}
+
 resource "cloudflare_dns_record" "n8n" {
   zone_id = data.sops_file.secrets.data["CLOUDFLARE_ZONE_ID"]
   name    = "n8n.sjanglab.org"

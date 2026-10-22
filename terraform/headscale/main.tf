@@ -32,10 +32,6 @@ locals {
   policy = {
     groups = local.policy_groups
 
-    hosts = {
-      status = "100.64.0.2"
-    }
-
     tagOwners = {
       "tag:server"     = ["group:sjanglab-admins"]
       "tag:ai"         = ["group:sjanglab-admins"]
@@ -48,11 +44,6 @@ locals {
         action = "accept"
         src    = ["tag:apps"]
         dst    = ["tag:ai:443"]
-      },
-      {
-        action = "accept"
-        src    = ["autogroup:member"]
-        dst    = ["status:443"]
       },
       {
         action = "accept"
