@@ -1,8 +1,12 @@
 # SjangLab Apps dashboard
-# User-facing application smoke status and access side-effects.
+# Host-side Gatus checks beside external Blackbox probes: outside down with the
+# inside up points at ingress or network; inside down points at the app itself.
+# Access side-effects live in the Security & audit dashboard.
 { datasources }:
 let
-  inherit (datasources) prometheus loki;
+  inherit (datasources) prometheus;
+  p = import ./panels.nix { inherit datasources; };
+  inherit (p) grid;
 in
 {
   uid = "sjanglab-apps";
@@ -13,7 +17,7 @@ in
   ];
   timezone = "browser";
   schemaVersion = 41;
-  version = 1;
+  version = 2;
   refresh = "30s";
   time = {
     from = "now-24h";
@@ -24,12 +28,12 @@ in
   panels = [
     {
       id = 1;
-      title = "Endpoint status";
+      title = "Inside: host checks (Gatus)";
       type = "table";
       datasource = prometheus;
       gridPos = {
         h = 9;
-        w = 24;
+        w = 12;
         x = 0;
         y = 0;
       };
@@ -112,57 +116,15 @@ in
       ];
     }
     {
-      id = 3;
-      title = "Forward-auth denials by app";
-      type = "timeseries";
-      datasource = loki;
-      gridPos = {
-        h = 8;
-        w = 12;
-        x = 0;
-        y = 17;
-      };
-      fieldConfig.defaults.min = 0;
-      targets = [
-        {
-          refId = "A";
-          datasource = loki;
-          expr = ''sum by (app) (count_over_time({log_type="authentik", event="forward_auth_deny"} | json | app != "" [$__auto]))'';
-          legendFormat = "{{app}}";
-        }
-      ];
-    }
-    {
-      id = 4;
-      title = "App authorizations by app";
-      type = "timeseries";
-      datasource = loki;
-      gridPos = {
-        h = 8;
-        w = 12;
-        x = 12;
-        y = 17;
-      };
-      fieldConfig.defaults.min = 0;
-      targets = [
-        {
-          refId = "A";
-          datasource = loki;
-          expr = ''sum by (app) (count_over_time({log_type="authentik", event="app_authorize"} | json | app != "" [$__auto]))'';
-          legendFormat = "{{app}}";
-        }
-      ];
-    }
-    {
       id = 5;
-      title = "Synthetic probes";
+      title = "Outside: external probes (Blackbox)";
       type = "table";
       datasource = prometheus;
       gridPos = {
-        h = 8;
-        w = 24;
-        x = 0;
-        y = 25;
+        h = 9;
+        w = 12;
+        x = 12;
+        y = 0;
       };
       options = {
         showHeader = true;
@@ -219,5 +181,43 @@ in
         }
       ];
     }
+    (p.row {
+      id = 6;
+      title = "Nextcloud";
+      y = 17;
+    })
+    (p.timeseries {
+      id = 7;
+      title = "PHP-FPM worker crashes";
+      ds = "prometheus";
+      pos = grid 0 18 8 8;
+      bars = true;
+      targets = [
+        {
+          expr = "sum by (host) (increase(nextcloud_phpfpm_worker_crashes_total[10m]))";
+          legend = "{{host}}";
+        }
+      ];
+    })
+    (p.timeseries {
+      id = 8;
+      title = "Public 5xx by service";
+      ds = "prometheus";
+      pos = grid 8 18 8 8;
+      bars = true;
+      targets = [
+        {
+          expr = "sum by (service) (increase(nginx_public_server_errors_total[10m]))";
+          legend = "{{service}}";
+        }
+      ];
+    })
+    (p.logs {
+      id = 9;
+      title = "Nextcloud warnings and PHP-FPM";
+      description = "App log level 2 and above plus the php-fpm journal; info logs are not collected.";
+      pos = grid 16 18 8 8;
+      expr = ''{log_type="nextcloud"}'';
+    })
   ];
 }

@@ -1,8 +1,12 @@
 # SjangLab Hosts dashboard
-# Host reachability/resource drilldown; synthetic blackbox probes will extend this.
+# Host reachability, resources, storage health, and deployment state.
 { datasources }:
 let
   inherit (datasources) prometheus loki;
+  p = import ./panels.nix { inherit datasources; };
+  inherit (p) grid;
+  # Same mounts the disk alerts watch.
+  dataMounts = ''mountpoint=~"/|/srv|/data"'';
 
   tablePanel =
     {
@@ -46,7 +50,7 @@ in
   ];
   timezone = "browser";
   schemaVersion = 41;
-  version = 1;
+  version = 2;
   refresh = "30s";
   time = {
     from = "now-6h";
@@ -165,7 +169,7 @@ in
     }
     {
       id = 5;
-      title = "Root filesystem free";
+      title = "Data filesystems free";
       type = "timeseries";
       datasource = prometheus;
       gridPos = {
@@ -183,8 +187,8 @@ in
         {
           refId = "A";
           datasource = prometheus;
-          expr = ''100 * host_filesystem_free_bytes{mountpoint="/"} / host_filesystem_total_bytes{mountpoint="/"}'';
-          legendFormat = "{{host}}";
+          expr = "100 * host_filesystem_free_bytes{${dataMounts}} / host_filesystem_total_bytes{${dataMounts}}";
+          legendFormat = "{{host}} {{mountpoint}}";
         }
       ];
     }
@@ -313,6 +317,81 @@ in
           };
         }
       ];
+    })
+    (p.row {
+      id = 9;
+      title = "Storage";
+      y = 40;
+    })
+    (p.table {
+      id = 10;
+      title = "SMART status (1 = passed)";
+      ds = "prometheus";
+      pos = grid 0 41 8 8;
+      expr = "smartctl_device_smart_status";
+      hide = [
+        "instance"
+        "job"
+        "exported_instance"
+      ];
+    })
+    (p.table {
+      id = 11;
+      title = "NVMe critical warning (0 = none)";
+      ds = "prometheus";
+      pos = grid 8 41 8 8;
+      expr = "smartctl_device_critical_warning";
+      hide = [
+        "instance"
+        "job"
+        "exported_instance"
+      ];
+    })
+    (p.table {
+      id = 12;
+      title = "RAID degraded disks (0 = healthy)";
+      ds = "prometheus";
+      pos = grid 16 41 8 8;
+      expr = "node_md_degraded";
+      hide = [
+        "instance"
+        "job"
+        "exported_instance"
+      ];
+    })
+    (p.row {
+      id = 13;
+      title = "Deployment";
+      y = 49;
+    })
+    (p.table {
+      id = 14;
+      title = "Auto-upgrade: last run";
+      description = "Each host applies nixbot's main build daily. A failed run keeps the previous system; manual pauses show as a stale completion time.";
+      ds = "prometheus";
+      pos = grid 0 50 12 7;
+      expr = ''time() - infra_job_last_completion_timestamp_seconds{unit="auto-upgrade.service"}'';
+      hide = [
+        "instance"
+        "job"
+        "scheduled"
+        "unit"
+      ];
+      rename.Value = "seconds since run";
+    })
+    (p.table {
+      id = 15;
+      title = "Auto-upgrade: last result (0 = success)";
+      ds = "prometheus";
+      pos = grid 12 50 12 7;
+      expr = ''infra_job_last_result{unit="auto-upgrade.service"}'';
+      hide = [
+        "instance"
+        "job"
+        "scheduled"
+        "unit"
+      ];
+      rename.Value = "result";
     })
   ];
 }
