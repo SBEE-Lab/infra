@@ -24,15 +24,42 @@ let
   nodeEvents = [
     "node_snapshot"
     "nodes_summary"
+    "node_added"
   ];
+  # Vector's StateDirectory; holds node IDs from the previous snapshot.
+  nodeIdsState = "/var/lib/vector/headscale-node-ids.json";
 
   # Field names differ across headscale versions (snake_case vs camelCase),
   # so accept both when flattening the node list into one JSON line per node.
   # Summary rows let Grafana count online nodes without double-counting
   # repeated per-node snapshots in a range query.
   nodesSnapshotScript = pkgs.writeShellScript "headscale-nodes-snapshot" ''
-    ${lib.getExe config.services.headscale.package} nodes list --output json |
-      ${lib.getExe pkgs.jq} -c '
+    set -euo pipefail
+    jq=${lib.getExe pkgs.jq}
+    nodes=$(${lib.getExe config.services.headscale.package} nodes list --output json)
+
+    # A node ID absent from the previous snapshot is a new registration; the
+    # first run has no baseline and reports nothing.
+    if [ -s ${nodeIdsState} ]; then
+      printf '%s' "$nodes" | $jq -c --slurpfile prev ${nodeIdsState} '
+        (. // [])[]
+        | select(((.id // "") | tostring) as $id | ($prev[0] | index($id)) == null)
+        | {
+            log_type: "headscale_nodes",
+            event: "node_added",
+            host: "${hostName}",
+            node_id: ((.id // "") | tostring),
+            node: (.given_name // .givenName // .name // ""),
+            user: (.user.name // ""),
+            tags: ((.tags // []) | join(",")),
+            ip_addresses: ((.ip_addresses // .ipAddresses // []) | join(","))
+          }'
+    fi
+    printf '%s' "$nodes" | $jq -c '[(. // [])[] | (.id // "") | tostring]' > ${nodeIdsState}.tmp
+    mv ${nodeIdsState}.tmp ${nodeIdsState}
+
+    printf '%s' "$nodes" |
+      $jq -c '
         def seconds($value):
           if ($value | type) == "object" then ($value.seconds // null)
           elif $value == null then null
