@@ -6,6 +6,7 @@ Cloudflare Worker that receives Alertmanager and healthchecks.io webhooks and po
 
 - `POST /alertmanager` — Alertmanager webhook payloads. Requires `Authorization: Bearer $ALERTMANAGER_WEBHOOK_TOKEN`.
 - `POST /healthchecks` — healthchecks.io webhook payloads. Requires `Authorization: Bearer $HEALTHCHECKS_WEBHOOK_TOKEN`.
+- `POST /digest` — `{ "title": string, "sections": string[] }` posted once to `#infra-audit` (sections are Slack mrkdwn, at most 40 of 3000 characters). Uses the Alertmanager token because rho sends both.
 - `GET /healthz` — unauthenticated health probe.
 
 ## Slack messages

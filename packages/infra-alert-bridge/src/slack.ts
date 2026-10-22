@@ -58,6 +58,20 @@ export async function updateParent(
   });
 }
 
+export async function postBlocks(env: Env, channel: string, text: string, blocks: unknown[]): Promise<string> {
+  const result = await slackApi(env, "chat.postMessage", {
+    channel,
+    text,
+    blocks,
+    unfurl_links: false,
+    unfurl_media: false,
+  });
+  if (!result.ts) {
+    throw new Error("Slack chat.postMessage succeeded without ts");
+  }
+  return result.ts;
+}
+
 export async function postThread(env: Env, channel: string, threadTs: string, text: string): Promise<void> {
   await slackApi(env, "chat.postMessage", {
     channel,

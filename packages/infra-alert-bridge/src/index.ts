@@ -1,4 +1,5 @@
 import { handleAlertmanager, HttpError } from "./alertmanager";
+import { handleDigest } from "./digest";
 import { handleHealthchecks } from "./healthchecks";
 import type { Env } from "./types";
 
@@ -15,6 +16,9 @@ export default {
       }
       if (request.method === "POST" && url.pathname === "/healthchecks") {
         return await handleHealthchecks(request, env, now);
+      }
+      if (request.method === "POST" && url.pathname === "/digest") {
+        return await handleDigest(request, env);
       }
       return json({ ok: false, error: "not_found" }, 404);
     } catch (error) {
