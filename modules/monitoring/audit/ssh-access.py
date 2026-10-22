@@ -28,6 +28,7 @@ class InventoryJson(TypedDict):
     bastion_host: str
     bastion_ip: str
     emergency_lan_ranges: list[str]
+    naru_peers: dict[str, str]
 
 
 class LokiValue(TypedDict):
@@ -90,6 +91,7 @@ class Inventory:
     bastion_host: str
     bastion_ip: str
     emergency_lan_ranges: list[EmergencyRange]
+    naru_peers: dict[str, str]
 
 
 def event_str(event: Event, key: str, default: str = "") -> str:
@@ -134,6 +136,7 @@ def load_inventory(path: Path) -> Inventory:
         bastion_host=raw["bastion_host"],
         bastion_ip=raw["bastion_ip"],
         emergency_lan_ranges=[parse_emergency_range(item) for item in raw["emergency_lan_ranges"]],
+        naru_peers=raw["naru_peers"],
     )
 
 
@@ -343,6 +346,18 @@ def classify_login(
                 "source_kind": "managed_host",
                 "ingress_network": "wg-admin",
                 "source_host": source_host,
+            }
+        )
+        return audit_event
+
+    naru_peer = inventory.naru_peers.get(source_ip)
+    if naru_peer is not None:
+        audit_event.update(
+            {
+                "path": "naru",
+                "source_kind": "naru_peer",
+                "ingress_network": "naru",
+                "source_device": naru_peer,
             }
         )
         return audit_event
@@ -571,6 +586,7 @@ def sample_inventory() -> Inventory:
         bastion_host="eta",
         bastion_ip="10.100.0.1",
         emergency_lan_ranges=[parse_emergency_range("10.80.169.38-10.80.169.40")],
+        naru_peers={"10.208.0.8": "rhesus"},
     )
 
 
@@ -627,6 +643,12 @@ def run_self_tests() -> int:
     machine = classify_login(ssh_sample(host="rho", source_ip="10.100.0.2"), [], [], inventory)
     assert machine["path"] == "machine_to_machine"
     assert machine["source_host"] == "psi"
+
+    naru = classify_login(ssh_sample(host="psi", source_ip="10.208.0.8"), [], [], inventory)
+    assert naru["path"] == "naru"
+    assert naru["source_kind"] == "naru_peer"
+    assert naru["ingress_network"] == "naru"
+    assert naru["source_device"] == "rhesus"
 
     target_login = ssh_sample(
         host="psi", source_ip="10.100.0.1", source_port="45555", timestamp_ns=1_000_000_000

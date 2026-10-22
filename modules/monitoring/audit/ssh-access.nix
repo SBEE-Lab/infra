@@ -17,6 +17,18 @@ let
     }
   ) config.networking.sbee.adminWireguardPeers;
 
+  # Naru host files carry "Subnet = <ip>" lines; map each IPv4 subnet to its node.
+  naruPeers = lib.listToAttrs (
+    lib.concatLists (
+      lib.mapAttrsToList (
+        node: hostFile:
+        map (line: lib.nameValuePair (lib.head (builtins.match "Subnet = ([0-9.]+)" line)) node) (
+          lib.filter (line: builtins.match "Subnet = [0-9.]+" line != null) (lib.splitString "\n" hostFile)
+        )
+      ) config.services.tincr.networks.naru.hosts
+    )
+  );
+
   inventory = pkgs.writeText "ssh-access-audit-inventory.json" (
     builtins.toJSON {
       inherit hosts;
@@ -24,6 +36,7 @@ let
       bastion_host = "eta";
       bastion_ip = config.networking.sbee.hosts.eta.wg-admin;
       emergency_lan_ranges = [ "10.80.169.38-10.80.169.40" ];
+      naru_peers = naruPeers;
     }
   );
 
