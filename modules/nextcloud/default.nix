@@ -164,6 +164,25 @@ in
         if .source == "app" && .level < 2 { abort }
       '';
     };
+    # Memory-corruption exploits such as php2shell crash workers before they succeed.
+    transforms.nextcloud_phpfpm_crashes = {
+      type = "filter";
+      inputs = [ "parse_nextcloud_logs" ];
+      condition = ''.source == "php-fpm" && match(string(.message) ?? "", r'(?i)exited on signal|sigsegv|core dumped')'';
+    };
+    transforms.nextcloud_phpfpm_crash_metrics = {
+      type = "log_to_metric";
+      inputs = [ "nextcloud_phpfpm_crashes" ];
+      metrics = [
+        {
+          type = "counter";
+          field = "message";
+          name = "nextcloud_phpfpm_worker_crashes_total";
+          tags.host = config.networking.hostName;
+        }
+      ];
+    };
+    sinks.system_metrics_remote.inputs = [ "nextcloud_phpfpm_crash_metrics" ];
     sinks.nextcloud_logs_loki = lib.sbee.monitoring.mkVectorLokiSink {
       input = "parse_nextcloud_logs";
       endpoint = "http://${hosts.rho.wg-admin}:3100";

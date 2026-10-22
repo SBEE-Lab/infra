@@ -412,6 +412,20 @@ in
                 };
               }
               {
+                alert = "NextcloudPhpFpmWorkerCrashed";
+                expr = "increase(nextcloud_phpfpm_worker_crashes_total[10m]) > 0";
+                for = "0m";
+                labels = opsCritical // {
+                  signal = "service";
+                  service = "nextcloud";
+                };
+                annotations = {
+                  summary = "Nextcloud PHP-FPM worker crashed";
+                  description = "{{ $labels.host }}: a PHP-FPM worker died on a signal. Memory-corruption exploits crash workers before they succeed; review the Nextcloud and nginx logs around this time and confirm PHP is patched.";
+                  runbook_url = runbook;
+                };
+              }
+              {
                 alert = "ScheduledJobFailed";
                 expr = ''infra_job_last_result{scheduled="true"} > 0'';
                 for = "15m";

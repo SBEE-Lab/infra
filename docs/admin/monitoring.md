@@ -200,6 +200,7 @@ alert별 1차 확인:
 | `PostgresqlReplicationSlotInactive` / `PostgresqlReplicationSlotWalRisk` | rho `pg_replication_slots` | tau 상태 복구. `wal_status=lost`면 새 basebackup 수행 |
 | `PostgresqlAuditSnapshotsMissing` | rho/tau audit timer와 Vector/Loki | timer·전송 경로 복구 후 누락 구간 기록 |
 | `PublicHttpServerErrorBurst` | eta `nginx_public_server_errors_total`, Loki `{log_type="nginx_access"} \| json \| status >= 500` | upstream 서비스 상태 확인. 공격 시도도 여기서 먼저 보이므로 `request_length`·`client_ip`와 함께 판독 |
+| `NextcloudPhpFpmWorkerCrashed` | tau `phpfpm-nextcloud` journal, Loki `{log_type="nextcloud", source="php-fpm"}` | worker가 signal로 종료됨. PHP 보안 패치 여부와 같은 시각 접근 로그 확인 |
 | `ScheduledJobFailed` / `BackupDumpFailed` | 백업·덤프 journal, 종료 결과 | 원인 수정 후 systemd 백업 서비스로 재실행 |
 | `BackupCompletionOverdue` | 05:30 타이머, 덤프 의존성, Borg 실행 여부 | 36시간 완료 지연 원인 조사 |
 | `BackupVerificationOverdue` | 일요일 09:00 타이머, Borg 검사 journal | 9일 완료 지연 원인 조사 |
