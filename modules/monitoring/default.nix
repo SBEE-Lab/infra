@@ -2,6 +2,7 @@
 {
   imports = [
     ./paused.nix
+    ./exporters/fail2ban.nix
     ./exporters/job-results.nix
     ./exporters/storage.nix
   ];
