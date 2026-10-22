@@ -22,6 +22,8 @@ let
     "session_closed"
     "session_opened"
     "disconnected"
+    "invalid_user"
+    "preauth_rejected"
   ];
   auditEvents = [
     "session_start"
@@ -191,6 +193,27 @@ in
                 .user = parsed.user
               }
             }
+
+            # Key-only auth means scanners never reach "Failed"; count where they stop.
+            # Invalid user bob from 203.0.113.9 port 4242
+            if starts_with(message, "Invalid user ") {
+              .event = "invalid_user"
+              parsed = parse_regex(message, r'^Invalid user (?P<user>\S*) from (?P<ip>\S+) port (?P<port>\d+)') ?? {}
+              if exists(parsed.ip) {
+                .user = parsed.user
+                .source_ip = parsed.ip
+              }
+            }
+
+            # Connection closed by authenticating user root 203.0.113.9 port 4242 [preauth]
+            # Unable to negotiate with 203.0.113.9 port 4242: no matching cipher found
+            if contains(message, "[preauth]") || starts_with(message, "Unable to negotiate") {
+              .event = "preauth_rejected"
+              parsed = parse_regex(message, r'(?P<ip>[0-9a-fA-F:.]+) port (?P<port>\d+)') ?? {}
+              if exists(parsed.ip) {
+                .source_ip = parsed.ip
+              }
+            }
           '';
         };
 
@@ -261,6 +284,7 @@ in
             "network_stats"
             "vector_internal"
             "public_server_error_metrics"
+            "public_sensitive_path_metrics"
           ]
           ++ lib.optional nginxExporter.enable "nginx_metrics";
           source = ''
@@ -283,6 +307,26 @@ in
               type = "counter";
               field = "status";
               name = "nginx_public_server_errors_total";
+              tags.service = "{{ service }}";
+            }
+          ];
+        };
+
+        # Scanners probe these paths daily; a 2xx means the file was served. Redirects
+        # stay out because forward-auth vhosts answer every unauthenticated path with 302.
+        public_sensitive_paths = {
+          type = "filter";
+          inputs = [ "parse_nginx_access" ];
+          condition = ''.ingress_network == "public" && (to_int(.status) ?? 0) >= 200 && (to_int(.status) ?? 0) < 300 && match(to_string(.request_path) ?? "", r'^/(?:\.env|\.git(?:/|-credentials|$)|composer\.(?:json|lock)$|package(?:-lock)?\.json$|wp-(?:admin|login|config))')'';
+        };
+        public_sensitive_path_metrics = {
+          type = "log_to_metric";
+          inputs = [ "public_sensitive_paths" ];
+          metrics = [
+            {
+              type = "counter";
+              field = "status";
+              name = "nginx_public_sensitive_path_served_total";
               tags.service = "{{ service }}";
             }
           ];
