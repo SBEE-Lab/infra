@@ -1,62 +1,9 @@
 # SjangLab Infrastructure overview dashboard (Grafana home)
-# High-level health only; audit detail lives in access-audit.nix
+# Answers "does anything need action now"; detail lives in the linked dashboards.
 { datasources }:
 let
-  inherit (datasources) prometheus loki;
-
-  # Stat tile counting audit events over the last 24h via an instant query
-  auditStat =
-    {
-      id,
-      title,
-      x,
-      expr,
-    }:
-    {
-      inherit id title;
-      type = "stat";
-      datasource = loki;
-      gridPos = {
-        h = 4;
-        w = 8;
-        inherit x;
-        y = 0;
-      };
-      options = {
-        colorMode = "value";
-        graphMode = "none";
-        reduceOptions = {
-          calcs = [ "lastNotNull" ];
-          fields = "";
-          values = false;
-        };
-      };
-      fieldConfig.defaults = {
-        noValue = "0";
-        thresholds = {
-          mode = "absolute";
-          steps = [
-            {
-              color = "green";
-              value = null;
-            }
-            {
-              color = "red";
-              value = 1;
-            }
-          ];
-        };
-      };
-      targets = [
-        {
-          refId = "A";
-          datasource = loki;
-          inherit expr;
-          queryType = "instant";
-          instant = true;
-        }
-      ];
-    };
+  p = import ./panels.nix { inherit datasources; };
+  inherit (p) grid;
 in
 {
   uid = "sjanglab-infra";
@@ -67,7 +14,7 @@ in
   ];
   timezone = "browser";
   schemaVersion = 41;
-  version = 1;
+  version = 2;
   refresh = "30s";
   time = {
     from = "now-6h";
@@ -75,293 +22,127 @@ in
   };
   templating.list = [ ];
   annotations.list = [ ];
+  links =
+    map
+      (dashboard: {
+        inherit (dashboard) title;
+        type = "link";
+        url = "/d/${dashboard.uid}";
+      })
+      [
+        {
+          title = "Security & audit";
+          uid = "sjanglab-access-audit";
+        }
+        {
+          title = "Public edge";
+          uid = "sjanglab-edge";
+        }
+        {
+          title = "Apps";
+          uid = "sjanglab-apps";
+        }
+        {
+          title = "Hosts";
+          uid = "sjanglab-hosts";
+        }
+        {
+          title = "Jobs";
+          uid = "sjanglab-jobs";
+        }
+        {
+          title = "PostgreSQL";
+          uid = "sjanglab-postgresql";
+        }
+      ];
   panels = [
-    (auditStat {
+    (p.stat {
       id = 1;
-      title = "SSH login failures (24h)";
-      x = 0;
-      expr = ''sum(count_over_time({log_type="ssh", event="login_failed"}[24h]))'';
+      title = "Firing alerts";
+      ds = "prometheus";
+      pos = grid 0 0 6 4;
+      expr = ''count(ALERTS{alertstate="firing", alertname!="Watchdog"}) or vector(0)'';
     })
-    (auditStat {
+    (p.stat {
       id = 2;
-      title = "Authentik login failures (24h)";
-      x = 8;
-      expr = ''sum(count_over_time({log_type="authentik", event="login_failed"}[24h]))'';
+      title = "Intrusion indicators (7d)";
+      description = "Unclassified SSH logins plus newly registered tailnet nodes. Open Security & audit for the events.";
+      ds = "loki";
+      pos = grid 6 0 6 4;
+      expr = ''(sum(count_over_time({log_type="access_audit", path="unknown"}[7d])) or vector(0)) + (sum(count_over_time({log_type="headscale_nodes", event="node_added"}[7d])) or vector(0))'';
     })
-    {
+    (p.stat {
       id = 3;
-      title = "Headscale nodes online";
-      type = "stat";
-      datasource = loki;
-      gridPos = {
-        h = 4;
-        w = 8;
-        x = 16;
-        y = 0;
-      };
-      options = {
-        colorMode = "value";
-        graphMode = "none";
-        reduceOptions = {
-          calcs = [ "lastNotNull" ];
-          fields = "";
-          values = false;
-        };
-      };
-      fieldConfig.defaults = {
-        noValue = "0";
-        thresholds = {
-          mode = "absolute";
-          steps = [
-            {
-              color = "blue";
-              value = null;
-            }
-          ];
-        };
-      };
-      targets = [
-        {
-          refId = "A";
-          datasource = loki;
-          # Summary snapshots avoid double-counting repeated per-node inventory rows.
-          expr = ''last_over_time({log_type="headscale_nodes", event="nodes_summary"} | json | unwrap online_count [10m])'';
-          queryType = "instant";
-          instant = true;
-        }
-      ];
-    }
-    {
+      title = "Immediate services down";
+      description = "Blackbox checks for services routed as response=immediate.";
+      ds = "prometheus";
+      pos = grid 12 0 6 4;
+      expr = ''count(probe_success{response="immediate", job=~"blackbox_.*"} == 0) or vector(0)'';
+    })
+    (p.stat {
       id = 4;
-      title = "Host memory available";
-      type = "timeseries";
-      datasource = prometheus;
-      gridPos = {
-        h = 8;
-        w = 8;
-        x = 0;
-        y = 4;
-      };
-      fieldConfig.defaults = {
-        unit = "percent";
-        min = 0;
-        max = 100;
-      };
-      targets = [
-        {
-          refId = "A";
-          datasource = prometheus;
-          expr = "100 * host_memory_available_bytes / host_memory_total_bytes";
-          legendFormat = "{{host}}";
-        }
+      title = "Oldest borg backup";
+      description = "Time since the least recent host finished its local borg job. Missing records mean unknown, not success.";
+      ds = "prometheus";
+      pos = grid 18 0 6 4;
+      unit = "s";
+      noValue = "no data";
+      thresholds = p.steps [
+        [
+          "green"
+          null
+        ]
+        [
+          "orange"
+          93600
+        ]
+        [
+          "red"
+          172800
+        ]
       ];
-    }
-    {
+      expr = ''time() - min(infra_job_last_completion_timestamp_seconds{unit="borgbackup-job-local.service"})'';
+    })
+    (p.table {
       id = 5;
-      title = "CPU busy";
-      type = "timeseries";
-      datasource = prometheus;
-      gridPos = {
-        h = 8;
-        w = 8;
-        x = 8;
-        y = 4;
-      };
-      fieldConfig.defaults = {
-        unit = "percent";
-        min = 0;
-        max = 100;
-      };
-      targets = [
-        {
-          refId = "A";
-          datasource = prometheus;
-          expr = ''(1 - avg by (host) (rate(host_cpu_seconds_total{mode="idle"}[5m]))) * 100'';
-          legendFormat = "{{host}}";
-        }
+      title = "Active alerts";
+      ds = "prometheus";
+      pos = grid 0 4 16 8;
+      expr = ''ALERTS{alertname!="Watchdog"}'';
+      hide = [
+        "Value"
+        "instance"
+        "job"
       ];
-    }
-    {
+    })
+    (p.stat {
       id = 6;
-      title = "Root filesystem free";
-      type = "timeseries";
-      datasource = prometheus;
-      gridPos = {
-        h = 8;
-        w = 8;
-        x = 16;
-        y = 4;
-      };
-      fieldConfig.defaults = {
-        unit = "percent";
-        min = 0;
-        max = 100;
-      };
-      targets = [
-        {
-          refId = "A";
-          datasource = prometheus;
-          expr = ''100 * host_filesystem_free_bytes{mountpoint="/"} / host_filesystem_total_bytes{mountpoint="/"}'';
-          legendFormat = "{{host}}";
-        }
-      ];
-    }
-    {
+      title = "Gatus checks failing";
+      description = "Host-side checks pushed to Gatus; Apps shows them beside the external probes.";
+      ds = "prometheus";
+      pos = grid 16 4 8 4;
+      expr = "count(gatus_results_endpoint_success == 0) or vector(0)";
+    })
+    (p.stat {
       id = 7;
-      title = "Gatus endpoints";
-      type = "table";
-      datasource = prometheus;
-      gridPos = {
-        h = 8;
-        w = 12;
-        x = 0;
-        y = 12;
-      };
-      options = {
-        showHeader = true;
-        cellHeight = "sm";
-        footer.show = false;
-        sortBy = [
-          {
-            displayName = "group";
-            desc = false;
-          }
-        ];
-      };
-      transformations = [
-        { id = "labelsToFields"; }
-        {
-          id = "organize";
-          options = {
-            excludeByName = {
-              Time = true;
-              __name__ = true;
-              key = true;
-              type = true;
-            };
-            indexByName = {
-              group = 0;
-              name = 1;
-              Value = 2;
-              gatus_results_endpoint_success = 2;
-            };
-            renameByName = {
-              Value = "status";
-              gatus_results_endpoint_success = "status";
-            };
-          };
-        }
-      ];
-      fieldConfig.defaults = {
-        mappings = [
-          {
-            type = "value";
-            options = {
-              "0" = {
-                text = "DOWN";
-                color = "red";
-              };
-              "1" = {
-                text = "UP";
-                color = "green";
-              };
-            };
-          }
-        ];
-      };
-      targets = [
-        {
-          refId = "A";
-          datasource = prometheus;
-          expr = "last_over_time(gatus_results_endpoint_success[5m])";
-          instant = true;
-          format = "table";
-        }
-      ];
-    }
-    {
+      title = "Prometheus targets down";
+      ds = "prometheus";
+      pos = grid 16 8 4 4;
+      expr = "count(up == 0) or vector(0)";
+    })
+    (p.stat {
       id = 8;
-      title = "Prometheus targets";
-      type = "table";
-      datasource = prometheus;
-      gridPos = {
-        h = 8;
-        w = 12;
-        x = 12;
-        y = 12;
-      };
-      options = {
-        showHeader = true;
-        cellHeight = "sm";
-        footer.show = false;
-      };
-      transformations = [
-        { id = "labelsToFields"; }
-        {
-          id = "organize";
-          options = {
-            excludeByName = {
-              Time = true;
-              __name__ = true;
-            };
-            indexByName = {
-              job = 0;
-              instance = 1;
-              Value = 2;
-              up = 2;
-            };
-            renameByName = {
-              Value = "status";
-              up = "status";
-            };
-          };
-        }
+      title = "Headscale nodes online";
+      ds = "loki";
+      pos = grid 20 8 4 4;
+      thresholds = p.steps [
+        [
+          "blue"
+          null
+        ]
       ];
-      fieldConfig.defaults = {
-        mappings = [
-          {
-            type = "value";
-            options = {
-              "0" = {
-                text = "DOWN";
-                color = "red";
-              };
-              "1" = {
-                text = "UP";
-                color = "green";
-              };
-            };
-          }
-        ];
-      };
-      targets = [
-        {
-          refId = "A";
-          datasource = prometheus;
-          expr = "up";
-          instant = true;
-          format = "table";
-        }
-      ];
-    }
-    {
-      id = 9;
-      title = "Job completion records";
-      type = "text";
-      gridPos = {
-        h = 4;
-        w = 24;
-        x = 0;
-        y = 20;
-      };
-      options = {
-        mode = "markdown";
-        content = ''
-          [Open Jobs](/d/sjanglab-jobs) for recorded Borg and PostgreSQL dump completions.
-
-          Missing records mean unknown, not success. Execution state and biodb lifecycle are not collected.
-        '';
-      };
-    }
+      # Summary snapshots avoid double-counting repeated per-node inventory rows.
+      expr = ''last_over_time({log_type="headscale_nodes", event="nodes_summary"} | json | unwrap online_count [10m])'';
+    })
   ];
 }
