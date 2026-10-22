@@ -257,8 +257,8 @@ in
                   } > 1073741824
                 '';
                 for = "5m";
-                labels = opsWarning // {
-                  severity = "critical";
+                # Retained WAL grows on rho until the replica catches up or the disk fills.
+                labels = opsCritical // {
                   host = "rho";
                   service = "postgresql";
                 };
@@ -321,8 +321,7 @@ in
                   } == 1
                 '';
                 for = "1m";
-                labels = opsWarning // {
-                  severity = "critical";
+                labels = opsCritical // {
                   host = "rho";
                   service = "postgresql";
                 };
@@ -422,6 +421,60 @@ in
                 annotations = {
                   summary = "Nextcloud PHP-FPM worker crashed";
                   description = "{{ $labels.host }}: a PHP-FPM worker died on a signal. Memory-corruption exploits crash workers before they succeed; review the Nextcloud and nginx logs around this time and confirm PHP is patched.";
+                  runbook_url = runbook;
+                };
+              }
+              {
+                alert = "SshLoginUnclassified";
+                expr = "increase(ssh_unclassified_logins_total[15m]) > 0";
+                for = "0m";
+                labels = opsCritical // {
+                  signal = "audit";
+                };
+                annotations = {
+                  summary = "SSH login from an unknown origin";
+                  description = "{{ $labels.host }}: a successful SSH login matched no admin peer, managed host, naru peer, or bastion path. Check the Security & audit dashboard for the source address, user, and key before anything else.";
+                  runbook_url = runbook;
+                };
+              }
+              {
+                alert = "SensitivePathServed";
+                expr = "sum by (host, service) (increase(nginx_public_sensitive_path_served_total[15m])) > 0";
+                for = "0m";
+                labels = opsCritical // {
+                  signal = "service";
+                };
+                annotations = {
+                  summary = "A sensitive file was served publicly";
+                  description = "{{ $labels.host }} {{ $labels.service }}: a public client got a 2xx for a dotfile, VCS metadata, dependency manifest, or WordPress path. Block the path and check the edge dashboard for who fetched it.";
+                  runbook_url = runbook;
+                };
+              }
+              {
+                alert = "HeadscaleNodeAdded";
+                expr = "increase(headscale_nodes_added_total[15m]) > 0";
+                for = "0m";
+                # Members register their own devices, so a new node is a review item, not a page.
+                labels = opsWarning // {
+                  signal = "audit";
+                };
+                annotations = {
+                  summary = "A node joined the tailnet";
+                  description = "Confirm the new node in the Security & audit dashboard belongs to a known member and device.";
+                  runbook_url = runbook;
+                };
+              }
+              {
+                alert = "GatusCheckFailing";
+                # Blackbox or dedicated rules already cover the excluded names.
+                expr = ''gatus_results_endpoint_success{name!~"n8n.*|Nextcloud.*|Vaultwarden|Authentik|Headscale|Upterm|Gatus|Grafana|PostgreSQL.*"} == 0'';
+                for = "30m";
+                labels = opsWarning // {
+                  signal = "gatus";
+                };
+                annotations = {
+                  summary = "A host-side health check is failing";
+                  description = "{{ $labels.group }}/{{ $labels.name }}: the check pushed or pulled by Gatus has failed for 30 minutes. Inspect the service on its host; no external probe watches it.";
                   runbook_url = runbook;
                 };
               }

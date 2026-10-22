@@ -198,6 +198,24 @@ in
         '';
       };
 
+      headscale_nodes_added = {
+        type = "filter";
+        inputs = [ "headscale_nodes_snapshot" ];
+        condition = ''.event == "node_added"'';
+      };
+      headscale_nodes_added_metrics = {
+        type = "log_to_metric";
+        inputs = [ "headscale_nodes_added" ];
+        metrics = [
+          {
+            type = "counter";
+            field = "node_id";
+            name = "headscale_nodes_added_total";
+            tags.host = hostName;
+          }
+        ];
+      };
+
       filter_headscale = {
         type = "filter";
         inputs = [ "parse_headscale" ];
@@ -239,6 +257,9 @@ in
           log_type = "headscale_nodes";
         };
         batch.timeout_secs = 10;
+      }
+      // {
+        system_metrics_remote.inputs = [ "headscale_nodes_added_metrics" ];
       };
   };
 

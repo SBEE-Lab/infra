@@ -566,6 +566,9 @@ def run(args: CliArgs) -> int:
         return 0
 
     push_events(args["loki_url"], audit_events)
+    # Vector counts unclassified logins from this journal output for alerting.
+    for event in new_events:
+        print(json.dumps(clean_event(event), sort_keys=True))
 
     for key in new_keys:
         state["seen"][key] = now

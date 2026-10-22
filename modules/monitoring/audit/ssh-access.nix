@@ -110,4 +110,38 @@ in
   systemd.tmpfiles.rules = [
     "d /var/lib/ssh-access-audit 0700 ssh-access-audit ssh-access-audit - -"
   ];
+
+  # Alerting runs on Prometheus, so turn unclassified logins into a counter.
+  services.vector.settings = {
+    sources.ssh_access_audit_journal = {
+      type = "journald";
+      include_units = [ "ssh-access-audit.service" ];
+    };
+    transforms = {
+      ssh_unclassified_logins = {
+        type = "remap";
+        inputs = [ "ssh_access_audit_journal" ];
+        source = ''
+          event = parse_json(string(.message) ?? "") ?? {}
+          if !is_object(event) || event.event != "ssh_login" || event.path != "unknown" { abort }
+          . = { "target_host": event.target_host, "source_ip": event.source_ip }
+        '';
+      };
+      ssh_unclassified_login_metrics = {
+        type = "log_to_metric";
+        inputs = [ "ssh_unclassified_logins" ];
+        metrics = [
+          {
+            type = "counter";
+            field = "target_host";
+            name = "ssh_unclassified_logins_total";
+            tags = {
+              host = "{{ target_host }}";
+            };
+          }
+        ];
+      };
+    };
+    sinks.system_metrics_local.inputs = [ "ssh_unclassified_login_metrics" ];
+  };
 }
