@@ -327,9 +327,12 @@ in
           source = ''
             if !exists(.COREDUMP_SIGNAL_NAME) { abort }
             unit = string(.COREDUMP_UNIT) ?? "none"
+            comm = string(.COREDUMP_COMM) ?? "unknown"
+            # Build sandboxes run under nix-daemon; their crashes are failing tests, not services.
+            if unit == "nix-daemon.service" && comm != "nix-daemon" { abort }
             # Login sessions get a numbered scope per login; keep the label bounded.
             if starts_with(unit, "session-") { unit = "session" }
-            .comm = string(.COREDUMP_COMM) ?? "unknown"
+            .comm = comm
             .signal = string!(.COREDUMP_SIGNAL_NAME)
             .unit = unit
           '';
