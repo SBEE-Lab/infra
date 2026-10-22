@@ -32,6 +32,10 @@ let
     # The local backup module owns both the daily and weekly units.
     // lib.optionalAttrs (config.services.borgbackup.jobs ? local) {
       borgbackup-verify-local.scheduled = true;
+    }
+    # Every host imports modules/auto-upgrade.nix; a failed run leaves the host behind main.
+    // {
+      auto-upgrade.scheduled = true;
     };
   statePath = unit: "/var/lib/infra-job-results/${unit}/state.json";
   sourceName = unit: "job_${lib.sbee.monitoring.componentId unit}_source";
