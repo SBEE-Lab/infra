@@ -33,10 +33,7 @@ let
     // lib.optionalAttrs (config.services.borgbackup.jobs ? local) {
       borgbackup-verify-local.scheduled = true;
     }
-    # Every host imports modules/auto-upgrade.nix; a failed run leaves the host behind main.
-    // {
-      auto-upgrade.scheduled = true;
-    };
+    // config.services.sbee.jobResults.extraJobs;
   statePath = unit: "/var/lib/infra-job-results/${unit}/state.json";
   sourceName = unit: "job_${lib.sbee.monitoring.componentId unit}_source";
   metricName = unit: "job_${lib.sbee.monitoring.componentId unit}_metrics";
@@ -46,7 +43,20 @@ let
   ];
 in
 {
-  systemd.services = lib.mapAttrs (unit: _: {
+  options.services.sbee.jobResults.extraJobs = lib.mkOption {
+    type = lib.types.attrsOf (
+      lib.types.submodule {
+        options.scheduled = lib.mkOption {
+          type = lib.types.bool;
+          description = "Whether a timer runs the unit, which makes failures alert.";
+        };
+      }
+    );
+    default = { };
+    description = "Additional service units, by name without .service, whose results become infra_job metrics.";
+  };
+
+  config.systemd.services = lib.mapAttrs (unit: _: {
     serviceConfig = {
       StateDirectory = "infra-job-results/${unit}";
       StateDirectoryMode = "0755";
@@ -61,7 +71,7 @@ in
     };
   }) jobs;
 
-  services.vector.settings = lib.mkIf (jobs != { }) {
+  config.services.vector.settings = lib.mkIf (jobs != { }) {
     sources = lib.mapAttrs' (
       unit: _:
       lib.nameValuePair (sourceName unit) {

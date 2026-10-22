@@ -39,6 +39,9 @@
     '';
   };
 
+  # A failed run silently leaves the host behind main.
+  services.sbee.jobResults.extraJobs.auto-upgrade.scheduled = true;
+
   systemd.timers.auto-upgrade = {
     wantedBy = [ "timers.target" ];
     timerConfig = {
