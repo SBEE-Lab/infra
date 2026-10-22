@@ -393,5 +393,19 @@ in
       ];
       rename.Value = "result";
     })
+    (p.timeseries {
+      id = 16;
+      title = "Process crashes (core dumps)";
+      description = "Any process that died with a core dump, by host and command. coredumpctl on the host has the stack.";
+      ds = "prometheus";
+      pos = grid 0 57 24 7;
+      bars = true;
+      targets = [
+        {
+          expr = "sum by (host, comm) (increase(process_crashes_total[10m]))";
+          legend = "{{host}} {{comm}}";
+        }
+      ];
+    })
   ];
 }

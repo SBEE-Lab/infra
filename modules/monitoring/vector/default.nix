@@ -73,6 +73,12 @@ in
           type = "journald";
           include_units = [ "sshd" ];
         };
+        coredump_journal = {
+          type = "journald";
+          include_matches.SYSLOG_IDENTIFIER = [ "systemd-coredump" ];
+          # Without a checkpoint the source would replay old dumps as new crashes.
+          since_now = true;
+        };
 
         # Audit logs for session tracking
         audit_logs = {
@@ -285,6 +291,7 @@ in
             "vector_internal"
             "public_server_error_metrics"
             "public_sensitive_path_metrics"
+            "process_crash_metrics"
           ]
           ++ lib.optional nginxExporter.enable "nginx_metrics";
           source = ''
@@ -308,6 +315,38 @@ in
               field = "status";
               name = "nginx_public_server_errors_total";
               tags.service = "{{ service }}";
+            }
+          ];
+        };
+
+        # Any process that dies with a core dump, whatever the product: exploit
+        # attempts against memory-safety bugs crash workers before they succeed.
+        process_crashes = {
+          type = "remap";
+          inputs = [ "coredump_journal" ];
+          source = ''
+            if !exists(.COREDUMP_SIGNAL_NAME) { abort }
+            unit = string(.COREDUMP_UNIT) ?? "none"
+            # Login sessions get a numbered scope per login; keep the label bounded.
+            if starts_with(unit, "session-") { unit = "session" }
+            .comm = string(.COREDUMP_COMM) ?? "unknown"
+            .signal = string!(.COREDUMP_SIGNAL_NAME)
+            .unit = unit
+          '';
+        };
+        process_crash_metrics = {
+          type = "log_to_metric";
+          inputs = [ "process_crashes" ];
+          metrics = [
+            {
+              type = "counter";
+              field = "signal";
+              name = "process_crashes_total";
+              tags = {
+                comm = "{{ comm }}";
+                signal = "{{ signal }}";
+                unit = "{{ unit }}";
+              };
             }
           ];
         };

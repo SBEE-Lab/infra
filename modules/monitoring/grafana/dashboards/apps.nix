@@ -188,14 +188,14 @@ in
     })
     (p.timeseries {
       id = 7;
-      title = "PHP-FPM worker crashes";
+      title = "Process crashes on tau";
       ds = "prometheus";
       pos = grid 0 18 8 8;
       bars = true;
       targets = [
         {
-          expr = "sum by (host) (increase(nextcloud_phpfpm_worker_crashes_total[10m]))";
-          legend = "{{host}}";
+          expr = ''sum by (comm) (increase(process_crashes_total{host="tau"}[10m]))'';
+          legend = "{{comm}}";
         }
       ];
     })

@@ -104,7 +104,7 @@ class Digest:
             f"Unclassified SSH logins: *{self.total('unclassified logins', self.loki, f'sum(count_over_time({{log_type="access_audit", event="ssh_login", path="unknown"}}{week}))')}*\n"
             f"New tailnet nodes: *{self.total('new nodes', self.loki, f'sum(count_over_time({{log_type="headscale_nodes", event="node_added"}}{week}))')}*\n"
             f"Sensitive paths served: *{self.total('sensitive paths', self.prom, 'sum(increase(nginx_public_sensitive_path_served_total[7d]))')}*\n"
-            f"Exploit symptom alerts fired: *{self.total('exploit alerts', self.prom, 'count(max_over_time(ALERTS{alertname=~"NextcloudPhpFpmWorkerCrashed|PublicHttpServerErrorBurst", alertstate="firing"}[7d]))')}*"
+            f"Exploit symptom alerts fired: *{self.total('exploit alerts', self.prom, 'count(max_over_time(ALERTS{alertname=~"ProcessCrashed|ProcessCrashLoop|PublicHttpServerErrorBurst", alertstate="firing"}[7d]))')}*"
         )
         new_nodes = "*New tailnet nodes*\n" + self.table(
             "new node list",

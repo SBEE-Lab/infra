@@ -85,10 +85,10 @@ let
     (p.stat {
       id = 104;
       title = "Exploit symptom alerts";
-      description = "Firing or pending PHP-FPM crash and public 5xx burst alerts.";
+      description = "Firing or pending process crash and public 5xx burst alerts.";
       ds = "prometheus";
       pos = grid 18 1 6 4;
-      expr = ''count(ALERTS{alertname=~"NextcloudPhpFpmWorkerCrashed|PublicHttpServerErrorBurst"}) or vector(0)'';
+      expr = ''count(ALERTS{alertname=~"ProcessCrash.*|PublicHttpServerErrorBurst"}) or vector(0)'';
     })
     (p.row {
       id = 105;

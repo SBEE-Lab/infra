@@ -196,7 +196,7 @@ alert별 1차 확인:
 | `PostgresqlReplicaNotStreaming` / `PostgresqlReplicationLagHigh` | rho `pg_stat_replication`, tau `pg_stat_wal_receiver` | 연결·WAL 상태 확인, WAL 유실이면 tau 재-bootstrap |
 | `PostgresqlReplicationSlotInactive` / `PostgresqlReplicationSlotWalRisk` | rho `pg_replication_slots` | tau 상태 복구. `wal_status=lost`면 새 basebackup 수행 |
 | `PublicHttpServerErrorBurst` | eta `nginx_public_server_errors_total`, Loki `{log_type="nginx_access"} \| json \| status >= 500` | upstream 서비스 상태 확인. 공격 시도도 여기서 먼저 보이므로 `request_length`·`client_ip`와 함께 판독 |
-| `NextcloudPhpFpmWorkerCrashed` | tau `phpfpm-nextcloud` journal, Loki `{log_type="nextcloud", source="php-fpm"}` | worker가 signal로 종료됨. PHP 보안 패치 여부와 같은 시각 접근 로그 확인 |
+| `ProcessCrashed` / `ProcessCrashLoop` | 해당 호스트 `coredumpctl list`·`coredumpctl info`, systemd-coredump journal | 제품과 무관하게 core dump로 죽은 프로세스. 버그와 메모리 손상 exploit 시도 모두 이렇게 끝나므로, 공개 서비스면 같은 시각 접근 로그를 먼저 확인. 15분 안에 반복되면(`ProcessCrashLoop`, 즉시) 진행 중인 공격으로 보고 대응 |
 | `ScheduledJobFailed` / `BackupDumpFailed` | 백업·덤프 journal, 종료 결과 | 원인 수정 후 systemd 백업 서비스로 재실행 |
 | `BackupCompletionOverdue` | 05:30 타이머, 덤프 의존성, Borg 실행 여부 | 36시간 완료 지연 원인 조사 |
 | `BackupVerificationOverdue` | 일요일 09:00 타이머, Borg 검사 journal | 9일 완료 지연 원인 조사 |

@@ -18,6 +18,15 @@ let
     runbook_url = runbook;
     dashboard_url = "https://logging.sjanglab.org/d/sjanglab-postgresql/sjanglab-postgresql";
   };
+  # Vector counters appear at 1 on their first event, which increase() alone
+  # never sees; the unless branch catches series that did not exist a window ago.
+  newEvents =
+    by: metric: window:
+    let
+      agg = expr: if by == null then expr else "sum by (${by}) (${expr})";
+    in
+    "${agg "increase(${metric}[${window}])"} > 0 or ${agg "${metric} unless ${metric} offset ${window}"}";
+
   opsWarning = {
     severity = "warning";
     response = "business-hours";
@@ -411,22 +420,35 @@ in
                 };
               }
               {
-                alert = "NextcloudPhpFpmWorkerCrashed";
-                expr = "increase(nextcloud_phpfpm_worker_crashes_total[10m]) > 0";
+                alert = "ProcessCrashed";
+                expr = newEvents "host, comm, unit" "process_crashes_total" "15m";
                 for = "0m";
-                labels = opsCritical // {
+                labels = opsWarning // {
                   signal = "service";
-                  service = "nextcloud";
                 };
                 annotations = {
-                  summary = "Nextcloud PHP-FPM worker crashed";
-                  description = "{{ $labels.host }}: a PHP-FPM worker died on a signal. Memory-corruption exploits crash workers before they succeed; review the Nextcloud and nginx logs around this time and confirm PHP is patched.";
+                  summary = "A process crashed with a core dump";
+                  description = "{{ $labels.host }} {{ $labels.comm }} ({{ $labels.unit }}): inspect `coredumpctl info` on the host. Bugs and memory-corruption exploit attempts both end this way; check the access logs around the same time for internet-facing services.";
+                  runbook_url = runbook;
+                };
+              }
+              {
+                alert = "ProcessCrashLoop";
+                expr = "sum by (host, comm) (increase(process_crashes_total[15m])) >= 2";
+                for = "0m";
+                # Repeated crashes mean a crash loop or someone retrying an exploit.
+                labels = opsCritical // {
+                  signal = "service";
+                };
+                annotations = {
+                  summary = "A process keeps crashing";
+                  description = "{{ $labels.host }} {{ $labels.comm }}: several core dumps within 15 minutes. If the process serves public traffic, treat it as an active exploit attempt until the access logs say otherwise.";
                   runbook_url = runbook;
                 };
               }
               {
                 alert = "SshLoginUnclassified";
-                expr = "increase(ssh_unclassified_logins_total[15m]) > 0";
+                expr = newEvents null "ssh_unclassified_logins_total" "15m";
                 for = "0m";
                 labels = opsCritical // {
                   signal = "audit";
@@ -439,7 +461,7 @@ in
               }
               {
                 alert = "SensitivePathServed";
-                expr = "sum by (host, service) (increase(nginx_public_sensitive_path_served_total[15m])) > 0";
+                expr = newEvents "host, service" "nginx_public_sensitive_path_served_total" "15m";
                 for = "0m";
                 labels = opsCritical // {
                   signal = "service";
@@ -452,7 +474,7 @@ in
               }
               {
                 alert = "HeadscaleNodeAdded";
-                expr = "increase(headscale_nodes_added_total[15m]) > 0";
+                expr = newEvents null "headscale_nodes_added_total" "15m";
                 for = "0m";
                 # Members register their own devices, so a new node is a review item, not a page.
                 labels = opsWarning // {
