@@ -119,6 +119,12 @@ in
         access_log /var/log/nginx/access-audit/nextcloud.log nginx_access_json;
       '';
 
+      # Nextcloud serves its dependency manifests as static files; dotfiles are already denied.
+      locations."~ ^/(?:composer\\.(?:json|lock)|package(?:-lock)?\\.json)$" = {
+        priority = 100;
+        return = "404";
+      };
+
       locations."/whiteboard/" = {
         proxyPass = "http://127.0.0.1:${toString whiteboardPort}/";
         proxyWebsockets = true;
