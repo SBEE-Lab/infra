@@ -1,7 +1,180 @@
-# SjangLab Access & Audit drilldown dashboard
+# SjangLab Access & Audit dashboard
+# Top: intrusion indicators (0 is normal), who got in, and attack pressure.
+# Below: the original drilldown rows, collapsed until an indicator needs explaining.
 { datasources }:
 let
   inherit (datasources) loki;
+  p = import ./panels.nix { inherit datasources; };
+  inherit (p) grid;
+
+  summaryHeight = 23;
+
+  # Each drilldown row starts collapsed and carries the panels that followed it.
+  collapseRows =
+    panels:
+    let
+      grouped = builtins.foldl' (
+        acc: panel:
+        if (panel.type or "") == "row" then
+          acc
+          ++ [
+            (
+              panel
+              // {
+                collapsed = true;
+                panels = [ ];
+              }
+            )
+          ]
+        else
+          let
+            n = builtins.length acc;
+            current = builtins.elemAt acc (n - 1);
+            shifted = panel // {
+              gridPos = panel.gridPos // {
+                y = panel.gridPos.y + summaryHeight;
+              };
+            };
+          in
+          builtins.genList (i: builtins.elemAt acc i) (n - 1)
+          ++ [ (current // { panels = current.panels ++ [ shifted ]; }) ]
+      ) [ ] panels;
+    in
+    builtins.genList (
+      i:
+      let
+        r = builtins.elemAt grouped i;
+      in
+      r
+      // {
+        gridPos = r.gridPos // {
+          y = summaryHeight + i;
+        };
+      }
+    ) (builtins.length grouped);
+
+  summaryPanels = [
+    (p.row {
+      id = 100;
+      title = "Intrusion indicators";
+      y = 0;
+    })
+    (p.stat {
+      id = 101;
+      title = "Unclassified SSH logins (7d)";
+      description = "Successful logins the correlator could not attribute to an admin peer, managed host, naru peer, or the public bastion.";
+      ds = "loki";
+      pos = grid 0 1 6 4;
+      expr = ''sum(count_over_time({log_type="access_audit", event="ssh_login", path="unknown"}[7d])) or vector(0)'';
+    })
+    (p.stat {
+      id = 102;
+      title = "New tailnet nodes (7d)";
+      ds = "loki";
+      pos = grid 6 1 6 4;
+      expr = ''sum(count_over_time({log_type="headscale_nodes", event="node_added"}[7d])) or vector(0)'';
+    })
+    (p.stat {
+      id = 103;
+      title = "Sensitive paths served (7d)";
+      description = "Public 2xx responses for dotfiles, VCS metadata, dependency manifests, or WordPress paths.";
+      ds = "prometheus";
+      pos = grid 12 1 6 4;
+      expr = "sum(increase(nginx_public_sensitive_path_served_total[7d])) or vector(0)";
+    })
+    (p.stat {
+      id = 104;
+      title = "Exploit symptom alerts";
+      description = "Firing or pending PHP-FPM crash and public 5xx burst alerts.";
+      ds = "prometheus";
+      pos = grid 18 1 6 4;
+      expr = ''count(ALERTS{alertname=~"NextcloudPhpFpmWorkerCrashed|PublicHttpServerErrorBurst"}) or vector(0)'';
+    })
+    (p.row {
+      id = 105;
+      title = "Who got in";
+      y = 5;
+    })
+    (p.table {
+      id = 106;
+      title = "Successful SSH logins by origin (7d)";
+      description = "One key should dominate; a new key, user, or public address deserves a look.";
+      ds = "loki";
+      pos = grid 0 6 14 8;
+      expr = ''sum by (path, ssh_user, source_ip, key_fingerprint, target_host) (count_over_time({log_type="access_audit", event="ssh_login"} | json [7d]))'';
+      rename.Value = "logins";
+      sortBy = "logins";
+    })
+    (p.table {
+      id = 107;
+      title = "Authentik events (7d)";
+      ds = "loki";
+      pos = grid 14 6 10 8;
+      expr = ''sum by (event) (count_over_time({log_type="authentik"} | json [7d]))'';
+      rename.Value = "events";
+      sortBy = "events";
+    })
+    (p.row {
+      id = 108;
+      title = "Attack pressure (trend only, never alerted)";
+      y = 14;
+    })
+    (p.timeseries {
+      id = 109;
+      title = "fail2ban (eta)";
+      ds = "prometheus";
+      pos = grid 0 15 6 8;
+      targets = [
+        {
+          expr = "sum(f2b_jail_banned_current)";
+          legend = "banned now";
+        }
+        {
+          expr = "sum(f2b_jail_failed_current)";
+          legend = "failing now";
+        }
+      ];
+    })
+    (p.timeseries {
+      id = 110;
+      title = "SSH scans rejected before auth";
+      ds = "loki";
+      pos = grid 6 15 6 8;
+      bars = true;
+      targets = [
+        {
+          expr = ''sum by (event) (count_over_time({log_type="ssh", event=~"invalid_user|preauth_rejected"}[$__auto]))'';
+          legend = "{{event}}";
+        }
+      ];
+    })
+    (p.timeseries {
+      id = 111;
+      title = "Forward-auth denials by app";
+      ds = "loki";
+      pos = grid 12 15 6 8;
+      stack = true;
+      targets = [
+        {
+          expr = ''sum by (app) (count_over_time({log_type="authentik", event="forward_auth_deny"} | json | app != "" [$__auto]))'';
+          legend = "{{app}}";
+        }
+      ];
+    })
+    (p.timeseries {
+      id = 112;
+      title = "Public 404s by service (scanners)";
+      ds = "loki";
+      pos = grid 18 15 6 8;
+      stack = true;
+      targets = [
+        {
+          expr = ''sum by (service) (count_over_time({log_type="nginx_access", ingress_network="public"} | json | status="404" [$__auto]))'';
+          legend = "{{service}}";
+        }
+      ];
+    })
+  ];
 
   accessAuditSelector = ''{log_type="access_audit", event="ssh_login", host=~"$host", path=~"$path", ingress_network=~"$ingress_network", source_kind=~"$source_kind"}'';
   tailnetAppSelector = ''{log_type="access_audit", event="tailnet_app_access", host=~"$host", service=~"$service", source_kind=~"$source_kind", status_class=~"$status_class"}'';
@@ -115,7 +288,7 @@ in
   ];
   timezone = "browser";
   schemaVersion = 41;
-  version = 1;
+  version = 2;
   refresh = "1m";
   time = {
     from = "now-24h";
@@ -130,713 +303,715 @@ in
     (labelVarFor ''{log_type="access_audit", event="tailnet_app_access"}'' "status_class")
   ];
   annotations.list = [ ];
-  panels = [
-    (row {
-      id = 1;
-      title = "SSH access audit";
-      y = 0;
-    })
-    {
-      id = 2;
-      title = "SSH logins by path";
-      type = "timeseries";
-      datasource = loki;
-      gridPos = {
-        h = 8;
-        w = 12;
-        x = 0;
-        y = 1;
-      };
-      fieldConfig.defaults = {
-        custom.drawStyle = "bars";
-        custom.fillOpacity = 60;
-        min = 0;
-      };
-      targets = [
-        {
-          refId = "A";
-          datasource = loki;
-          expr = "sum by (path) (count_over_time(${accessAuditSelector}[$__auto]))";
-          legendFormat = "{{path}}";
-        }
-      ];
-    }
-    {
-      id = 3;
-      title = "SSH logins by target host";
-      type = "timeseries";
-      datasource = loki;
-      gridPos = {
-        h = 8;
-        w = 12;
-        x = 12;
-        y = 1;
-      };
-      fieldConfig.defaults = {
-        custom.drawStyle = "bars";
-        custom.fillOpacity = 60;
-        min = 0;
-      };
-      targets = [
-        {
-          refId = "A";
-          datasource = loki;
-          expr = "sum by (host) (count_over_time(${accessAuditSelector}[$__auto]))";
-          legendFormat = "{{host}}";
-        }
-      ];
-    }
-    {
-      id = 4;
-      title = "Current access mix";
-      type = "table";
-      datasource = loki;
-      gridPos = {
-        h = 8;
-        w = 8;
-        x = 0;
-        y = 9;
-      };
-      options = {
-        showHeader = true;
-        cellHeight = "sm";
-        footer.show = false;
-        sortBy = [
+  panels =
+    summaryPanels
+    ++ collapseRows [
+      (row {
+        id = 1;
+        title = "SSH access audit";
+        y = 0;
+      })
+      {
+        id = 2;
+        title = "SSH logins by path";
+        type = "timeseries";
+        datasource = loki;
+        gridPos = {
+          h = 8;
+          w = 12;
+          x = 0;
+          y = 1;
+        };
+        fieldConfig.defaults = {
+          custom.drawStyle = "bars";
+          custom.fillOpacity = 60;
+          min = 0;
+        };
+        targets = [
           {
-            displayName = "count";
-            desc = true;
+            refId = "A";
+            datasource = loki;
+            expr = "sum by (path) (count_over_time(${accessAuditSelector}[$__auto]))";
+            legendFormat = "{{path}}";
           }
         ];
-      };
-      transformations = [
-        { id = "labelsToFields"; }
-        {
-          id = "organize";
-          options = {
-            excludeByName.Time = true;
-            indexByName = {
-              path = 0;
-              ingress_network = 1;
-              source_kind = 2;
-              Value = 3;
+      }
+      {
+        id = 3;
+        title = "SSH logins by target host";
+        type = "timeseries";
+        datasource = loki;
+        gridPos = {
+          h = 8;
+          w = 12;
+          x = 12;
+          y = 1;
+        };
+        fieldConfig.defaults = {
+          custom.drawStyle = "bars";
+          custom.fillOpacity = 60;
+          min = 0;
+        };
+        targets = [
+          {
+            refId = "A";
+            datasource = loki;
+            expr = "sum by (host) (count_over_time(${accessAuditSelector}[$__auto]))";
+            legendFormat = "{{host}}";
+          }
+        ];
+      }
+      {
+        id = 4;
+        title = "Current access mix";
+        type = "table";
+        datasource = loki;
+        gridPos = {
+          h = 8;
+          w = 8;
+          x = 0;
+          y = 9;
+        };
+        options = {
+          showHeader = true;
+          cellHeight = "sm";
+          footer.show = false;
+          sortBy = [
+            {
+              displayName = "count";
+              desc = true;
+            }
+          ];
+        };
+        transformations = [
+          { id = "labelsToFields"; }
+          {
+            id = "organize";
+            options = {
+              excludeByName.Time = true;
+              indexByName = {
+                path = 0;
+                ingress_network = 1;
+                source_kind = 2;
+                Value = 3;
+              };
+              renameByName = {
+                ingress_network = "ingress network";
+                source_kind = "source kind";
+                Value = "count";
+              };
             };
-            renameByName = {
-              ingress_network = "ingress network";
-              source_kind = "source kind";
-              Value = "count";
-            };
-          };
-        }
-      ];
-      targets = [
-        {
-          refId = "A";
-          datasource = loki;
-          expr = "sum by (path, ingress_network, source_kind) (count_over_time(${accessAuditSelector}[$__range]))";
-          queryType = "instant";
-          instant = true;
-        }
-      ];
-    }
-    (jsonTable {
-      id = 5;
-      title = "Unknown or unmatched SSH access";
-      gridPos = {
-        h = 8;
-        w = 16;
-        x = 8;
-        y = 9;
-      };
-      expr = ''{log_type="access_audit", event="ssh_login", host=~"$host", path=~"unknown|bastion", ingress_network=~"$ingress_network", source_kind=~"$source_kind"} | json | correlation_status != "matched"'';
-      exclude = {
-        bastion_child_pid = true;
-        bastion_local_ip = true;
-        bastion_local_port = true;
-        bastion_pid = true;
-        bastion_source_port = true;
-        bastion_target_ip = true;
-        bastion_target_port = true;
-        emitter_host = true;
-        event = true;
-        external_source_port = true;
-        host = true;
-        log_type = true;
-        message = true;
-        source_host = true;
-        target_ip = true;
-        target_network = true;
-        target_port = true;
-      };
-      index = {
-        Time = 0;
-        target_host = 1;
-        ssh_user = 2;
-        source_ip = 3;
-        path = 4;
-        ingress_network = 5;
-        source_kind = 6;
-        correlation_status = 7;
-        correlation_delta_seconds = 8;
-        key_fingerprint = 9;
-      };
-      rename = {
-        target_host = "target host";
-        ssh_user = "ssh user";
-        source_ip = "source IP";
-        ingress_network = "ingress network";
-        source_kind = "source kind";
-        correlation_status = "correlation";
-        correlation_delta_seconds = "delta seconds";
-        key_fingerprint = "key fingerprint";
-      };
-    })
-    (jsonTable {
-      id = 6;
-      title = "Recent SSH logins";
-      gridPos = {
-        h = 12;
-        w = 24;
-        x = 0;
-        y = 17;
-      };
-      expr = accessAuditSelector;
-      exclude = {
-        auth_method = true;
-        bastion_child_pid = true;
-        bastion_local_ip = true;
-        bastion_local_port = true;
-        bastion_pid = true;
-        bastion_source_port = true;
-        bastion_target_ip = true;
-        bastion_target_port = true;
-        emitter_host = true;
-        event = true;
-        external_source_port = true;
-        host = true;
-        log_type = true;
-        message = true;
-        source_port = true;
-        target_ip = true;
-        target_network = true;
-        target_port = true;
-      };
-      index = {
-        Time = 0;
-        target_host = 1;
-        ssh_user = 2;
-        path = 3;
-        ingress_network = 4;
-        source_kind = 5;
-        source_owner = 6;
-        source_device = 7;
-        source_host = 8;
-        source_ip = 9;
-        external_source_ip = 10;
-        bastion_user = 11;
-        key_type = 12;
-        key_fingerprint = 13;
-        correlation_status = 14;
-        correlation_delta_seconds = 15;
-      };
-      rename = {
-        target_host = "target host";
-        ssh_user = "ssh user";
-        ingress_network = "ingress network";
-        source_kind = "source kind";
-        source_owner = "source owner";
-        source_device = "source device";
-        source_host = "source host";
-        source_ip = "source IP";
-        external_source_ip = "external IP";
-        bastion_user = "bastion user";
-        key_type = "key type";
-        key_fingerprint = "key fingerprint";
-        correlation_status = "correlation";
-        correlation_delta_seconds = "delta seconds";
-      };
-    })
-    (jsonTable {
-      id = 7;
-      title = "Bastion correlations";
-      gridPos = {
-        h = 10;
-        w = 24;
-        x = 0;
-        y = 29;
-      };
-      expr = ''{log_type="access_audit", event="ssh_login", path="bastion", host=~"$host", ingress_network=~"$ingress_network", source_kind=~"$source_kind"}'';
-      exclude = {
-        auth_method = true;
-        bastion_child_pid = true;
-        bastion_local_ip = true;
-        bastion_local_port = true;
-        bastion_pid = true;
-        bastion_source_port = true;
-        bastion_target_ip = true;
-        bastion_target_port = true;
-        emitter_host = true;
-        event = true;
-        external_source_port = true;
-        host = true;
-        log_type = true;
-        message = true;
-        path = true;
-        source_host = true;
-        source_ip = true;
-        source_port = true;
-        target_ip = true;
-        target_network = true;
-        target_port = true;
-      };
-      index = {
-        Time = 0;
-        external_source_ip = 1;
-        source_owner = 2;
-        source_device = 3;
-        bastion_user = 4;
-        bastion_ssh_user = 5;
-        target_host = 6;
-        ssh_user = 7;
-        key_fingerprint = 8;
-        bastion_key_fingerprint = 9;
-        correlation_status = 10;
-        correlation_delta_seconds = 11;
-      };
-      rename = {
-        external_source_ip = "external IP";
-        source_owner = "source owner";
-        source_device = "source device";
-        bastion_user = "bastion user";
-        bastion_ssh_user = "bastion ssh user";
-        target_host = "target host";
-        ssh_user = "ssh user";
-        key_fingerprint = "target key";
-        bastion_key_fingerprint = "bastion key";
-        correlation_status = "correlation";
-        correlation_delta_seconds = "delta seconds";
-      };
-    })
-    (row {
-      id = 8;
-      title = "Raw SSH evidence";
-      y = 39;
-    })
-    {
-      id = 9;
-      title = "Raw SSH events drilldown";
-      type = "logs";
-      datasource = loki;
-      gridPos = {
-        h = 10;
-        w = 12;
-        x = 0;
-        y = 40;
-      };
-      options = {
-        showTime = true;
-        showLabels = false;
-        wrapLogMessage = true;
-        enableLogDetails = true;
-        sortOrder = "Descending";
-      };
-      targets = [
-        {
-          refId = "A";
-          datasource = loki;
-          expr = ''{log_type="ssh", host=~"$host"} | json | line_format "{{.event}} {{.user}} {{.source_ip}}:{{.source_port}} {{.message}}"'';
-        }
-      ];
-    }
-    (jsonTable {
-      id = 10;
-      title = "Raw bastion forwards drilldown";
-      gridPos = {
-        h = 10;
-        w = 12;
-        x = 12;
-        y = 40;
-      };
-      expr = ''{log_type="ssh_bastion", event="bastion_forward"}'';
-      exclude = {
-        auth_method = true;
-        bastion_child_pid = true;
-        bastion_local_ip = true;
-        bastion_pid = true;
-        event = true;
-        host = true;
-        log_type = true;
-        target_port = true;
-      };
-      index = {
-        Time = 0;
-        source_ip = 1;
-        source_port = 2;
-        bastion_user = 3;
-        target_host = 4;
-        target_ip = 5;
-        bastion_local_port = 6;
-        key_type = 7;
-        key_fingerprint = 8;
-        message = 9;
-      };
-      rename = {
-        source_ip = "source IP";
-        source_port = "source port";
-        bastion_user = "user";
-        target_host = "target";
-        target_ip = "target IP";
-        bastion_local_port = "eta port";
-        key_type = "key type";
-        key_fingerprint = "key fingerprint";
-        message = "summary";
-      };
-    })
-    (row {
-      id = 11;
-      title = "Tailnet app access";
-      y = 50;
-    })
-    {
-      id = 19;
-      title = "Tailnet app access by service";
-      type = "timeseries";
-      datasource = loki;
-      gridPos = {
-        h = 8;
-        w = 8;
-        x = 0;
-        y = 51;
-      };
-      fieldConfig.defaults = {
-        custom.drawStyle = "bars";
-        custom.fillOpacity = 60;
-        min = 0;
-      };
-      targets = [
-        {
-          refId = "A";
-          datasource = loki;
-          expr = "sum by (service) (count_over_time(${tailnetAppSelector}[$__auto]))";
-          legendFormat = "{{service}}";
-        }
-      ];
-    }
-    {
-      id = 20;
-      title = "Tailnet app status classes";
-      type = "timeseries";
-      datasource = loki;
-      gridPos = {
-        h = 8;
-        w = 8;
-        x = 8;
-        y = 51;
-      };
-      fieldConfig.defaults = {
-        custom.drawStyle = "bars";
-        custom.fillOpacity = 60;
-        min = 0;
-      };
-      targets = [
-        {
-          refId = "A";
-          datasource = loki;
-          expr = "sum by (status_class) (count_over_time(${tailnetAppSelector}[$__auto]))";
-          legendFormat = "{{status_class}}";
-        }
-      ];
-    }
-    {
-      id = 21;
-      title = "Tailnet app access by source kind";
-      type = "timeseries";
-      datasource = loki;
-      gridPos = {
-        h = 8;
-        w = 8;
-        x = 16;
-        y = 51;
-      };
-      fieldConfig.defaults = {
-        custom.drawStyle = "bars";
-        custom.fillOpacity = 60;
-        min = 0;
-      };
-      targets = [
-        {
-          refId = "A";
-          datasource = loki;
-          expr = "sum by (source_kind) (count_over_time(${tailnetAppSelector}[$__auto]))";
-          legendFormat = "{{source_kind}}";
-        }
-      ];
-    }
-    (jsonTable {
-      id = 22;
-      title = "Recent tailnet app access";
-      gridPos = {
-        h = 10;
-        w = 24;
-        x = 0;
-        y = 59;
-      };
-      expr = tailnetAppSelector;
-      exclude = {
-        emitter_host = true;
-        event = true;
-        host = true;
-        ingress_network = true;
-        log_type = true;
-        message = true;
-        request_id = true;
-        source_tags = true;
-        user_agent = true;
-      };
-      index = {
-        Time = 0;
-        target_host = 1;
-        service = 2;
-        source_headscale_user = 3;
-        source_node = 4;
-        source_ip = 5;
-        http_method = 6;
-        request_path = 7;
-        status = 8;
-        status_class = 9;
-        correlation_status = 10;
-      };
-      rename = {
-        target_host = "target host";
-        source_headscale_user = "headscale user";
-        source_node = "source node";
-        source_ip = "source IP";
-        http_method = "method";
-        request_path = "path";
-        status_class = "status class";
-        correlation_status = "correlation";
-      };
-    })
-    (jsonTable {
-      id = 23;
-      title = "Unknown tailnet app sources";
-      gridPos = {
-        h = 6;
-        w = 24;
-        x = 0;
-        y = 69;
-      };
-      expr = ''{log_type="access_audit", event="tailnet_app_access", source_kind="unknown", host=~"$host", service=~"$service", status_class=~"$status_class"}'';
-      exclude = {
-        emitter_host = true;
-        event = true;
-        host = true;
-        ingress_network = true;
-        log_type = true;
-        message = true;
-        request_id = true;
-        source_kind = true;
-        source_tags = true;
-        user_agent = true;
-      };
-      index = {
-        Time = 0;
-        target_host = 1;
-        service = 2;
-        source_ip = 3;
-        http_method = 4;
-        request_path = 5;
-        status = 6;
-        status_class = 7;
-        correlation_status = 8;
-      };
-      rename = {
-        target_host = "target host";
-        source_ip = "source IP";
-        http_method = "method";
-        request_path = "path";
-        status_class = "status class";
-        correlation_status = "correlation";
-      };
-    })
-    (row {
-      id = 24;
-      title = "Authentik";
-      y = 75;
-    })
-    {
-      id = 12;
-      title = "Logins over time";
-      type = "timeseries";
-      datasource = loki;
-      gridPos = {
-        h = 8;
-        w = 12;
-        x = 0;
-        y = 76;
-      };
-      fieldConfig.defaults = {
-        custom.drawStyle = "bars";
-        custom.fillOpacity = 60;
-        min = 0;
-      };
-      targets = [
-        {
-          refId = "A";
-          datasource = loki;
-          expr = ''sum by (event) (count_over_time({log_type="authentik", event=~"login|login_failed"}[$__auto]))'';
-          legendFormat = "{{event}}";
-        }
-      ];
-    }
-    (jsonTable {
-      id = 13;
-      title = "Failed logins";
-      gridPos = {
-        h = 8;
-        w = 12;
-        x = 12;
-        y = 76;
-      };
-      expr = ''{log_type="authentik", event="login_failed"}'';
-      exclude = {
-        host = true;
-        http_host = true;
-        log_type = true;
-        event = true;
-        action = true;
-      };
-      index = {
-        Time = 0;
-        user = 1;
-        source_ip = 2;
-        message = 3;
-      };
-      rename = {
-        source_ip = "source IP";
-        message = "summary";
-      };
-    })
-    (jsonTable {
-      id = 14;
-      title = "App authorizations";
-      gridPos = {
-        h = 8;
-        w = 12;
-        x = 0;
-        y = 84;
-      };
-      expr = ''{log_type="authentik", event="app_authorize"}'';
-      exclude = {
-        host = true;
-        http_host = true;
-        log_type = true;
-        event = true;
-        action = true;
-        message = true;
-      };
-      index = {
-        Time = 0;
-        user = 1;
-        app = 2;
-        source_ip = 3;
-      };
-      rename = {
-        source_ip = "source IP";
-      };
-    })
-    {
-      id = 15;
-      title = "Admin changes & policy errors";
-      type = "logs";
-      datasource = loki;
-      gridPos = {
-        h = 8;
-        w = 12;
-        x = 12;
-        y = 84;
-      };
-      options = {
-        showTime = true;
-        showLabels = false;
-        wrapLogMessage = true;
-        enableLogDetails = true;
-        sortOrder = "Descending";
-      };
-      targets = [
-        {
-          refId = "A";
-          datasource = loki;
-          expr = ''{log_type="authentik", event=~"admin_change|policy_error|forward_auth_deny"} | json | line_format "{{.action}} {{.user}} {{.message}}"'';
-        }
-      ];
-    }
-    (row {
-      id = 16;
-      title = "Headscale";
-      y = 92;
-    })
-    (jsonTable {
-      id = 17;
-      title = "Node inventory (latest snapshots)";
-      gridPos = {
-        h = 8;
-        w = 24;
-        x = 0;
-        y = 93;
-      };
-      timeFrom = "10m";
-      expr = ''{log_type="headscale_nodes", event="node_snapshot"}'';
-      exclude = {
-        event = true;
-        host = true;
-        log_type = true;
-        node_id = true;
-      };
-      index = {
-        Time = 0;
-        node = 1;
-        health = 2;
-        health_reason = 3;
-        online = 4;
-        server = 5;
-        user = 6;
-        tags = 7;
-        ip_addresses = 8;
-        last_seen_seconds = 9;
-        expiry_seconds = 10;
-      };
-      rename = {
-        health_reason = "reason";
-        ip_addresses = "IPs";
-        last_seen_seconds = "last seen";
-        expiry_seconds = "expiry";
-      };
-    })
-    {
-      id = 18;
-      title = "Control-plane events";
-      type = "logs";
-      datasource = loki;
-      gridPos = {
-        h = 9;
-        w = 24;
-        x = 0;
-        y = 101;
-      };
-      options = {
-        showTime = true;
-        showLabels = false;
-        wrapLogMessage = true;
-        enableLogDetails = true;
-        sortOrder = "Descending";
-      };
-      targets = [
-        {
-          refId = "A";
-          datasource = loki;
-          expr = ''{log_type="headscale"} | json | line_format "{{.event}} {{.message}}"'';
-        }
-      ];
-    }
-  ];
+          }
+        ];
+        targets = [
+          {
+            refId = "A";
+            datasource = loki;
+            expr = "sum by (path, ingress_network, source_kind) (count_over_time(${accessAuditSelector}[$__range]))";
+            queryType = "instant";
+            instant = true;
+          }
+        ];
+      }
+      (jsonTable {
+        id = 5;
+        title = "Unknown or unmatched SSH access";
+        gridPos = {
+          h = 8;
+          w = 16;
+          x = 8;
+          y = 9;
+        };
+        expr = ''{log_type="access_audit", event="ssh_login", host=~"$host", path=~"unknown|bastion", ingress_network=~"$ingress_network", source_kind=~"$source_kind"} | json | correlation_status != "matched"'';
+        exclude = {
+          bastion_child_pid = true;
+          bastion_local_ip = true;
+          bastion_local_port = true;
+          bastion_pid = true;
+          bastion_source_port = true;
+          bastion_target_ip = true;
+          bastion_target_port = true;
+          emitter_host = true;
+          event = true;
+          external_source_port = true;
+          host = true;
+          log_type = true;
+          message = true;
+          source_host = true;
+          target_ip = true;
+          target_network = true;
+          target_port = true;
+        };
+        index = {
+          Time = 0;
+          target_host = 1;
+          ssh_user = 2;
+          source_ip = 3;
+          path = 4;
+          ingress_network = 5;
+          source_kind = 6;
+          correlation_status = 7;
+          correlation_delta_seconds = 8;
+          key_fingerprint = 9;
+        };
+        rename = {
+          target_host = "target host";
+          ssh_user = "ssh user";
+          source_ip = "source IP";
+          ingress_network = "ingress network";
+          source_kind = "source kind";
+          correlation_status = "correlation";
+          correlation_delta_seconds = "delta seconds";
+          key_fingerprint = "key fingerprint";
+        };
+      })
+      (jsonTable {
+        id = 6;
+        title = "Recent SSH logins";
+        gridPos = {
+          h = 12;
+          w = 24;
+          x = 0;
+          y = 17;
+        };
+        expr = accessAuditSelector;
+        exclude = {
+          auth_method = true;
+          bastion_child_pid = true;
+          bastion_local_ip = true;
+          bastion_local_port = true;
+          bastion_pid = true;
+          bastion_source_port = true;
+          bastion_target_ip = true;
+          bastion_target_port = true;
+          emitter_host = true;
+          event = true;
+          external_source_port = true;
+          host = true;
+          log_type = true;
+          message = true;
+          source_port = true;
+          target_ip = true;
+          target_network = true;
+          target_port = true;
+        };
+        index = {
+          Time = 0;
+          target_host = 1;
+          ssh_user = 2;
+          path = 3;
+          ingress_network = 4;
+          source_kind = 5;
+          source_owner = 6;
+          source_device = 7;
+          source_host = 8;
+          source_ip = 9;
+          external_source_ip = 10;
+          bastion_user = 11;
+          key_type = 12;
+          key_fingerprint = 13;
+          correlation_status = 14;
+          correlation_delta_seconds = 15;
+        };
+        rename = {
+          target_host = "target host";
+          ssh_user = "ssh user";
+          ingress_network = "ingress network";
+          source_kind = "source kind";
+          source_owner = "source owner";
+          source_device = "source device";
+          source_host = "source host";
+          source_ip = "source IP";
+          external_source_ip = "external IP";
+          bastion_user = "bastion user";
+          key_type = "key type";
+          key_fingerprint = "key fingerprint";
+          correlation_status = "correlation";
+          correlation_delta_seconds = "delta seconds";
+        };
+      })
+      (jsonTable {
+        id = 7;
+        title = "Bastion correlations";
+        gridPos = {
+          h = 10;
+          w = 24;
+          x = 0;
+          y = 29;
+        };
+        expr = ''{log_type="access_audit", event="ssh_login", path="bastion", host=~"$host", ingress_network=~"$ingress_network", source_kind=~"$source_kind"}'';
+        exclude = {
+          auth_method = true;
+          bastion_child_pid = true;
+          bastion_local_ip = true;
+          bastion_local_port = true;
+          bastion_pid = true;
+          bastion_source_port = true;
+          bastion_target_ip = true;
+          bastion_target_port = true;
+          emitter_host = true;
+          event = true;
+          external_source_port = true;
+          host = true;
+          log_type = true;
+          message = true;
+          path = true;
+          source_host = true;
+          source_ip = true;
+          source_port = true;
+          target_ip = true;
+          target_network = true;
+          target_port = true;
+        };
+        index = {
+          Time = 0;
+          external_source_ip = 1;
+          source_owner = 2;
+          source_device = 3;
+          bastion_user = 4;
+          bastion_ssh_user = 5;
+          target_host = 6;
+          ssh_user = 7;
+          key_fingerprint = 8;
+          bastion_key_fingerprint = 9;
+          correlation_status = 10;
+          correlation_delta_seconds = 11;
+        };
+        rename = {
+          external_source_ip = "external IP";
+          source_owner = "source owner";
+          source_device = "source device";
+          bastion_user = "bastion user";
+          bastion_ssh_user = "bastion ssh user";
+          target_host = "target host";
+          ssh_user = "ssh user";
+          key_fingerprint = "target key";
+          bastion_key_fingerprint = "bastion key";
+          correlation_status = "correlation";
+          correlation_delta_seconds = "delta seconds";
+        };
+      })
+      (row {
+        id = 8;
+        title = "Raw SSH evidence";
+        y = 39;
+      })
+      {
+        id = 9;
+        title = "Raw SSH events drilldown";
+        type = "logs";
+        datasource = loki;
+        gridPos = {
+          h = 10;
+          w = 12;
+          x = 0;
+          y = 40;
+        };
+        options = {
+          showTime = true;
+          showLabels = false;
+          wrapLogMessage = true;
+          enableLogDetails = true;
+          sortOrder = "Descending";
+        };
+        targets = [
+          {
+            refId = "A";
+            datasource = loki;
+            expr = ''{log_type="ssh", host=~"$host"} | json | line_format "{{.event}} {{.user}} {{.source_ip}}:{{.source_port}} {{.message}}"'';
+          }
+        ];
+      }
+      (jsonTable {
+        id = 10;
+        title = "Raw bastion forwards drilldown";
+        gridPos = {
+          h = 10;
+          w = 12;
+          x = 12;
+          y = 40;
+        };
+        expr = ''{log_type="ssh_bastion", event="bastion_forward"}'';
+        exclude = {
+          auth_method = true;
+          bastion_child_pid = true;
+          bastion_local_ip = true;
+          bastion_pid = true;
+          event = true;
+          host = true;
+          log_type = true;
+          target_port = true;
+        };
+        index = {
+          Time = 0;
+          source_ip = 1;
+          source_port = 2;
+          bastion_user = 3;
+          target_host = 4;
+          target_ip = 5;
+          bastion_local_port = 6;
+          key_type = 7;
+          key_fingerprint = 8;
+          message = 9;
+        };
+        rename = {
+          source_ip = "source IP";
+          source_port = "source port";
+          bastion_user = "user";
+          target_host = "target";
+          target_ip = "target IP";
+          bastion_local_port = "eta port";
+          key_type = "key type";
+          key_fingerprint = "key fingerprint";
+          message = "summary";
+        };
+      })
+      (row {
+        id = 11;
+        title = "Tailnet app access";
+        y = 50;
+      })
+      {
+        id = 19;
+        title = "Tailnet app access by service";
+        type = "timeseries";
+        datasource = loki;
+        gridPos = {
+          h = 8;
+          w = 8;
+          x = 0;
+          y = 51;
+        };
+        fieldConfig.defaults = {
+          custom.drawStyle = "bars";
+          custom.fillOpacity = 60;
+          min = 0;
+        };
+        targets = [
+          {
+            refId = "A";
+            datasource = loki;
+            expr = "sum by (service) (count_over_time(${tailnetAppSelector}[$__auto]))";
+            legendFormat = "{{service}}";
+          }
+        ];
+      }
+      {
+        id = 20;
+        title = "Tailnet app status classes";
+        type = "timeseries";
+        datasource = loki;
+        gridPos = {
+          h = 8;
+          w = 8;
+          x = 8;
+          y = 51;
+        };
+        fieldConfig.defaults = {
+          custom.drawStyle = "bars";
+          custom.fillOpacity = 60;
+          min = 0;
+        };
+        targets = [
+          {
+            refId = "A";
+            datasource = loki;
+            expr = "sum by (status_class) (count_over_time(${tailnetAppSelector}[$__auto]))";
+            legendFormat = "{{status_class}}";
+          }
+        ];
+      }
+      {
+        id = 21;
+        title = "Tailnet app access by source kind";
+        type = "timeseries";
+        datasource = loki;
+        gridPos = {
+          h = 8;
+          w = 8;
+          x = 16;
+          y = 51;
+        };
+        fieldConfig.defaults = {
+          custom.drawStyle = "bars";
+          custom.fillOpacity = 60;
+          min = 0;
+        };
+        targets = [
+          {
+            refId = "A";
+            datasource = loki;
+            expr = "sum by (source_kind) (count_over_time(${tailnetAppSelector}[$__auto]))";
+            legendFormat = "{{source_kind}}";
+          }
+        ];
+      }
+      (jsonTable {
+        id = 22;
+        title = "Recent tailnet app access";
+        gridPos = {
+          h = 10;
+          w = 24;
+          x = 0;
+          y = 59;
+        };
+        expr = tailnetAppSelector;
+        exclude = {
+          emitter_host = true;
+          event = true;
+          host = true;
+          ingress_network = true;
+          log_type = true;
+          message = true;
+          request_id = true;
+          source_tags = true;
+          user_agent = true;
+        };
+        index = {
+          Time = 0;
+          target_host = 1;
+          service = 2;
+          source_headscale_user = 3;
+          source_node = 4;
+          source_ip = 5;
+          http_method = 6;
+          request_path = 7;
+          status = 8;
+          status_class = 9;
+          correlation_status = 10;
+        };
+        rename = {
+          target_host = "target host";
+          source_headscale_user = "headscale user";
+          source_node = "source node";
+          source_ip = "source IP";
+          http_method = "method";
+          request_path = "path";
+          status_class = "status class";
+          correlation_status = "correlation";
+        };
+      })
+      (jsonTable {
+        id = 23;
+        title = "Unknown tailnet app sources";
+        gridPos = {
+          h = 6;
+          w = 24;
+          x = 0;
+          y = 69;
+        };
+        expr = ''{log_type="access_audit", event="tailnet_app_access", source_kind="unknown", host=~"$host", service=~"$service", status_class=~"$status_class"}'';
+        exclude = {
+          emitter_host = true;
+          event = true;
+          host = true;
+          ingress_network = true;
+          log_type = true;
+          message = true;
+          request_id = true;
+          source_kind = true;
+          source_tags = true;
+          user_agent = true;
+        };
+        index = {
+          Time = 0;
+          target_host = 1;
+          service = 2;
+          source_ip = 3;
+          http_method = 4;
+          request_path = 5;
+          status = 6;
+          status_class = 7;
+          correlation_status = 8;
+        };
+        rename = {
+          target_host = "target host";
+          source_ip = "source IP";
+          http_method = "method";
+          request_path = "path";
+          status_class = "status class";
+          correlation_status = "correlation";
+        };
+      })
+      (row {
+        id = 24;
+        title = "Authentik";
+        y = 75;
+      })
+      {
+        id = 12;
+        title = "Logins over time";
+        type = "timeseries";
+        datasource = loki;
+        gridPos = {
+          h = 8;
+          w = 12;
+          x = 0;
+          y = 76;
+        };
+        fieldConfig.defaults = {
+          custom.drawStyle = "bars";
+          custom.fillOpacity = 60;
+          min = 0;
+        };
+        targets = [
+          {
+            refId = "A";
+            datasource = loki;
+            expr = ''sum by (event) (count_over_time({log_type="authentik", event=~"login|login_failed"}[$__auto]))'';
+            legendFormat = "{{event}}";
+          }
+        ];
+      }
+      (jsonTable {
+        id = 13;
+        title = "Failed logins";
+        gridPos = {
+          h = 8;
+          w = 12;
+          x = 12;
+          y = 76;
+        };
+        expr = ''{log_type="authentik", event="login_failed"}'';
+        exclude = {
+          host = true;
+          http_host = true;
+          log_type = true;
+          event = true;
+          action = true;
+        };
+        index = {
+          Time = 0;
+          user = 1;
+          source_ip = 2;
+          message = 3;
+        };
+        rename = {
+          source_ip = "source IP";
+          message = "summary";
+        };
+      })
+      (jsonTable {
+        id = 14;
+        title = "App authorizations";
+        gridPos = {
+          h = 8;
+          w = 12;
+          x = 0;
+          y = 84;
+        };
+        expr = ''{log_type="authentik", event="app_authorize"}'';
+        exclude = {
+          host = true;
+          http_host = true;
+          log_type = true;
+          event = true;
+          action = true;
+          message = true;
+        };
+        index = {
+          Time = 0;
+          user = 1;
+          app = 2;
+          source_ip = 3;
+        };
+        rename = {
+          source_ip = "source IP";
+        };
+      })
+      {
+        id = 15;
+        title = "Admin changes & policy errors";
+        type = "logs";
+        datasource = loki;
+        gridPos = {
+          h = 8;
+          w = 12;
+          x = 12;
+          y = 84;
+        };
+        options = {
+          showTime = true;
+          showLabels = false;
+          wrapLogMessage = true;
+          enableLogDetails = true;
+          sortOrder = "Descending";
+        };
+        targets = [
+          {
+            refId = "A";
+            datasource = loki;
+            expr = ''{log_type="authentik", event=~"admin_change|policy_error|forward_auth_deny"} | json | line_format "{{.action}} {{.user}} {{.message}}"'';
+          }
+        ];
+      }
+      (row {
+        id = 16;
+        title = "Headscale";
+        y = 92;
+      })
+      (jsonTable {
+        id = 17;
+        title = "Node inventory (latest snapshots)";
+        gridPos = {
+          h = 8;
+          w = 24;
+          x = 0;
+          y = 93;
+        };
+        timeFrom = "10m";
+        expr = ''{log_type="headscale_nodes", event="node_snapshot"}'';
+        exclude = {
+          event = true;
+          host = true;
+          log_type = true;
+          node_id = true;
+        };
+        index = {
+          Time = 0;
+          node = 1;
+          health = 2;
+          health_reason = 3;
+          online = 4;
+          server = 5;
+          user = 6;
+          tags = 7;
+          ip_addresses = 8;
+          last_seen_seconds = 9;
+          expiry_seconds = 10;
+        };
+        rename = {
+          health_reason = "reason";
+          ip_addresses = "IPs";
+          last_seen_seconds = "last seen";
+          expiry_seconds = "expiry";
+        };
+      })
+      {
+        id = 18;
+        title = "Control-plane events";
+        type = "logs";
+        datasource = loki;
+        gridPos = {
+          h = 9;
+          w = 24;
+          x = 0;
+          y = 101;
+        };
+        options = {
+          showTime = true;
+          showLabels = false;
+          wrapLogMessage = true;
+          enableLogDetails = true;
+          sortOrder = "Descending";
+        };
+        targets = [
+          {
+            refId = "A";
+            datasource = loki;
+            expr = ''{log_type="headscale"} | json | line_format "{{.event}} {{.message}}"'';
+          }
+        ];
+      }
+    ];
 }

@@ -3,7 +3,8 @@
 # - hosts.nix: host/resource and tailnet node health
 # - apps.nix: user-facing app smoke/access status
 # - jobs.nix: batch/sync/backup status
-# - access-audit.nix: SSH / Authentik / Headscale audit drilldown
+# - access-audit.nix: intrusion indicators, logins, attack pressure, audit drilldown
+# - edge.nix: public edge traffic, scanners, and exploit symptoms
 # - ai-resources.nix: AI/GPU-facing service status
 # - postgresql.nix: primary/replica health and replication audit history
 {
@@ -29,6 +30,7 @@ let
     sjanglab-apps = import ./apps.nix { inherit datasources; };
     sjanglab-jobs = import ./jobs.nix { inherit datasources; };
     sjanglab-access-audit = import ./access-audit.nix { inherit datasources; };
+    sjanglab-edge = import ./edge.nix { inherit datasources; };
     sjanglab-ai-resources = import ./ai-resources.nix { inherit datasources; };
     sjanglab-postgresql = import ./postgresql.nix { inherit datasources; };
   };
