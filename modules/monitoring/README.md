@@ -27,9 +27,10 @@ Grafana dashboards are provisioned from Nix under `modules/monitoring/grafana/da
 
 - `infra.nix`: high-level home dashboard.
 - `hosts.nix`: host resources, metrics freshness, wg-admin reachability, Headscale node status.
-- `apps.nix`: Gatus smoke status, synthetic probes, browser app access flows.
+- `apps.nix`: Gatus host checks beside Blackbox probes, Nextcloud crashes, 5xx, and warnings.
 - `jobs.nix`: biodb and batch/sync/backup status freshness.
-- `access-audit.nix`: SSH, Authentik, and Headscale audit drilldown.
+- `access-audit.nix`: intrusion indicators, login origins, attack pressure, and collapsed SSH/Authentik/Headscale drilldowns.
+- `edge.nix`: public edge traffic, scanner paths, large request bodies, 5xx, and sensitive paths served.
 - `ai-resources.nix`: AI endpoint smoke, psi resources, GPU metrics.
 
 Datasource UIDs are pinned so dashboard JSON stays stable:
@@ -104,7 +105,7 @@ Tailnet application access audit:
 {log_type="access_audit", event="tailnet_app_access"}
 ```
 
-rho runs `tailnet-app-access-audit.timer` every 60 seconds. The correlator reads recent raw `nginx_access` events and Headscale `node_snapshot` inventory from rho Loki, enriches tailnet-origin app accesses with node/user metadata when an IP address appears in the latest snapshot, deduplicates with `/var/lib/tailnet-app-access-audit/seen.json`, and pushes normalized audit events back to rho Loki. It also emits a bounded `correlator_heartbeat` event each run so Loki ruler can alert on silent pipeline gaps. It does not send Slack alerts directly.
+rho runs `tailnet-app-access-audit.timer` every 60 seconds. The correlator reads recent raw `nginx_access` events and Headscale `node_snapshot` inventory from rho Loki, enriches tailnet-origin app accesses with node/user metadata when an IP address appears in the latest snapshot, deduplicates with `/var/lib/tailnet-app-access-audit/seen.json`, and pushes normalized audit events back to rho Loki. It also emits a bounded `correlator_heartbeat` event each run for dashboards and investigation. It does not send Slack alerts directly.
 
 Only tailnet-origin requests are emitted: `ingress_network="tailnet"` or `source_ip` in `100.64.0.0/10`. Public HTTP requests are never mirrored into `access_audit`. HTTP bodies are not collected. The stream includes all tailnet app access events, not only failures or anomalies; account for this scope when reviewing retention and access permissions.
 
@@ -176,7 +177,7 @@ Each row includes:
 
 Each job declaration controls `alert_enabled` and its freshness threshold. Borg and its preceding PostgreSQL dump also report `infra_job_last_result` and `infra_job_last_completion_timestamp_seconds` to Prometheus. Use these completion metrics for Borg failure, overdue, and missing-observation rules; a missing sample is not a successful run. Manual `biodb-*` oneshot services are still logged with `job_class="biodb"` and `alert_enabled=false`, because they are operator-triggered rather than scheduled unattended jobs.
 
-Prometheus cannot evaluate these LogQL streams directly. Loki ruler evaluates job freshness and audit LogQL alerts, then sends them to Alertmanager.
+Loki has no ruler rules; these streams are for dashboards and investigation. Signals that need alerting become Prometheus metrics through Vector `log_to_metric` or the job-result exporter.
 
 ## Access and audit streams
 
@@ -202,7 +203,7 @@ SSH access audit:
 {log_type="access_audit", event="ssh_login"}
 ```
 
-rho runs `ssh-access-audit.timer` every 60 seconds. The correlator reads recent raw SSH and bastion-forwarding events from rho Loki, enriches them with Nix-generated wg-admin host and admin-peer inventory, deduplicates with `/var/lib/ssh-access-audit/seen.json`, and pushes normalized audit events back to rho Loki. It also emits a bounded `correlator_heartbeat` event each run so Loki ruler can alert on silent pipeline gaps. It does not send Slack alerts directly.
+rho runs `ssh-access-audit.timer` every 60 seconds. The correlator reads recent raw SSH and bastion-forwarding events from rho Loki, enriches them with Nix-generated wg-admin host and admin-peer inventory, deduplicates with `/var/lib/ssh-access-audit/seen.json`, and pushes normalized audit events back to rho Loki. It also emits a bounded `correlator_heartbeat` event each run and logs new events to its journal, where Vector counts unclassified logins into `ssh_unclassified_logins_total` for the `SshLoginUnclassified` rule. It does not send Slack alerts directly.
 
 Bounded labels for this stream are:
 
@@ -301,18 +302,17 @@ Rule definitions are the source of truth for enabled alert names, severity, thre
 
 - `prometheus/rules.nix`: host, service, PostgreSQL, scheduled job, backup, and pipeline rules.
 - `prometheus/storage-rules.nix`: RAID/SMART failures and missing collection.
-- `loki/rules.nix`: allowlisted job status and access/audit rules.
 
 Use `../../docs/admin/monitoring.md` for response procedures. When changing coverage, update the owning rule and runbook together; do not infer current rules from an older alert-name inventory.
 
-Gatus does not send alerts directly. Prometheus and Loki evaluate rules, and Alertmanager handles Slack delivery.
+Gatus does not send alerts directly. Prometheus evaluates every rule, including `GatusCheckFailing` from Gatus metrics, and Alertmanager handles Slack delivery.
 
 ## Validation boundaries
 
 - Test public reachability from an external vantage as well as eta's internal probes.
 - Use the alert response and silence procedures in `../../docs/admin/monitoring.md`.
 - Run query API checks rho-locally or through an SSH tunnel. The wg-admin ports are ingest-only, not workstation query endpoints.
-- Inspect enabled rules in `prometheus/rules.nix`, `prometheus/storage-rules.nix`, and `loki/rules.nix` rather than inferring alert coverage from dashboards.
+- Inspect enabled rules in `prometheus/rules.nix` and `prometheus/storage-rules.nix` rather than inferring alert coverage from dashboards.
 
 ## Validation
 

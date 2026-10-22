@@ -2980,7 +2980,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       body { background: #ffffff !important; padding: 0; }
       .container { max-width: none; }
       .toolbar, .diagram-nav, .focus-chip, .archify-toast, .no-print { display: none !important; }
-
+      
       .diagram-container, .card { box-shadow: none; border-color: #e2e8f0; }
       .diagram-container { --archify-nav-reserve: 0px !important; }
       html[data-preset="signal-flow"] .diagram-container,
@@ -3902,24 +3902,24 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       .route-journey-controls button { min-height: 2.75rem; }
       .route-probe-status { padding: 0.05rem 0.48rem 0.38rem; }
       .route-probe-node { max-width: 7.5rem; }
-
-
-
-
-
-
-
-
-
-
-
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
       html[data-embed="true"][data-share-playback="true"] .diagram-container {
         padding-top: 4.25rem;
       }
       html[data-embed="true"][data-share-moment="true"] .diagram-container {
         padding-top: 4.25rem;
       }
-
+      
       .cards {
         grid-template-columns: 1fr;
         margin-top: 1rem;
@@ -3962,7 +3962,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         text-overflow: ellipsis;
         white-space: nowrap;
       }
-
+      
       html[data-present="true"]:not([data-embed="true"]) .diagram-container { padding: 0.5rem 0.5rem 3.75rem; }
       html[data-present="true"]:not([data-embed="true"]) .diagram-container[data-wide-diagram="true"] > svg {
         width: 720px;
@@ -4842,7 +4842,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       .semantic-lens,
       .diagram-guide,
       .overview-map-live { animation: none !important; }
-
+      
       .intent-trace-flow {
         animation: none !important;
         stroke-dasharray: none;
@@ -5044,8 +5044,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           <path data-edge-from="exporters" data-edge-to="prometheus" data-edge-label="scrape" data-edge-key="5" data-edge-id="exporters-prom" data-composition-points="365,444.1;500,444.1" data-composition-crossover="halo" data-composition-independent="true" d="M 365 444.1 L 500 444.1" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:6">
-          <path data-graph-role="automatic-crossover-underlay" d="M 620 242 L 792 242 Q 800 242 800 250 L 800 300" fill="none" stroke="var(--mask)" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="loki" data-edge-to="grafana" data-edge-label="LogQL" data-edge-key="6" data-edge-id="loki-grafana" data-composition-points="620,242;800,242;800,300" data-composition-crossover="halo" data-composition-independent="true" d="M 620 242 L 792 242 Q 800 242 800 250 L 800 300" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
+          <path data-graph-role="automatic-crossover-underlay" d="M 620 235 L 792 235 Q 800 235 800 243 L 800 300" fill="none" stroke="var(--mask)" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
+          <path data-edge-from="loki" data-edge-to="grafana" data-edge-label="LogQL" data-edge-key="6" data-edge-id="loki-grafana" data-composition-points="620,235;800,235;800,300" data-composition-crossover="halo" data-composition-independent="true" d="M 620 235 L 792 235 Q 800 235 800 243 L 800 300" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         </g>
         <g data-graph-role="automatic-crossover" style="--step:7">
           <path data-graph-role="automatic-crossover-underlay" d="M 620 435 L 792 435 Q 800 435 800 427 L 800 360" fill="none" stroke="var(--mask)" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
@@ -5071,10 +5071,6 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <g data-graph-role="automatic-crossover" style="--step:13">
           <path data-graph-role="automatic-crossover-underlay" d="M 1040 180 L 1040 260" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
           <path data-edge-from="bridge" data-edge-to="healthchecks" data-edge-label="cron heartbeat" data-edge-key="13" data-edge-id="bridge-health" data-composition-points="1040,180;1040,260" data-composition-crossover="halo" d="M 1040 180 L 1040 260" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
-        </g>
-        <g data-graph-role="automatic-crossover" style="--step:14">
-          <path data-graph-role="automatic-crossover-underlay" d="M 620 226.95 L 672 226.95 Q 680 226.95 680 218.95 L 680 158 Q 680 150 688 150 L 740 150" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>
-          <path data-edge-from="loki" data-edge-to="alertmanager" data-edge-label="ruler rules" data-edge-key="14" data-edge-id="loki-alert" data-composition-points="620,226.95;680,226.95;680,150;740,150" data-composition-crossover="halo" data-composition-independent="true" d="M 620 226.95 L 672 226.95 Q 680 226.95 680 218.95 L 680 158 Q 680 150 688 150 L 740 150" class="a-security" stroke-width="1.5" marker-end="url(#arrowhead-security)"/>
         </g>
 
         <!-- Components -->
@@ -5103,15 +5099,15 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <text data-detail="context" x="305" y="294" class="t-muted" font-size="9" text-anchor="middle">logs · metrics</text>
         </g>
 
-        <g id="node-exporters" data-node-id="exporters" data-node-label="Exporters" tabindex="0" role="button" aria-label="Focus Exporters, postgres · gpu · blackbox, Architecture component" aria-pressed="false" data-node-kind="backend" data-node-sublabel="postgres · gpu · blackbox" data-node-context="Architecture component">
-          <title>Exporters · postgres · gpu · blackbox · Architecture component</title>
+        <g id="node-exporters" data-node-id="exporters" data-node-label="Exporters" tabindex="0" role="button" aria-label="Focus Exporters, pg · gpu · probe · f2b, Architecture component" aria-pressed="false" data-node-kind="backend" data-node-sublabel="pg · gpu · probe · f2b" data-node-context="Architecture component">
+          <title>Exporters · pg · gpu · probe · f2b · Architecture component</title>
           <rect x="245" y="410" width="120" height="60" rx="6" class="c-mask"/>
           <rect x="245" y="410" width="120" height="60" rx="6" class="c-backend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(251 416) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
           <text data-node-label="" data-detail-anchor="" x="305" y="438" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Exporters</text>
-        <text data-detail="context" x="305" y="454" class="t-muted" font-size="7.4" text-anchor="middle">postgres · gpu · blackbox</text>
+        <text data-detail="context" x="305" y="454" class="t-muted" font-size="8.4" text-anchor="middle">pg · gpu · probe · f2b</text>
         </g>
 
         <g id="node-audit" data-node-id="audit" data-node-label="감사 이벤트" tabindex="0" role="button" aria-label="Focus 감사 이벤트, auth/ssh/headscale, 감사/알림 경계" aria-pressed="false" data-node-kind="security" data-node-sublabel="auth/ssh/headscale" data-node-context="감사/알림 경계">
@@ -5172,15 +5168,15 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <text data-detail="context" x="800" y="524" class="t-muted" font-size="9" text-anchor="middle">status.sjanglab.org</text>
         </g>
 
-        <g id="node-alertmanager" data-node-id="alertmanager" data-node-label="Alertmanager" tabindex="0" role="button" aria-label="Focus Alertmanager, observe · 외부 discard, 감사/알림 경계 › rho 관측 스택" aria-pressed="false" data-node-kind="backend" data-node-sublabel="observe · 외부 discard" data-node-context="감사/알림 경계 › rho 관측 스택">
-          <title>Alertmanager · observe · 외부 discard · 감사/알림 경계 › rho 관측 스택</title>
+        <g id="node-alertmanager" data-node-id="alertmanager" data-node-label="Alertmanager" tabindex="0" role="button" aria-label="Focus Alertmanager, active · response 라우팅, 감사/알림 경계 › rho 관측 스택" aria-pressed="false" data-node-kind="backend" data-node-sublabel="active · response 라우팅" data-node-context="감사/알림 경계 › rho 관측 스택">
+          <title>Alertmanager · active · response 라우팅 · 감사/알림 경계 › rho 관측 스택</title>
           <rect x="740" y="120" width="120" height="60" rx="6" class="c-mask"/>
           <rect x="740" y="120" width="120" height="60" rx="6" class="c-backend" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="backend" class="semantic-sigil s-backend" transform="translate(746 126) scale(0.6875)">
             <path d="M6 3 3 8l3 5M10 3l3 5-3 5"/>
           </g>
           <text data-node-label="" data-detail-anchor="" x="800" y="148" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Alertmanager</text>
-        <text data-detail="context" x="800" y="164" class="t-muted" font-size="8.4" text-anchor="middle">observe · 외부 discard</text>
+        <text data-detail="context" x="800" y="164" class="t-muted" font-size="7.7" text-anchor="middle">active · response 라우팅</text>
         </g>
 
         <g id="node-bridge" data-node-id="bridge" data-node-label="Alert Bridge" tabindex="0" role="button" aria-label="Focus Alert Bridge, Cloudflare Worker/D1, 감사/알림 경계" aria-pressed="false" data-node-kind="cloud" data-node-sublabel="Cloudflare Worker/D1" data-node-context="감사/알림 경계">
@@ -5194,8 +5190,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <text data-detail="context" x="1040" y="164" class="t-muted" font-size="9" text-anchor="middle">Cloudflare Worker/D1</text>
         </g>
 
-        <g id="node-slack" data-node-id="slack" data-node-label="Slack" tabindex="0" role="button" aria-label="Focus Slack, #infra-alerts/audit, 감사/알림 경계" aria-pressed="false" data-node-kind="external" data-node-sublabel="#infra-alerts/audit" data-node-context="감사/알림 경계">
-          <title>Slack · #infra-alerts/audit · 감사/알림 경계</title>
+        <g id="node-slack" data-node-id="slack" data-node-label="Slack" tabindex="0" role="button" aria-label="Focus Slack, #infra-alerts, 감사/알림 경계" aria-pressed="false" data-node-kind="external" data-node-sublabel="#infra-alerts" data-node-context="감사/알림 경계">
+          <title>Slack · #infra-alerts · 감사/알림 경계</title>
           <rect x="1190" y="120" width="120" height="60" rx="6" class="c-mask"/>
           <rect x="1190" y="120" width="120" height="60" rx="6" class="c-external" stroke-width="1.5"/>
           <g aria-hidden="true" data-semantic-sigil="external" class="semantic-sigil s-external" transform="translate(1196 126) scale(0.6875)">
@@ -5203,7 +5199,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
             <path d="M8 2.5h5.5V8M13.5 2.5 7.5 8.5"/>
           </g>
           <text data-node-label="" data-detail-anchor="" x="1250" y="148" class="t-primary" font-size="11" font-weight="600" text-anchor="middle">Slack</text>
-        <text data-detail="context" x="1250" y="164" class="t-muted" font-size="9" text-anchor="middle">#infra-alerts/audit</text>
+        <text data-detail="context" x="1250" y="164" class="t-muted" font-size="9" text-anchor="middle">#infra-alerts</text>
         </g>
 
         <g id="node-healthchecks" data-node-id="healthchecks" data-node-label="healthchecks.io" tabindex="0" role="button" aria-label="Focus healthchecks.io, watchdog, Architecture component" aria-pressed="false" data-node-kind="cloud" data-node-sublabel="watchdog" data-node-context="Architecture component">
@@ -5243,8 +5239,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           <text x="432.5" y="434.1" class="t-edge-emphasis" font-size="8" text-anchor="middle">scrape</text>
         </g>
         <g data-detail="context" data-edge-from="loki" data-edge-to="grafana" data-edge-label="LogQL" data-edge-key="6" data-edge-id="loki-grafana">
-          <rect x="783" y="251" width="34" height="14" rx="3" class="c-mask"/>
-          <text x="800" y="261" class="t-edge-emphasis" font-size="8" text-anchor="middle">LogQL</text>
+          <rect x="783" y="247.5" width="34" height="14" rx="3" class="c-mask"/>
+          <text x="800" y="257.5" class="t-edge-emphasis" font-size="8" text-anchor="middle">LogQL</text>
         </g>
         <g data-detail="context" data-edge-from="prometheus" data-edge-to="grafana" data-edge-label="PromQL" data-edge-key="7" data-edge-id="prom-grafana">
           <rect x="780.6" y="377.5" width="38.8" height="14" rx="3" class="c-mask"/>
@@ -5273,10 +5269,6 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <g data-detail="context" data-edge-from="bridge" data-edge-to="healthchecks" data-edge-label="cron heartbeat" data-edge-key="13" data-edge-id="bridge-health">
           <rect x="1001.4" y="184" width="77.2" height="14" rx="3" class="c-mask"/>
           <text x="1040" y="194" class="t-edge-dashed" font-size="8" text-anchor="middle">cron heartbeat</text>
-        </g>
-        <g data-detail="context" data-edge-from="loki" data-edge-to="alertmanager" data-edge-label="ruler rules" data-edge-key="14" data-edge-id="loki-alert">
-          <rect x="648.6" y="168.475" width="62.8" height="14" rx="3" class="c-mask"/>
-          <text x="680" y="178.475" class="t-edge-security" font-size="8" text-anchor="middle">ruler rules</text>
         </g>
 
         <!-- Boundary labels (foreground masks keep routes out of titles) -->
@@ -5500,7 +5492,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           <h3>대시보드</h3>
         </div>
         <ul>
-          <li>Infrastructure/Hosts/Apps/Jobs/Access/AI/PostgreSQL</li>
+          <li>Infrastructure/Access/Edge/Apps/Hosts/Jobs/AI/PostgreSQL</li>
           <li>고카디널리티 값은 Loki JSON 필드로 보존</li>
           <li>시크릿과 인증 헤더는 수집하지 않음</li>
         </ul>
@@ -5512,7 +5504,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           <h3>전송과 관측의 경계</h3>
         </div>
         <ul>
-          <li>기본 observe: 평가 유지, Alertmanager 외부 전송 discard</li>
+          <li>active: immediate·business-hours만 전송, 미분류 알림 discard</li>
+          <li>알림 판정은 Prometheus만 함; Loki는 조사·감사 조회용</li>
           <li>Worker cron·healthchecks.io integration은 별도 경로이며 상태 확인 필요</li>
           <li>누락·무알림은 성공이나 복구의 증거가 아님</li>
         </ul>

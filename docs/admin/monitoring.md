@@ -17,11 +17,12 @@
 ## 대시보드
 
 - **Grafana**: `https://logging.sjanglab.org` (Authentik Forward Auth, localhost upstream, 신규 인증 사용자 Viewer)
-  - `SjangLab Infrastructure` (홈): 현재 건강 상태와 감사 요약 카운트
-  - `SjangLab Hosts`: 호스트 리소스, 메트릭 freshness, Headscale 노드 상태
-  - `SjangLab Apps`: Gatus 앱 smoke 상태와 앱 인증/거부 흐름
+  - `SjangLab Infrastructure` (홈): 발화 중 알림, 침해 징후, 즉시 등급 서비스 장애, 백업 경과, Gatus 실패 수
+  - `SjangLab Access & Audit`: 맨 위 침해 징후(평소 0)·로그인 출처·공격 압력, 아래 접힌 SSH/tailnet/Authentik/Headscale drilldown
+  - `SjangLab Public Edge`: eta 공개 vhost 트래픽, 스캐너 경로, 큰 요청 본문, 5xx, 민감 경로 응답
+  - `SjangLab Hosts`: 호스트 리소스, 데이터 파일시스템, SMART·NVMe·RAID, auto-upgrade 결과, Headscale 노드 상태
+  - `SjangLab Apps`: Gatus 내부 체크와 Blackbox 외부 probe 비교, Nextcloud PHP-FPM·5xx·경고 로그
   - `SjangLab Jobs`: Borg 백업·무결성 검사와 PostgreSQL 덤프의 마지막 완료 기록
-  - `SjangLab Access & Audit`: SSH bastion, Authentik, Headscale 감사 드릴다운
   - `SjangLab AI Resources`: AI 서비스 smoke, psi 리소스, 데이터 동기화 상태
   - `SjangLab PostgreSQL`: rho primary, tau replica, streaming lag, slot WAL 여유, replication 감사 이력
 - **Gatus**: `https://status.sjanglab.org` (eta 공개 HTTPS + Authentik 구성원 인증 상태 페이지)
@@ -88,7 +89,6 @@ flowchart LR
 
   bridge["Cloudflare alert bridge"]
   slack_alerts["Slack #infra-alerts"]
-  slack_audit["Slack #infra-audit"]
   healthchecks["healthchecks.io"]
 
   vec -- "메트릭" --> prom
@@ -96,9 +96,8 @@ flowchart LR
   prom --> graf
   loki --> graf
   prom -- "alerts" --> alertmanager
-  alertmanager -- "ops/audit alerts" --> bridge
+  alertmanager -- "immediate/business-hours" --> bridge
   bridge --> slack_alerts
-  bridge --> slack_audit
   alertmanager -- "Watchdog ping" --> healthchecks
   bridge -- "heartbeat" --> healthchecks
   healthchecks --> slack_alerts
@@ -193,30 +192,22 @@ alert별 1차 확인:
 | `BlackboxExporterDown` | eta의 `prometheus-blackbox-exporter.service` | exporter 재시작, listen address와 방화벽 확인 |
 | `ServiceUnavailable` / `ServiceObservationMissing` | 대상 probe, 접근 경로, DNS, nginx 인증서 | 실제 접근 실패와 관측 누락을 구분해 조사 |
 | `TlsCertificateExpiringSoon` | eta ACME timer와 대상 `acme-sync-*` unit | 인증서 갱신 후 대상 호스트 동기화 확인 |
-| `AcmeRenewalFailed` | eta의 `acme-order-renew-*` journal과 `log_type="systemd_status"`, `job_class="acme"` | HTTP-01은 공개 DNS·80번 포트·nginx challenge 경로, DNS-01은 resolver·TXT 전파·토큰 권한 확인. 원인 해결 후 재검증·필요 시 unpause |
-| `NvidiaGpuExporterDown` | psi exporter service와 `nvidia-smi` | NVIDIA driver/GPU 상태 확인 후 exporter 복구 |
 | `PostgresqlDown` / `PostgresqlExporterMissing` | rho/tau `postgresql.service`, `prometheus-postgres-exporter.service`, Vector | DB 또는 exporter 복구 후 `pg_up` 확인 |
 | `PostgresqlReplicaNotStreaming` / `PostgresqlReplicationLagHigh` | rho `pg_stat_replication`, tau `pg_stat_wal_receiver` | 연결·WAL 상태 확인, WAL 유실이면 tau 재-bootstrap |
 | `PostgresqlReplicationSlotInactive` / `PostgresqlReplicationSlotWalRisk` | rho `pg_replication_slots` | tau 상태 복구. `wal_status=lost`면 새 basebackup 수행 |
-| `PostgresqlAuditSnapshotsMissing` | rho/tau audit timer와 Vector/Loki | timer·전송 경로 복구 후 누락 구간 기록 |
 | `PublicHttpServerErrorBurst` | eta `nginx_public_server_errors_total`, Loki `{log_type="nginx_access"} \| json \| status >= 500` | upstream 서비스 상태 확인. 공격 시도도 여기서 먼저 보이므로 `request_length`·`client_ip`와 함께 판독 |
 | `NextcloudPhpFpmWorkerCrashed` | tau `phpfpm-nextcloud` journal, Loki `{log_type="nextcloud", source="php-fpm"}` | worker가 signal로 종료됨. PHP 보안 패치 여부와 같은 시각 접근 로그 확인 |
 | `ScheduledJobFailed` / `BackupDumpFailed` | 백업·덤프 journal, 종료 결과 | 원인 수정 후 systemd 백업 서비스로 재실행 |
 | `BackupCompletionOverdue` | 05:30 타이머, 덤프 의존성, Borg 실행 여부 | 36시간 완료 지연 원인 조사 |
 | `BackupVerificationOverdue` | 일요일 09:00 타이머, Borg 검사 journal | 9일 완료 지연 원인 조사 |
 | `BackupObservationMissing` | 최초 실행 여부, 완료 기록 파일, Vector job source·sink | 초기 검사 또는 관측 경로 복구. 실패·성공 추정 금지 |
-| `AuditJobFailed` / `AuditJobStale` | `log_type="systemd_status"`, 대상 audit timer/service | 감사 수집 unit 복구 후 누락 구간 확인 |
-| `AuditCorrelatorHeartbeatMissing` | rho audit correlator service와 Loki 수신 | correlator·Loki 연결 복구 후 heartbeat 확인 |
-| `NginxAccessLogsMissing` | nginx access log, Vector source, Loki | 로그 파일 권한과 Vector pipeline 복구 |
-| `HeadscaleNodeSnapshotsMissing` | eta snapshot timer/service와 Loki | snapshot job 복구 후 새 `node_snapshot` 확인 |
-| `SshLoginFailureBurst` | `log_type="ssh"`, source IP, 대상 user | 오탐 확인 후 계정/키 검토와 IP 차단 |
-| `AuthentikLoginFailureBurst` / `AuthentikForwardAuthDenyBurst` | Authentik audit log의 user, app, source IP | 사용자 영향과 계정 탈취 여부 확인 |
-| `HeadscaleOidcDenied` / `HeadscaleNodeExpired` | Authentik group, `users.yaml`, node expiry | 정당한 사용자면 inventory/expiry 수정 후 Terraform apply |
+| `SshLoginUnclassified` | rho `ssh-access-audit` journal, Security & audit 대시보드 `path="unknown"` 이벤트 | source IP·사용자·키 지문 확인. 본인이 아니면 해당 키 폐기, 접속 차단, 호스트 점검을 먼저 함 |
+| `SensitivePathServed` | Public edge 대시보드, Loki `{log_type="nginx_access", ingress_network="public"}` | 해당 경로를 nginx에서 404로 막고, 같은 시각 요청 출처와 노출된 내용 확인 |
+| `HeadscaleNodeAdded` | Security & audit의 `node_added` 이벤트, Headscale node 목록 | 구성원과 기기 확인. 모르는 노드면 `headscale nodes delete` 후 사용자 계정 점검 |
+| `GatusCheckFailing` | Apps 대시보드의 inside 표, 해당 호스트 서비스 | 외부 probe가 없는 내부 구성요소이므로 호스트에서 서비스 상태 직접 확인 |
 | `Watchdog` 미수신 | Alertmanager, healthchecks.io ping URL, 네트워크 | Alertmanager 복구. bridge 장애와 분리 확인 |
 
-`AcmeRenewalFailed`는 기존 systemd 상태 snapshot으로 auto-restart 중인 실패도 감지합니다. 10분 이내 실패가 있고 최근 2분 내 정상 snapshot이 없으면 5분 후 경보를 발생시킵니다. 정상 snapshot 수신 후 이전 실패로 인한 경보는 해제됩니다. snapshot 전송 자체가 끊기면 이 규칙은 실패를 판정하지 못하므로 Vector와 호스트 수집 상태도 함께 확인합니다.
-
-감사 alert는 `#infra-audit`에 도착합니다. 사용자명, source IP, app/node 정보를 기록하고 계정 탈취 가능성이 있으면 Authentik 계정 비활성화와 Headscale ACL apply를 우선합니다.
+알림 판정은 Prometheus만 합니다. Loki는 원인 조사와 감사 조회용이며, 로그에서 나온 신호는 Vector `log_to_metric`으로 숫자로 바꾼 뒤 Prometheus 규칙이 판정합니다. 보안 알림(`SshLoginUnclassified`, `SensitivePathServed`, `HeadscaleNodeAdded`)도 `#infra-alerts`로 갑니다. 사용자명, source IP, app/node 정보를 기록하고 계정 탈취 가능성이 있으면 Authentik 계정 비활성화와 Headscale ACL apply를 우선합니다. 공격 압력(스캔, 차단, forward-auth 거부)은 알림 없이 Security & audit 대시보드에서 추세로 봅니다.
 
 ### PostgreSQL replica recovery
 

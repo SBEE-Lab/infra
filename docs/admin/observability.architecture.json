@@ -71,7 +71,7 @@
       "id": "exporters",
       "type": "backend",
       "label": "Exporters",
-      "sublabel": "postgres · gpu · blackbox",
+      "sublabel": "pg · gpu · probe · f2b",
       "pos": [
         245,
         410
@@ -131,7 +131,7 @@
       "id": "alertmanager",
       "type": "backend",
       "label": "Alertmanager",
-      "sublabel": "observe · 외부 discard",
+      "sublabel": "active · response 라우팅",
       "pos": [
         740,
         120
@@ -151,7 +151,7 @@
       "id": "slack",
       "type": "external",
       "label": "Slack",
-      "sublabel": "#infra-alerts/audit",
+      "sublabel": "#infra-alerts",
       "pos": [
         1190,
         120
@@ -298,13 +298,6 @@
         1040,
         194
       ]
-    },
-    {
-      "id": "loki-alert",
-      "from": "loki",
-      "to": "alertmanager",
-      "label": "ruler rules",
-      "variant": "security"
     }
   ],
   "cards": [
@@ -312,7 +305,7 @@
       "dot": "cyan",
       "title": "대시보드",
       "items": [
-        "Infrastructure/Hosts/Apps/Jobs/Access/AI/PostgreSQL",
+        "Infrastructure/Access/Edge/Apps/Hosts/Jobs/AI/PostgreSQL",
         "고카디널리티 값은 Loki JSON 필드로 보존",
         "시크릿과 인증 헤더는 수집하지 않음"
       ]
@@ -321,7 +314,8 @@
       "dot": "amber",
       "title": "전송과 관측의 경계",
       "items": [
-        "기본 observe: 평가 유지, Alertmanager 외부 전송 discard",
+        "active: immediate·business-hours만 전송, 미분류 알림 discard",
+        "알림 판정은 Prometheus만 함; Loki는 조사·감사 조회용",
         "Worker cron·healthchecks.io integration은 별도 경로이며 상태 확인 필요",
         "누락·무알림은 성공이나 복구의 증거가 아님"
       ]
