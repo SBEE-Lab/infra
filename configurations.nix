@@ -24,7 +24,10 @@ let
 
   pkgs = import nixpkgs {
     inherit system;
-    overlays = [ (import ./overlays/stalwart) ];
+    overlays = [
+      (import ./overlays/stalwart)
+      (import ./overlays/php)
+    ];
   };
 
   # CUDA-enabled pkgs for GPU hosts (psi)
