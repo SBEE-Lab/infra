@@ -118,6 +118,12 @@ in
 
   networking.hostName = "eta";
 
+  services.sbee.nginx.streamProxies.k3s = {
+    listenPort = 6443;
+    upstreamHost = hosts.psi.wg-admin;
+    upstreamPort = 6443;
+  };
+
   services.sbee.systemdStatusExporter.enable = true;
 
   services.prometheus.exporters.blackbox = {

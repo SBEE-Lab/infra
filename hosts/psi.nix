@@ -29,6 +29,7 @@ in
     ../modules/disko/xfs-mdadm.nix
     ../modules/disko/xfs-project-quota.nix
     ../modules/nvidia.nix
+    ../modules/k3s.nix
     ../modules/tailscale
     ../modules/buildbot/database.nix
     ../modules/buildbot/master.nix

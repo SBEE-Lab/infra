@@ -135,6 +135,16 @@ resource "cloudflare_dns_record" "container_registry" {
   comment = "Container Registry public endpoint on eta"
 }
 
+resource "cloudflare_dns_record" "k3s" {
+  zone_id = data.sops_file.secrets.data["CLOUDFLARE_ZONE_ID"]
+  name    = "k3s.sjanglab.org"
+  content = "141.164.53.203"
+  type    = "A"
+  ttl     = 300
+  proxied = false
+  comment = "Kubernetes API TCP edge proxy (eta -> psi)"
+}
+
 resource "cloudflare_dns_record" "nixbot" {
   zone_id = data.sops_file.secrets.data["CLOUDFLARE_ZONE_ID"]
   name    = "nixbot.sjanglab.org"
