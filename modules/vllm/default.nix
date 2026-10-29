@@ -33,6 +33,10 @@ in
     settings = {
       apiKeys = [ "\${env.LLAMA_SWAP_API_KEY}" ];
       healthCheckTimeout = 3600;
+      # Keep vLLM's own output (KV capacity, load errors) in the journal.
+      logToStdout = "both";
+      # The web UI log view has no timestamps otherwise.
+      logTimeFormat = "rfc3339";
       models."qwen3.6-35b-a3b" = {
         cmd = lib.escapeShellArgs [
           docker
