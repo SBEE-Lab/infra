@@ -92,6 +92,7 @@ in
           # psi
           (mkExtEndpoint "Nixbot" "ci")
           (mkExtEndpoint "niks3" "cache")
+          (mkExtEndpoint "vLLM" "ai")
           # tau
           (mkExtEndpoint "Nextcloud" "apps")
           (mkExtEndpoint "n8n" "apps")
