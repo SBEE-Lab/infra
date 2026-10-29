@@ -1,154 +1,114 @@
-# vLLM model serving with AWQ quantization
-#
-# Serves LLM via OpenAI-compatible API.
-# Requires CUDA support (import nvidia.nix in host config).
+# vLLM behind llama-swap: started on demand, stopped after `ttl` to free the GPU.
+# Upstream image because nixpkgs vLLM lags new model support.
 {
+  config,
   lib,
-  pkgs,
   ...
 }:
 let
-  domain = "vllm.sjanglab.org";
-  dataDir = "/workspace/vllm";
-  modelDir = "${dataDir}/models";
+  port = 8100;
+  hfCache = "/workspace/shared/huggingface";
 
-  # vLLM package (CUDA enabled via pkgsCuda in configurations.nix)
-  inherit (pkgs.python3Packages) vllm;
-
-  # Model configurations (A6000 48GB)
-  # Qwen3-32B-AWQ (~17GB) + KV cache
-  # Note: enforce-eager disables CUDA graphs to avoid OOM during warmup
-  models = {
-    chat = {
-      model = "Qwen/Qwen3-32B-AWQ";
-      port = 8100;
-      extraArgs = [
-        "--quantization"
-        "awq"
-        "--max-model-len"
-        "32768"
-        "--gpu-memory-utilization"
-        "0.80"
-        "--enforce-eager" # Skip CUDA graph capture to avoid OOM
-      ];
-    };
-  };
-
-  mkVllmService = name: cfg: {
-    description = "vLLM ${name} server (${cfg.model})";
-    after = [ "network.target" ];
-    wantedBy = [ "multi-user.target" ];
-
-    environment = {
-      HF_HOME = modelDir;
-      CUDA_VISIBLE_DEVICES = "0";
-      # CUDA libraries
-      LD_LIBRARY_PATH = lib.concatStringsSep ":" [
-        "/run/opengl-driver/lib"
-        "${pkgs.cudaPackages.cuda_cudart}/lib"
-        "${pkgs.cudaPackages.libcublas}/lib"
-      ];
-    };
-
-    serviceConfig = {
-      Type = "simple";
-      User = "vllm";
-      Group = "vllm";
-      WorkingDirectory = dataDir;
-      ExecStart = lib.concatStringsSep " " (
-        [
-          "${vllm}/bin/vllm"
-          "serve"
-          cfg.model
-          "--host"
-          "127.0.0.1"
-          "--port"
-          (toString cfg.port)
-          "--download-dir"
-          modelDir
-          "--dtype"
-          "auto"
-        ]
-        ++ cfg.extraArgs
-      );
-      Restart = "on-failure";
-      RestartSec = "30s";
-      TimeoutStartSec = "30min"; # Model download can take time
-
-      # CUDA access overrides (same as ollama)
-      DynamicUser = lib.mkForce false;
-      MemoryDenyWriteExecute = lib.mkForce false;
-      PrivateUsers = lib.mkForce false;
-      DevicePolicy = lib.mkForce "auto";
-    };
-  };
+  docker = lib.getExe config.virtualisation.docker.package;
+  container = "vllm";
 in
 {
-  imports = [
-    ../acme/sync.nix
-    ../gatus/check.nix
-  ];
+  imports = [ ../gatus/check.nix ];
 
   gatusCheck.push = [
     {
       name = "vLLM";
       group = "ai";
-      url = "http://127.0.0.1:8100/health";
+      systemdService = "llama-swap.service";
     }
   ];
 
-  # Generate systemd services for each model
-  systemd.services = lib.mapAttrs' (
-    name: cfg: lib.nameValuePair "vllm-${name}" (mkVllmService name cfg)
-  ) models;
-
-  # User/group
-  users.users.vllm = {
-    isSystemUser = true;
-    group = "vllm";
-    home = dataDir;
-  };
-  users.groups.vllm = { };
-
-  # Directories
-  systemd.tmpfiles.rules = [
-    "d ${dataDir} 0755 vllm vllm -"
-    "d ${modelDir} 0755 vllm vllm -"
-  ];
-
-  # ACME certificate receiver
-  acmeSyncer.mkReceiver = [
-    {
-      inherit domain;
-      user = "acme-sync-vllm";
-    }
-  ];
-
-  # Nginx reverse proxy
-  services.nginx = {
+  services.llama-swap = {
     enable = true;
-    recommendedProxySettings = true;
-    recommendedTlsSettings = true;
-
-    virtualHosts.${domain} = {
-      forceSSL = true;
-      sslCertificate = "/var/lib/acme/${domain}/fullchain.pem";
-      sslCertificateKey = "/var/lib/acme/${domain}/key.pem";
-
-      # API clients do not handle browser redirects from Authentik forward auth.
-      # Keep application authorization in API credentials when this module is enabled.
-      locations."/" = {
-        proxyPass = "http://127.0.0.1:8100";
-        extraConfig = ''
-          proxy_buffering off;
-          proxy_read_timeout 600s;
-          proxy_send_timeout 600s;
-          client_max_body_size 100M;
-        '';
+    # Wildcard avoids coupling startup to Naru address readiness.
+    listenAddress = "[::]";
+    # `llama-swap -validate` fails on the unset ${env.*} secret in the build sandbox.
+    validateConfigFile = false;
+    inherit port;
+    settings = {
+      apiKeys = [ "\${env.LLAMA_SWAP_API_KEY}" ];
+      healthCheckTimeout = 3600;
+      models."qwen3.6-35b-a3b" = {
+        cmd = lib.escapeShellArgs [
+          docker
+          "run"
+          "--rm"
+          "--name"
+          container
+          "--device=nvidia.com/gpu=all"
+          "--ipc=host"
+          "--publish"
+          "127.0.0.1:\${PORT}:8000"
+          "--volume"
+          "${hfCache}:/root/.cache/huggingface"
+          "vllm/vllm-openai:v0.32.0@sha256:befccf0e7e4089aa23926bb6f887a85c0d46c2a99e6de5c5ffdf5cb7957c5b34"
+          "--model"
+          "Qwen/Qwen3.6-35B-A3B-FP8"
+          "--served-model-name"
+          "qwen3.6-35b-a3b"
+          "--max-model-len"
+          "262144"
+          "--kv-cache-dtype"
+          "fp8"
+          "--gpu-memory-utilization"
+          "0.95"
+          "--limit-mm-per-prompt"
+          ''{"image":4,"video":0}''
+          "--reasoning-parser"
+          "qwen3"
+          "--default-chat-template-kwargs"
+          ''{"enable_thinking":false}''
+          "--enable-auto-tool-choice"
+          "--tool-call-parser"
+          "qwen3_coder"
+          "--enable-force-include-usage"
+          "--enable-prompt-tokens-details"
+          "--disable-uvicorn-access-log"
+        ];
+        # Otherwise only the docker client is killed and the container keeps the GPU.
+        cmdStop = "${docker} stop ${container}";
+        ttl = 600;
+        concurrencyLimit = 64;
       };
     };
   };
 
-  # Firewall: Tailscale only
-  networking.firewall.interfaces.tailscale0.allowedTCPPorts = [ 443 ];
+  systemd.services.llama-swap = {
+    after = [ "docker.service" ];
+    requires = [ "docker.service" ];
+    serviceConfig = {
+      ExecStartPre = "-${docker} rm --force ${container}";
+      ExecStopPost = "-${docker} rm --force ${container}";
+      DynamicUser = lib.mkForce false;
+      PrivateUsers = lib.mkForce false;
+      User = "llama-swap";
+      Group = "llama-swap";
+      SupplementaryGroups = [ "docker" ];
+      EnvironmentFile = config.sops.templates.llama-swap-env.path;
+    };
+  };
+
+  sops.secrets.llama-swap-api-key = { };
+  sops.templates.llama-swap-env = {
+    content = ''
+      LLAMA_SWAP_API_KEY=${config.sops.placeholder.llama-swap-api-key}
+    '';
+    restartUnits = [ "llama-swap.service" ];
+  };
+
+  users.users.llama-swap = {
+    isSystemUser = true;
+    group = "llama-swap";
+  };
+  users.groups.llama-swap = { };
+
+  systemd.tmpfiles.rules = [ "d ${hfCache} 0755 root root -" ];
+
+  # Naru only spans our own hosts and already encrypts and authenticates.
+  networking.firewall.interfaces."tinc.naru".allowedTCPPorts = [ port ];
 }

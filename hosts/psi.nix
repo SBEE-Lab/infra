@@ -38,7 +38,7 @@ in
     ../modules/monitoring/exporters/systemd-status.nix
     ../modules/backup/borg.nix
     ../modules/niks3
-    # ../modules/vllm
+    ../modules/vllm
     ../modules/biodb
     ../modules/biodb/databases.nix
   ];
