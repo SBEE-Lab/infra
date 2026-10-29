@@ -81,6 +81,8 @@ in
   systemd.services.llama-swap = {
     after = [ "docker.service" ];
     requires = [ "docker.service" ];
+    # nvidia-smi feeds the web UI's GPU panel.
+    path = [ config.hardware.nvidia.package.bin ];
     serviceConfig = {
       ExecStartPre = "-${docker} rm --force ${container}";
       ExecStopPost = "-${docker} rm --force ${container}";
