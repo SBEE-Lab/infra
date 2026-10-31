@@ -8,6 +8,8 @@
 let
   port = 8100;
   hfCache = "/workspace/shared/huggingface";
+  # torch.compile, FlashInfer and Triton JIT output; reused across cold starts.
+  jitCache = "/var/cache/vllm";
 
   docker = lib.getExe config.virtualisation.docker.package;
   container = "vllm";
@@ -33,6 +35,10 @@ in
     settings = {
       apiKeys = [ "\${env.LLAMA_SWAP_API_KEY}" ];
       healthCheckTimeout = 3600;
+      # Keep vLLM's own output (KV capacity, load errors) in the journal.
+      logToStdout = "both";
+      # The web UI log view has no timestamps otherwise.
+      logTimeFormat = "rfc3339";
       models."qwen3.6-35b-a3b" = {
         cmd = lib.escapeShellArgs [
           docker
@@ -45,16 +51,22 @@ in
           "--publish"
           "127.0.0.1:\${PORT}:8000"
           "--volume"
+          "${jitCache}:/root/.cache"
+          "--volume"
           "${hfCache}:/root/.cache/huggingface"
+          "--env"
+          "TRITON_CACHE_DIR=/root/.cache/triton"
           "vllm/vllm-openai:v0.32.0@sha256:befccf0e7e4089aa23926bb6f887a85c0d46c2a99e6de5c5ffdf5cb7957c5b34"
           "--model"
-          "Qwen/Qwen3.6-35B-A3B-FP8"
+          "QuantTrio/Qwen3.6-35B-A3B-AWQ"
           "--served-model-name"
           "qwen3.6-35b-a3b"
           "--max-model-len"
           "262144"
           "--kv-cache-dtype"
           "fp8"
+          "--speculative-config"
+          ''{"method":"qwen3_next_mtp","num_speculative_tokens":2}''
           "--gpu-memory-utilization"
           "0.95"
           "--limit-mm-per-prompt"
@@ -81,6 +93,8 @@ in
   systemd.services.llama-swap = {
     after = [ "docker.service" ];
     requires = [ "docker.service" ];
+    # nvidia-smi feeds the web UI's GPU panel.
+    path = [ config.hardware.nvidia.package.bin ];
     serviceConfig = {
       ExecStartPre = "-${docker} rm --force ${container}";
       ExecStopPost = "-${docker} rm --force ${container}";
@@ -107,7 +121,10 @@ in
   };
   users.groups.llama-swap = { };
 
-  systemd.tmpfiles.rules = [ "d ${hfCache} 0755 root root -" ];
+  systemd.tmpfiles.rules = [
+    "d ${hfCache} 0755 root root -"
+    "d ${jitCache} 0755 root root -"
+  ];
 
   # Naru only spans our own hosts and already encrypts and authenticates.
   networking.firewall.interfaces."tinc.naru".allowedTCPPorts = [ port ];
