@@ -10,21 +10,10 @@ Two selection criteria:
 
 ## Deployment status
 
-**The benchmark decisions are not yet applied to `default.nix`.** The "Deployed" column below is what is serving today.
+`default.nix` carries the benchmark decisions: AWQ 4bit weights (`QuantTrio/Qwen3.6-35B-A3B-AWQ`), fp8 KV and MTP with 2 speculative tokens, for 1.53M KV tokens on vLLM v0.32.0. The first start after a deploy downloads the weights into `/workspace/shared/huggingface`.
 
-| Item | Deployed (`default.nix`) | Benchmark decision |
-|---|---|---|
-| Weights | `Qwen/Qwen3.6-35B-A3B-FP8` | `QuantTrio/Qwen3.6-35B-A3B-AWQ` |
-| KV cache | `--kv-cache-dtype fp8` | same |
-| Speculative decoding | none | `--speculative-config '{"method":"qwen3_next_mtp","num_speculative_tokens":2}'` |
-| KV tokens | 689k | 1.53M |
-| Engine | vLLM v0.32.0 | same |
+Still open:
 
-All other flags matched `default.nix` during the benchmarks.
-
-Before switching:
-
-- Download the AWQ weights into `/workspace/shared/huggingface`.
 - Add a step cap, a session time cap and repeated-call detection to the agent or gateway (see the repetition notes under [Tool calling](#tool-calling-configstoolsyaml)).
 - Check that the production default sampling includes the model card's recommended values.
 
@@ -88,11 +77,11 @@ The harness lives outside this repository in `~/git/qwen-bench` (a local reposit
 
 Weights {FP8, AWQ} × KV {fp8, bf16}. ProtocolQA 108 items + MMLU-Pro biology 717 items. Thinking off, temperature 0, `max_tokens` 4096, input under 8k.
 
-| | fp8w-fp8kv (deployed) | fp8w-bf16kv | awq-fp8kv | awq-bf16kv |
+| | fp8w-fp8kv | fp8w-bf16kv | awq-fp8kv | awq-bf16kv |
 |---|---|---|---|---|
 | ProtocolQA (108) | 61.1% | 58.3% | 60.2% | 58.3% |
 | MMLU-Pro bio (717) | 91.8% | 91.2% | 91.5% | 91.5% |
-| Paired against deployed (825 items) | – | +17 / −24 | +18 / −21 | +14 / −19 |
+| Paired against fp8w-fp8kv (825 items) | – | +17 / −24 | +18 / −21 | +14 / −19 |
 | Weights / KV (GiB) | 34.6 / 6.95 | 34.6 / 7.3 | 22.2 / 19.5 | 22.2 / 19.9 |
 | KV tokens (number of 262k requests) | 689k (2.6) | 372k (1.4) | **1.94M (7.4)** | 1.01M (3.9) |
 | Generation tok/s (short / 80k / 205k) | 127 / 111 / 93 | 127 / 98 / 73 | 110 / 98 / 84 | 109 / 87 / 67 |
@@ -296,7 +285,7 @@ Raw data: `results/spec/<engine>/speed/speed.json`.
 
 Three engines compared:
 
-- `fp8w-fp8kv`: deployed config
+- `fp8w-fp8kv`: the previous production config
 - `awq-fp8kv`: AWQ, MTP off
 - `awq-fp8kv-mtp`: the new selection
 
