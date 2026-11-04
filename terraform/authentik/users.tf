@@ -39,23 +39,3 @@ resource "authentik_user" "service" {
     ]
   }
 }
-
-moved {
-  from = authentik_user.user["akadmin"]
-  to   = authentik_user.service["akadmin"]
-}
-
-moved {
-  from = authentik_user.user["terraform"]
-  to   = authentik_user.service["terraform"]
-}
-
-# Hands the people Terraform used to create over to the UI without deleting
-# them. Drop this block once it has been applied.
-removed {
-  from = authentik_user.user
-
-  lifecycle {
-    destroy = false
-  }
-}

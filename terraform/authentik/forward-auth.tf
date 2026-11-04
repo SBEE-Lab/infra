@@ -22,11 +22,6 @@ locals {
   }
 }
 
-moved {
-  from = authentik_application.launch_only["status"]
-  to   = authentik_application.app["status"]
-}
-
 resource "authentik_provider_proxy" "app" {
   for_each = local.proxy_apps
 

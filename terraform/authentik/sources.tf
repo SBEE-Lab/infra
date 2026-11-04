@@ -33,12 +33,8 @@ resource "authentik_source_oauth" "slack" {
 }
 
 # The login page's identification stage, created by authentik's default
-# blueprint and adopted here so the Slack button is declared with its source.
-import {
-  to = authentik_stage_identification.authentication
-  id = "464f2a08-9828-4018-9a85-51bd73357fcf"
-}
-
+# blueprint and adopted into Terraform.
+#
 # Slack is the only way in: no user fields means no username or password
 # prompt, only the source button. Recovery when Slack is unavailable is
 # `ak create_recovery_key` on the authentik host, which skips this flow.
