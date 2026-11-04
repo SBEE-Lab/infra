@@ -15,6 +15,7 @@ locals {
     headscale   = local.members
     nextcloud   = local.lab
     vaultwarden = local.lab
+    quorum      = local.lab
   }
 
   app_uuids = merge(
