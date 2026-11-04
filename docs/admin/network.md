@@ -34,13 +34,12 @@ rho와 tau는 공개 WireGuard endpoint가 없으며, 공인 eta 또는 KREN NAT
 
 ### ACL 그룹 { #acl-groups }
 
-Terraform이 `terraform/authentik/users.yaml`의 그룹 membership으로 생성합니다.
+ACL 그룹은 `sjanglab-admins` 하나이며, 관리자 계정 목록은 `terraform/headscale/main.tf`에 고정합니다. 나머지 사용자는 `autogroup:member`로 다룹니다. Headscale 로그인 자체가 Authentik 그룹 인가(`allowed_groups`)를 통과해야 하므로, 로그인한 member는 이미 승인된 사용자입니다.
 
-| 그룹 | 접근 태그 |
-|------|----------|
-| `sjanglab-admins` | `tag:ai`, `tag:apps`, `tag:monitoring` |
-| `sjanglab-researchers` | `tag:ai`, `tag:apps` |
-| `sjanglab-students` | `tag:apps` |
+| 대상 | 접근 |
+|------|------|
+| `sjanglab-admins` | `tag:ai`, `tag:apps`, `tag:monitoring`, nix-grpc-daemon |
+| `autogroup:member` | `tag:apps`, 서버 SSH |
 
 ### ACL 태그 소유권
 
@@ -53,19 +52,9 @@ Terraform이 `terraform/authentik/users.yaml`의 그룹 membership으로 생성�
 
 ### ACL 정책 관리 { #acl-policy }
 
-Headscale ACL policy는 `terraform/headscale`의 `headscale_policy.tailnet` 리소스가 관리합니다. 사용자 membership은 SOPS로 암호화한 `terraform/authentik/users.yaml`을 source of truth로 사용하고, Authentik 사용자/그룹과 Headscale ACL policy가 같은 inventory에서 생성됩니다. Headscale user는 Terraform에서 만들지 않고, Authentik 그룹 인가를 통과한 첫 OIDC 로그인 때 생성됩니다.
+Headscale ACL policy는 `terraform/headscale`의 `headscale_policy.tailnet` 리소스가 관리합니다. 사용자별 membership은 ACL에 없으므로, 사용자 추가·변경은 Authentik 그룹만으로 끝납니다. Headscale user는 Terraform에서 만들지 않고, Authentik 그룹 인가를 통과한 첫 OIDC 로그인 때 생성됩니다.
 
-```mermaid
-sequenceDiagram
-  participant U as users.yaml
-  participant T as Terraform
-  participant A as Authentik
-  participant H as Headscale
-
-  U->>T: 사용자/그룹 inventory
-  T->>A: Authentik 사용자/그룹 반영
-  T->>H: Headscale ACL policy 반영
-```
+인증이 없는 서비스를 tailnet에 노출하는 경우, ACL이 아니라 Authentik forward auth로 보호합니다.
 
 Headscale은 `policy.mode = "database"`로 동작합니다. ACL 변경 후 즉시 반영하려면 `terraform/headscale`에서 `terragrunt apply`를 실행합니다.
 

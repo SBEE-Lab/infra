@@ -77,9 +77,9 @@ Authentik outpost는 `wg-admin` 인터페이스(포트 9000)에서만 접근 가
 | 그룹 | 용도 | Headscale ACL 태그 |
 |------|------|-------------------|
 | `sjanglab-admins` | 전체 접근 권한 | `tag:ai`, `tag:apps`, `tag:monitoring` |
-| `sjanglab-researchers` | AI + 앱 접근 | `tag:ai`, `tag:apps` |
-| `sjanglab-students` | 앱만 접근 | `tag:apps` |
+| `sjanglab-researchers` | 앱 + n8n·Neko | `tag:apps` (member) |
+| `sjanglab-students` | 앱 | `tag:apps` (member) |
 
 Authentik 사용자와 그룹 선언은 `terraform/authentik`에서 관리합니다. 사람 계정 목록은 개인정보 보호를 위해 SOPS로 암호화한 `terraform/authentik/users.yaml`에 둡니다. 학생 계정은 `expires_on`을 반드시 지정하고, 만료 후에는 `active: false`로 변경합니다.
 
-Headscale ACL policy는 `terraform/headscale`이 같은 `users.yaml`에서 생성합니다. 비활성 사용자는 Authentik group membership과 Headscale ACL group에서 함께 빠집니다. 상세 매커니즘은 [네트워크 — ACL 정책 관리](network.md#acl-policy)를 참조하세요.
+Headscale ACL에는 관리자 목록만 있고, 나머지는 `autogroup:member`입니다. VPN 로그인 인가는 Headscale OIDC `allowed_groups`가 Authentik 그룹으로 판단합니다. 상세 매커니즘은 [네트워크 — ACL 정책 관리](network.md#acl-policy)를 참조하세요.
