@@ -62,13 +62,6 @@ app_uuid_by_slug() {
     jq -r '.pk // empty' 2>/dev/null || true
 }
 
-policy_id_by_name() {
-  local name=$1
-  api "policies/expression/?search=$(jq -rn --arg v "$name" '$v|@uri')&page_size=100" |
-    jq -r --arg name "$name" '.results[] | select(.name == $name) | .pk' |
-    head -n1
-}
-
 oauth2_id_by_name() {
   local name=$1
   api "providers/oauth2/?search=$(jq -rn --arg v "$name" '$v|@uri')&page_size=100" |
@@ -80,14 +73,6 @@ scope_mapping_id_by_name() {
   local name=$1
   api "propertymappings/provider/scope/?search=$(jq -rn --arg v "$name" '$v|@uri')&page_size=100" |
     jq -r --arg name "$name" '.results[] | select(.name == $name) | .pk' |
-    head -n1
-}
-
-binding_id_by_target_policy() {
-  local target=$1
-  local policy=$2
-  api "policies/bindings/?target=${target}&page_size=100" |
-    jq -r --arg policy "$policy" '.results[] | select(.policy == $policy) | .pk' |
     head -n1
 }
 
@@ -103,35 +88,17 @@ authentik_admins|authentik Admins
 sjanglab_admins|sjanglab-admins
 sjanglab_researchers|sjanglab-researchers
 sjanglab_students|sjanglab-students
+sjanglab_staff|sjanglab-staff
+sjanglab_pending|sjanglab-pending
 EOF
 
 while IFS= read -r username; do
   import_if_missing "authentik_user.user[$(json_quote "$username")]" "$(user_id_by_username "$username")"
 done < <(sops -d users.yaml | yq -r '.users[].username')
 
-while IFS='|' read -r key name; do
-  import_if_missing "authentik_policy_expression.forward_auth[$(json_quote "$key")]" "$(policy_id_by_name "$name")"
-done <<'EOF'
-admins|sjanglab-forward-auth-admin-access
-researchers|sjanglab-forward-auth-access
-EOF
-
-policy_name_for_key() {
-  case "$1" in
-  admins) echo 'sjanglab-forward-auth-admin-access' ;;
-  researchers) echo 'sjanglab-forward-auth-access' ;;
-  *)
-    echo "unknown policy key: $1" >&2
-    return 1
-    ;;
-  esac
-}
-
-while IFS='|' read -r app external_host policy_key; do
+while IFS='|' read -r app external_host; do
   provider_id=$(proxy_id_by_external_host "$external_host")
   app_id=$(app_uuid_by_slug "$app")
-  policy_name=$(policy_name_for_key "$policy_key")
-  policy_id=$(policy_id_by_name "$policy_name")
 
   import_if_missing "authentik_provider_proxy.app[$(json_quote "$app")]" "$provider_id"
   if [ -n "$app_id" ]; then
@@ -145,15 +112,9 @@ while IFS='|' read -r app external_host policy_key; do
   else
     echo "skip outpost attachment for $app: no outpost/provider"
   fi
-
-  if [ -n "$app_id" ] && [ -n "$policy_id" ]; then
-    import_if_missing "authentik_policy_binding.app_access[$(json_quote "$app")]" "$(binding_id_by_target_policy "$app_id" "$policy_id")"
-  else
-    echo "skip policy binding for $app: no app/policy"
-  fi
 done <<'EOF'
-n8n|https://n8n.sjanglab.org|researchers
-logging|https://logging.sjanglab.org|admins
+n8n|https://n8n.sjanglab.org
+logging|https://logging.sjanglab.org
 EOF
 
 while IFS='|' read -r key name; do

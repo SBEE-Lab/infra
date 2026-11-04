@@ -79,6 +79,10 @@ Authentik outpost는 `wg-admin` 인터페이스(포트 9000)에서만 접근 가
 | `sjanglab-admins` | 전체 접근 권한 | `tag:ai`, `tag:apps`, `tag:monitoring` |
 | `sjanglab-researchers` | 앱 + n8n·Neko | `tag:apps` (member) |
 | `sjanglab-students` | 앱 | `tag:apps` (member) |
+| `sjanglab-staff` | 행정 업무: Nextcloud, Vaultwarden | VPN 없음 |
+| `sjanglab-pending` | 승인 대기. 어떤 앱에도 접근하지 않음 | VPN 없음 |
+
+앱 접근은 앱마다 붙은 그룹 binding으로 정하며, 목록은 `terraform/authentik/access.tf`의 `app_groups`에 있습니다. UI의 앱 화면에서 허용 그룹을 볼 수 있지만, binding 자체는 UI에서 바꾸지 않습니다. 그룹이 없거나 `sjanglab-pending`뿐인 계정은 로그인해도 쓸 수 있는 앱이 없습니다.
 
 Authentik 사용자와 그룹 선언은 `terraform/authentik`에서 관리합니다. 사람 계정 목록은 개인정보 보호를 위해 SOPS로 암호화한 `terraform/authentik/users.yaml`에 둡니다. 학생 계정은 `expires_on`을 반드시 지정하고, 만료 후에는 `active: false`로 변경합니다.
 

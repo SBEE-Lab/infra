@@ -16,6 +16,15 @@ locals {
       name         = "sjanglab-students"
       is_superuser = false
     }
+    sjanglab_staff = {
+      name         = "sjanglab-staff"
+      is_superuser = false
+    }
+    # Accounts created by signing in, awaiting a group; no policy admits it.
+    sjanglab_pending = {
+      name         = "sjanglab-pending"
+      is_superuser = false
+    }
   }
 }
 
