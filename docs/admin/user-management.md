@@ -7,7 +7,7 @@
 | **NixOS** (`modules/users/`) | SSH 계정, 로컬 사용자 | 서버 접속, 파일시스템, Docker |
 | **Authentik** (`auth.sjanglab.org`) | SSO 계정, 그룹 | 웹 서비스 인증, Headscale ACL |
 
-SSO 계정은 `terraform/authentik/users.yaml`을 source of truth로 삼아 Terraform에서 관리합니다. Headscale ACL은 사용자별 membership 없이 관리자 목록과 `autogroup:member`로 구성합니다.
+SSO 계정과 그룹 membership은 Authentik UI에서 관리합니다. Terraform은 그룹·앱 접근 binding 같은 구조만 관리합니다. Headscale ACL은 사용자별 membership 없이 관리자 목록과 `autogroup:member`로 구성합니다.
 
 ______________________________________________________________________
 
@@ -137,18 +137,28 @@ Authentik은 웹 서비스(Nextcloud, Vaultwarden, n8n)의 SSO 인증과 Headsca
 
 ### 사용자 추가
 
-1. `terraform/authentik/users.yaml`에 사용자를 추가합니다
-1. 학생 계정이면 `expires_on`을 설정합니다
-1. `terraform/authentik` plan을 확인한 뒤 apply합니다
+1. Slack 관리 화면에서 요청자의 member id(`U…`)를 확인합니다
+1. Authentik UI의 Directory → Users에서 사용자를 만듭니다. username과 email은 요청자의 이메일로 합니다
+1. 역할에 맞는 그룹(`sjanglab-researchers`, `sjanglab-students`, `sjanglab-staff`)에 넣습니다
+1. Slack 연결을 만듭니다. Authentik API와 UI는 다른 사용자의 연결을 만들 수 없으므로 eta에서 직접 만듭니다:
+
+```bash
+ssh eta
+sudo ak shell -c 'from authentik.core.models import User; from authentik.sources.oauth.models import OAuthSource, UserOAuthSourceConnection; print(UserOAuthSourceConnection.objects.get_or_create(user=User.objects.get(username="<username>"), source=OAuthSource.objects.get(slug="slack"), defaults={"identifier": "<U…>"}))'
+```
+
+연결이 생기면 요청자는 바로 Slack으로 로그인할 수 있습니다.
 
 ### ACL 정책 반영
 
-Headscale ACL에는 사용자별 membership이 없습니다. 사용자 추가·변경은 `terraform/authentik` apply로 끝나고, Headscale OIDC `allowed_groups`가 Authentik 그룹으로 VPN 로그인을 인가합니다. `terraform/headscale`은 관리자 목록이 바뀔 때만 apply합니다.
+Headscale ACL에는 사용자별 membership이 없습니다. 사용자 추가·변경은 Authentik UI에서 끝나고, Headscale OIDC `allowed_groups`가 Authentik 그룹으로 VPN 로그인을 인가합니다. `terraform/headscale`은 관리자 목록이 바뀔 때만 apply합니다.
 
 ### 사용자 비활성화
 
-1. `terraform/authentik/users.yaml`에서 `active: false`로 변경합니다
-1. `terraform/authentik`을 apply해 Authentik 로그인과 그룹 membership을 함께 해제합니다
+졸업·퇴사 시 두 곳에서 처리합니다. Slack만 비활성화하면 새 로그인만 막히고, 이미 열린 세션과 refresh token은 남습니다.
+
+1. Slack에서 계정을 비활성화합니다
+1. Authentik UI의 Directory → Users에서 사용자를 비활성화합니다. 다음 요청부터 Authentik 세션과 앱 token 갱신이 거부됩니다
 
 ______________________________________________________________________
 

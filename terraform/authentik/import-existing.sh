@@ -92,9 +92,9 @@ sjanglab_staff|sjanglab-staff
 sjanglab_pending|sjanglab-pending
 EOF
 
-while IFS= read -r username; do
-  import_if_missing "authentik_user.user[$(json_quote "$username")]" "$(user_id_by_username "$username")"
-done < <(sops -d users.yaml | yq -r '.users[].username')
+for username in akadmin terraform; do
+  import_if_missing "authentik_user.service[$(json_quote "$username")]" "$(user_id_by_username "$username")"
+done
 
 while IFS='|' read -r app external_host; do
   provider_id=$(proxy_id_by_external_host "$external_host")

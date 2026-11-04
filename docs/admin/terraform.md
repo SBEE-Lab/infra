@@ -35,7 +35,7 @@ R2 bucket 선언은 백업 데이터 이전이나 NixOS 목적지 변경을 수�
 
 ## Authentik과 Headscale
 
-사람 계정의 source는 암호화된 `terraform/authentik/users.yaml`입니다. 학생의 `expires_on`과 `active`를 함께 관리하며, 비활성화 시 Authentik 로그인과 Headscale ACL membership을 모두 확인합니다.
+Terraform은 Authentik의 구조(그룹, 앱 접근 binding, 앱, source, flow, 서비스 계정)만 관리합니다. 사람 계정은 Authentik UI에서 관리하고 Terraform에는 두지 않습니다. 서비스 계정 `akadmin`과 `terraform`은 `prevent_destroy`로 보호합니다.
 
 | 서비스 | Authentik 관리 |
 |--------|----------------|
