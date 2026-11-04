@@ -8,6 +8,7 @@
     }:
     {
       packages = {
+        agentgateway = pkgs.callPackage ./agentgateway { };
         docker-auth = pkgs.callPackage ./docker_auth { };
         infra-alert-bridge = pkgs.callPackage ./infra-alert-bridge { };
         slack-cli = pkgs.callPackage ./slack-cli { buildGoModule = pkgs.buildGo127Module; };
