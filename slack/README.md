@@ -7,6 +7,7 @@ the consuming service's SOPS configuration.
 - `infra-alerts/`: Slack bot for infrastructure alert delivery
 - `nextcloud_integration/`: user OAuth app for Nextcloud file sharing
 - `slack-index/`: read-only bot that indexes channel conversations and files
+- `sjanglab-login/`: Sign in with Slack for Authentik
 
 Slack App creation, installation, and drift checks use the packaged Slack CLI
 from each app directory. Deployed workspace/app IDs in `.slack/apps.json` are tracked and reviewed; local config, development links, cache, and logs are ignored. Credentials belong in the consuming service's secret store, never in link files.

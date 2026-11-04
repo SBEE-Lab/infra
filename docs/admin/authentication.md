@@ -4,6 +4,25 @@
 
 `https://auth.sjanglab.org` — 중앙 OIDC/OAuth2 인증 제공자입니다.
 
+### 로그인 수단
+
+사람 계정의 로그인 수단은 Slack 하나입니다. 로그인 화면(`default-authentication-identification` stage)에는 아이디·비밀번호 입력 없이 Slack 버튼만 있습니다. Terraform `terraform/authentik/sources.tf`가 Slack source와 이 stage를 관리합니다.
+
+- Slack source는 Authentik의 범용 OpenID Connect 타입으로 `https://slack.com/.well-known/openid-configuration`을 사용합니다. Authentik의 `slack` 타입은 OIDC scope를 Slack 앱 설치 엔드포인트로 보내 Slack이 거부합니다.
+- Slack 앱은 `slack/sjanglab-login/`입니다. 로그인 전용이며 bot이 없습니다.
+- 사용자는 Slack member id(`U…`)로 식별합니다. Slack source에 연결(connection)이 있는 계정만 로그인할 수 있고, 연결 없는 Slack 계정은 거부됩니다.
+
+### 비상 접근 (break-glass) { #break-glass }
+
+Slack 장애나 source 설정 오류로 아무도 로그인할 수 없을 때 사용합니다. 복구 링크는 로그인 흐름을 거치지 않고 바로 로그인시키며, 한 번 쓰면 사라집니다.
+
+```bash
+ssh eta
+sudo ak create_recovery_key 5 akadmin    # 유효 시간은 분 단위
+```
+
+출력된 링크를 시크릿 창에서 열고, 작업이 끝나면 창을 닫습니다. 링크는 관리자 권한 그 자체이므로 채팅·이슈·로그에 붙여넣지 않습니다. Terraform용 API 토큰(`terraform/authentik/secrets.yaml`의 `AUTHENTIK_TOKEN`)도 로그인 흐름과 무관하게 동작합니다.
+
 ### 통합 서비스
 
 | 서비스 | 인증 방식 | 설명 |

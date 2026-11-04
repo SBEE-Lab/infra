@@ -4,15 +4,15 @@ VPN 연결 후 Authentik SSO로 각 서비스에 로그인합니다.
 
 ## Authentik SSO
 
-`https://auth.sjanglab.org`에서 초대 이메일로 받은 계정으로 로그인합니다.
+`https://auth.sjanglab.org`에는 SBEE Lab Slack 계정으로만 로그인합니다. 아이디와 비밀번호 로그인은 없습니다.
 
 ### 로그인 방법
 
-1. VPN에 연결된 상태에서 `https://auth.sjanglab.org`에 접속합니다
-1. **Google 계정으로 로그인** 버튼을 클릭합니다
-1. 첫 로그인 시 Authentik이 자동으로 계정을 연결합니다
+1. `https://auth.sjanglab.org`에 접속합니다
+1. **Slack** 버튼을 클릭합니다
+1. Slack에서 SBEE Lab workspace를 선택하고 허용합니다
 
-> **Google 로그인이 불가능한 경우**: 관리자가 생성한 로컬 계정으로 로그인합니다. 초대 이메일에서 비밀번호를 설정한 후 이메일/비밀번호로 로그인합니다.
+> **로그인이 거부되는 경우**: 관리자가 Slack 계정을 Authentik 계정에 아직 연결하지 않은 상태입니다. 인프라 관리자에게 Slack DM으로 요청합니다.
 
 ## SSO 연동 서비스
 
