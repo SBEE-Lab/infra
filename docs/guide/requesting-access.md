@@ -13,7 +13,7 @@ SBEE Lab Slack에서 인프라 관리자에게 DM으로 요청합니다. Slack�
 | 항목 | 예시 | 필수 |
 |------|------|------|
 | 이름 | 홍길동 | O |
-| 역할 | 연구원/학생 | O |
+| 역할 | 연구원/학생/행정 | O |
 
 ## 역할별 서비스 접근
 
@@ -22,6 +22,7 @@ SBEE Lab Slack에서 인프라 관리자에게 DM으로 요청합니다. Slack�
 | **관리자** | 전체 서비스 |
 | **연구원** | Nextcloud, Vaultwarden, n8n |
 | **학생** | Nextcloud, Vaultwarden |
+| **행정** | Nextcloud, Vaultwarden |
 
 ## 계정 생성 후
 
