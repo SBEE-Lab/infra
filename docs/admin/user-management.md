@@ -7,7 +7,8 @@
 | **NixOS** (`modules/users/`) | SSH 계정, 로컬 사용자 | 서버 접속, 파일시스템, Docker |
 | **Authentik** (`auth.sjanglab.org`) | SSO 계정, 그룹 | 웹 서비스 인증, Headscale ACL |
 
-SSO 계정과 Headscale ACL은 `terraform/authentik/users.yaml`을 source of truth로 삼아 Terraform에서 함께 관리합니다.
+
+Headscale ACL은 사용자별 membership 없이 관리자 목록과 `autogroup:member`로 구성합니다.
 
 ______________________________________________________________________
 
@@ -130,8 +131,8 @@ Authentik은 웹 서비스(Nextcloud, Vaultwarden, n8n)의 SSO 인증과 Headsca
 | Authentik 그룹 | Headscale ACL 접근 | 서비스 |
 |----------------|-------------------|--------|
 | `sjanglab-admins` | `tag:ai` + `tag:apps` + `tag:monitoring` | 전체 |
-| `sjanglab-researchers` | `tag:ai` + `tag:apps` | Nextcloud, Vaultwarden, n8n; AI 서비스는 활성 상태·개별 네트워크 제한 확인 |
-| `sjanglab-students` | `tag:apps` | Nextcloud, Vaultwarden |
+| `sjanglab-researchers` | `tag:apps` (member) | Nextcloud, Vaultwarden, n8n |
+| `sjanglab-students` | `tag:apps` (member) | Nextcloud, Vaultwarden |
 
 > Nextcloud는 public edge에서도 접근 가능하지만 OIDC 인증이 필요합니다. Vaultwarden은 tau의 tailnet proxy를 사용하므로 Headscale VPN과 Authentik 계정이 모두 필요합니다.
 
@@ -143,25 +144,12 @@ Authentik은 웹 서비스(Nextcloud, Vaultwarden, n8n)의 SSO 인증과 Headsca
 
 ### ACL 정책 반영
 
-Authentik 사용자/그룹과 Headscale ACL은 같은 SOPS inventory에서 생성됩니다:
-
-1. `terraform/authentik/users.yaml`이 사용자와 그룹 membership의 source of truth입니다
-1. `terraform/authentik`은 Authentik 사용자/그룹을 반영합니다
-1. Headscale OIDC `allowed_groups`는 Authentik 그룹 membership으로 VPN 로그인을 인가합니다
-1. `terraform/headscale`은 같은 membership으로 Headscale database ACL policy를 생성합니다
-
-즉시 반영하려면:
-
-```bash
-cd terraform/headscale
-terragrunt apply
-```
+Headscale ACL에는 사용자별 membership이 없습니다. Headscale OIDC `allowed_groups`가 Authentik 그룹으로 VPN 로그인을 인가합니다. `terraform/headscale`은 관리자 목록이 바뀔 때만 apply합니다.
 
 ### 사용자 비활성화
 
 1. `terraform/authentik/users.yaml`에서 `active: false`로 변경합니다
 1. `terraform/authentik`을 apply해 Authentik 로그인을 비활성화합니다
-1. `terraform/headscale`을 apply해 Headscale ACL 그룹에서 제거합니다
 
 ______________________________________________________________________
 
@@ -208,5 +196,5 @@ flowchart LR
 | `researcher` | O | — | 연구원 역할 (NixOS) |
 | `student` | O | — | 학생 역할 (NixOS) |
 | `sjanglab-admins` | — | O | 전체 서비스 + ACL |
-| `sjanglab-researchers` | — | O | AI + 앱 ACL |
-| `sjanglab-students` | — | O | 앱만 ACL |
+| `sjanglab-researchers` | — | O | 앱 ACL (member) |
+| `sjanglab-students` | — | O | 앱 ACL (member) |
