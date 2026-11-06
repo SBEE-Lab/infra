@@ -1,0 +1,26 @@
+{
+  "_metadata": {
+    "major_version": 1,
+    "minor_version": 2
+  },
+  "display_information": {
+    "name": "SBEE-Lab Login",
+    "description": "Sign in to SBEE-Lab services through Authentik with your Slack account."
+  },
+  "oauth_config": {
+    "redirect_urls": [
+      "https://auth.sjanglab.org/source/oauth/callback/slack/"
+    ],
+    "scopes": {
+      "user": [
+        "openid",
+        "profile",
+        "email"
+      ]
+    }
+  },
+  "settings": {
+    "org_deploy_enabled": false,
+    "token_rotation_enabled": false
+  }
+}
