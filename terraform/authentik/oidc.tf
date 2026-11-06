@@ -110,6 +110,28 @@ locals {
       group_property_mapping_keys = ["nextcloud"]
       property_mappings           = local.oidc_default_property_mappings
     }
+    quorum = {
+      name            = "Quorum"
+      slug            = "quorum"
+      client_id       = "quorum"
+      client_secret   = ""
+      client_type     = "public"
+      sub_mode        = "hashed_user_id"
+      meta_hide       = true
+      meta_launch_url = ""
+      # MCP clients listen on a loopback port of their choosing.
+      allowed_redirect_uris = [
+        {
+          matching_mode     = "regex"
+          redirect_uri_type = "authorization"
+          url               = "^http://(localhost|127\\.0\\.0\\.1):[0-9]+/.*$"
+        },
+      ]
+      property_mappings = concat(
+        local.oidc_default_property_mappings,
+        [authentik_property_mapping_provider_scope.quorum_slack.id],
+      )
+    }
     vaultwarden = {
       name            = "Vaultwarden"
       slug            = "vaultwarden"
@@ -139,6 +161,18 @@ resource "authentik_property_mapping_provider_scope" "oidc_group" {
   name       = each.value.name
   scope_name = each.value.scope_name
   expression = each.value.expression
+}
+
+# The Slack member id is the identifier of the user's Slack source
+# connection, which every account that can sign in has. Without one the claim
+# is absent and quorum shows no channels.
+resource "authentik_property_mapping_provider_scope" "quorum_slack" {
+  name       = "quorum-slack"
+  scope_name = "slack"
+  expression = <<-EOF
+    connection = request.user.usersourceconnection_set.filter(source__slug="slack").first()
+    return {"slack_user_id": connection.identifier} if connection else {}
+  EOF
 }
 
 resource "authentik_provider_oauth2" "oidc" {

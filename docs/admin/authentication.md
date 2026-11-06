@@ -87,4 +87,6 @@ Authentik outpost는 `wg-admin` 인터페이스(포트 9000)에서만 접근 가
 
 그룹, 앱 접근 binding, 앱, source, flow와 서비스 계정(`akadmin`, `terraform`)은 `terraform/authentik`에서 관리합니다. 사람 계정은 Terraform에 두지 않습니다.
 
+quorum의 채널 범위 claim(`slack_user_id`)은 사용자의 Slack 연결에서 읽습니다.
+
 Headscale ACL에는 관리자 목록만 있고, 나머지는 `autogroup:member`입니다. VPN 로그인 인가는 Headscale OIDC `allowed_groups`가 Authentik 그룹으로 판단합니다. 상세 매커니즘은 [네트워크 — ACL 정책 관리](network.md#acl-policy)를 참조하세요.
