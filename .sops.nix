@@ -80,7 +80,6 @@ let
         "eta"
         "tau"
       ];
-      "terraform/authentik/users.yaml" = [ ];
       "terraform/alert-bridge/secrets.yaml" = [ ];
       "terraform/dns/secrets.yaml" = [ ];
       "terraform/r2/secrets.yaml" = [ ];

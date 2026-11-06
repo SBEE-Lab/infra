@@ -7,6 +7,7 @@
 | **NixOS** (`modules/users/`) | SSH 계정, 로컬 사용자 | 서버 접속, 파일시스템, Docker |
 | **Authentik** (`auth.sjanglab.org`) | SSO 계정, 그룹 | 웹 서비스 인증, Headscale ACL |
 
+사람 계정은 Terraform에 두지 않습니다. Terraform은 그룹·앱 접근 binding 같은 구조만 관리합니다.
 
 Headscale ACL은 사용자별 membership 없이 관리자 목록과 `autogroup:member`로 구성합니다.
 
@@ -138,9 +139,6 @@ Authentik은 웹 서비스(Nextcloud, Vaultwarden, n8n)의 SSO 인증과 Headsca
 
 ### 사용자 추가
 
-1. `terraform/authentik/users.yaml`에 사용자를 추가합니다
-1. 학생 계정이면 `expires_on`을 설정합니다
-1. `terraform/authentik`과 `terraform/headscale` plan을 확인한 뒤 apply합니다
 
 ### ACL 정책 반영
 
@@ -148,8 +146,6 @@ Headscale ACL에는 사용자별 membership이 없습니다. Headscale OIDC `all
 
 ### 사용자 비활성화
 
-1. `terraform/authentik/users.yaml`에서 `active: false`로 변경합니다
-1. `terraform/authentik`을 apply해 Authentik 로그인을 비활성화합니다
 
 ______________________________________________________________________
 
