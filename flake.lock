@@ -1,5 +1,21 @@
 {
   "nodes": {
+    "adios": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1772186395,
+        "narHash": "sha256-NshyMZYZwjKMLKEX0eDf9Fcekq8MFNFk02wW5knzlZU=",
+        "owner": "adisbladis",
+        "repo": "adios",
+        "rev": "6a54071689ec9ec784a16e4eec8ddb864eca2982",
+        "type": "github"
+      },
+      "original": {
+        "owner": "adisbladis",
+        "repo": "adios",
+        "type": "github"
+      }
+    },
     "authentik-nix": {
       "inputs": {
         "authentik-src": "authentik-src",
@@ -222,6 +238,27 @@
       "original": {
         "owner": "numtide",
         "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "flakelet": {
+      "inputs": {
+        "adios": "adios",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1788765649,
+        "narHash": "sha256-IqysKRZGFNlzuelVVQyKT0ASHGOm5+4xwx53UvSQ4j0=",
+        "owner": "Mic92",
+        "repo": "flakelet",
+        "rev": "20a676fe96231575d51ff9553d1e31d325c8f0f8",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Mic92",
+        "repo": "flakelet",
         "type": "github"
       }
     },
@@ -526,6 +563,7 @@
         "dure": "dure",
         "fast-nix-gc": "fast-nix-gc",
         "flake-parts": "flake-parts",
+        "flakelet": "flakelet",
         "gitea-mq": "gitea-mq",
         "niks3": "niks3",
         "nix-grpc-store": "nix-grpc-store",

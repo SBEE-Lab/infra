@@ -25,6 +25,7 @@ in
 {
   imports = [
     ../modules/nix-grpc-store.nix
+    ../modules/tribuchet
     ../modules/disko/xfs-root.nix
     ../modules/disko/xfs-mdadm.nix
     ../modules/disko/xfs-project-quota.nix

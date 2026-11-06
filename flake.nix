@@ -70,6 +70,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    flakelet = {
+      url = "github:Mic92/flakelet";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     nixos-images = {
       url = "github:nix-community/nixos-images";
       inputs.nixos-stable.follows = "nixpkgs";
