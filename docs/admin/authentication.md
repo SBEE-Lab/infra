@@ -10,6 +10,7 @@
 
 - Slack source는 Authentik의 범용 OpenID Connect 타입으로 `https://slack.com/.well-known/openid-configuration`을 사용합니다. Authentik의 `slack` 타입은 OIDC scope를 Slack 앱 설치 엔드포인트로 보내 Slack이 거부합니다.
 - Slack 앱은 `slack/sjanglab-login/`입니다.
+- 그룹 동기화(`slack-group-sync`)도 이 앱의 bot(`usergroups:read`, `users:read`)과 Socket Mode를 씁니다.
 - 사용자는 Slack member id(`U…`)로 식별합니다. 연결(connection)이 있는 계정은 로그인만 하며, 로그인이 계정 정보를 바꾸지 않습니다.
 
 ### 비상 접근 (break-glass) { #break-glass }
@@ -84,6 +85,7 @@ Authentik outpost는 `wg-admin` 인터페이스(포트 9000)에서만 접근 가
 
 앱 접근은 앱마다 붙은 그룹 binding으로 정하며, 목록은 `terraform/authentik/access.tf`의 `app_groups`에 있습니다. UI의 앱 화면에서 허용 그룹을 볼 수 있지만, binding 자체는 UI에서 바꾸지 않습니다. 그룹이 없거나 `sjanglab-pending`뿐인 계정은 로그인해도 쓸 수 있는 앱이 없습니다.
 
+researchers, students, staff의 멤버는 같은 이름의 Slack user group을 eta의 `slack-group-sync`가 반영한 것입니다. admins는 동기화하지 않습니다. 절차는 [사용자 관리](user-management.md)를 참조하세요.
 
 그룹, 앱 접근 binding, 앱, source, flow와 서비스 계정(`akadmin`, `terraform`)은 `terraform/authentik`에서 관리합니다. 사람 계정은 Terraform에 두지 않습니다.
 

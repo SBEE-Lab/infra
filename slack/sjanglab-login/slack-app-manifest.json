@@ -7,11 +7,21 @@
     "name": "SBEE-Lab Login",
     "description": "Sign in to SBEE-Lab services through Authentik with your Slack account."
   },
+  "features": {
+    "bot_user": {
+      "display_name": "SBEE-Lab Login",
+      "always_online": false
+    }
+  },
   "oauth_config": {
     "redirect_urls": [
       "https://auth.sjanglab.org/source/oauth/callback/slack/"
     ],
     "scopes": {
+      "bot": [
+        "usergroups:read",
+        "users:read"
+      ],
       "user": [
         "openid",
         "profile",
@@ -20,6 +30,16 @@
     }
   },
   "settings": {
+    "event_subscriptions": {
+      "bot_events": [
+        "subteam_created",
+        "subteam_members_changed",
+        "subteam_updated",
+        "team_join",
+        "user_change"
+      ]
+    },
+    "socket_mode_enabled": true,
     "org_deploy_enabled": false,
     "token_rotation_enabled": false
   }

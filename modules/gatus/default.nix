@@ -107,6 +107,8 @@ in
         ++ [
           (mkExtEndpoint "PostgreSQL primary rho" "platform")
           (mkExtEndpoint "PostgreSQL replica tau" "platform")
+          # eta
+          (mkExtEndpoint "Slack group sync" "platform")
         ];
     };
   };

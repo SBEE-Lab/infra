@@ -5,6 +5,12 @@ Authentik's `slack` source (`terraform/authentik/sources.tf`). The client ID
 and secret live in `terraform/authentik/secrets.yaml` as
 `SLACK_LOGIN_CLIENT_ID` and `SLACK_LOGIN_CLIENT_SECRET`.
 
+The app is also the event source for `packages/slack-group-sync`: a bot with
+`usergroups:read` and `users:read` only, and Socket Mode with user group and
+user events. The bot token and the app-level token (`connections:write`) live
+in `modules/authentik/secrets.yaml` as `slack-group-sync-slack-bot-token` and
+`slack-group-sync-slack-app-token`. Run one sync process per app: Socket Mode
+connections of the same app share its events.
 
 ## Enter the tool shell
 

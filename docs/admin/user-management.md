@@ -9,6 +9,8 @@
 
 사람 계정은 Terraform에 두지 않습니다. Terraform은 그룹·앱 접근 binding 같은 구조만 관리합니다.
 
+역할 그룹의 멤버는 Slack user group이 정하고, `sjanglab-admins`는 Authentik UI에서 관리합니다.
+
 Headscale ACL은 사용자별 membership 없이 관리자 목록과 `autogroup:member`로 구성합니다.
 
 ______________________________________________________________________
@@ -139,6 +141,13 @@ Authentik은 웹 서비스(Nextcloud, Vaultwarden, n8n)의 SSO 인증과 Headsca
 
 ### 사용자 추가
 
+역할 그룹(`sjanglab-researchers`, `sjanglab-students`, `sjanglab-staff`)의 멤버는 Slack user group(`@researchers`, `@students`, `@staff`)이 정합니다. eta의 `slack-group-sync`가 Slack 그룹 변경을 받아 몇 초 안에 Authentik 그룹을 맞춥니다. Authentik UI에서 이 세 그룹을 바꾸면 다음 동기화가 되돌립니다. `sjanglab-admins`는 동기화하지 않으며 Authentik UI에서 관리합니다.
+
+1. 요청자를 Slack에 초대하고, 역할에 맞는 Slack user group에 넣습니다
+
+### 역할 변경
+
+Slack user group을 옮기면 됩니다. 동기화는 새 그룹을 먼저 넣고 이전 그룹을 빼므로, 옮기는 동안 접근이 끊기지 않습니다.
 
 ### ACL 정책 반영
 
@@ -146,6 +155,14 @@ Headscale ACL에는 사용자별 membership이 없습니다. Headscale OIDC `all
 
 ### 사용자 비활성화
 
+졸업·퇴사 시 Slack에서 처리합니다.
+
+1. Slack user group에서 뺍니다. 동기화가 Authentik 역할 그룹에서 빼므로 앱 접근이 끊깁니다
+1. Slack에서 계정을 비활성화합니다. 동기화가 Authentik 계정도 비활성화하고 `slack-group-sync/deactivated` 표시를 남깁니다. Slack에서 다시 활성화하면 이 표시가 있는 계정만 다시 활성화됩니다
+
+이미 열린 앱 세션은 앱이 만료시킬 때까지 남습니다. 즉시 끊어야 하면 Authentik UI의 Directory → Users에서 직접 비활성화합니다. 직접 비활성화한 계정은 동기화가 다시 활성화하지 않습니다.
+
+동기화의 동작과 안전장치는 `packages/slack-group-sync/README.md`를 참조하세요.
 
 ______________________________________________________________________
 
