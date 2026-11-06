@@ -12,10 +12,3 @@ resource "authentik_property_mapping_provider_scope" "neko_role" {
     }
   EOF
 }
-
-# Browser cookies and logged-in websites are shared by everyone admitted here.
-resource "authentik_policy_binding" "neko_access" {
-  target = authentik_application.oidc["neko"].uuid
-  policy = authentik_policy_expression.forward_auth["researchers"].id
-  order  = 0
-}

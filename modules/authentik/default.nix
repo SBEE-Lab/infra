@@ -4,6 +4,7 @@
   imports = [
     ../gatus/check.nix
     ./audit.nix
+    ./slack-group-sync.nix
   ];
 
   gatusCheck.pull = [

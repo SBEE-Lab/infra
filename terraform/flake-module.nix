@@ -10,9 +10,9 @@
       authentikProvider = pkgs.terraform-providers.mkProvider {
         owner = "goauthentik";
         repo = "terraform-provider-authentik";
-        rev = "v2026.5.0";
-        hash = "sha256-S7TbUK68XAGwdjkoRko8cZyA1UsuKTjR9jxh+YsjMyo=";
-        vendorHash = "sha256-6PjmKg9cpBjx2Pn92Jm7fIp/35erbS/AeQ3NB2VmFlQ=";
+        rev = "v2026.8.2";
+        hash = "sha256-vI1WO0jpMh2IkOBXGH/DpSZl4sf3p5E93aWZ3aGBm9I=";
+        vendorHash = "sha256-dg745GGpMnHzxZN4jgLWHdQaZjpWfUu21bUneZ0dTqQ=";
         spdx = "GPL-3.0-only";
         homepage = "https://registry.terraform.io/providers/goauthentik/authentik";
       };

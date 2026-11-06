@@ -139,11 +139,10 @@ Vaultwarden의 실제 서비스는 eta에 있고 위 tau 주소는 tailnet rever
 
 ## 접근 권한 (ACL)
 
-| 그룹 | 접근 가능 서비스 |
+| 대상 | 접근 가능 서비스 |
 |------|----------------|
-| `sjanglab-admins` | `tag:ai` + 앱 + 모니터링 정책 |
-| `sjanglab-researchers` | `tag:ai` + 앱 정책 |
-| `sjanglab-students` | 앱만 (Nextcloud, Vaultwarden) |
+| 관리자 | 앱 + 모니터링 + AI 관리 포트 |
+| 그 외 VPN 사용자 | 앱 (Nextcloud, Vaultwarden, n8n) + 서버 SSH |
 
 ACL 권한은 서비스 활성화나 모든 AI API 접근을 보장하지 않습니다. 서비스별 제공 상태와 별도 source 제한도 확인합니다.
 

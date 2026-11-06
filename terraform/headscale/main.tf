@@ -1,36 +1,17 @@
 locals {
-  user_inventory = nonsensitive(yamldecode(data.sops_file.users.raw).users)
-  users = {
-    for user in local.user_inventory : user.username => merge(
-      {
-        groups = []
-        active = true
-      },
-      user,
-    )
-  }
-
-  headscale_groups = {
-    sjanglab_admins = {
-      name = "sjanglab-admins"
-    }
-    sjanglab_researchers = {
-      name = "sjanglab-researchers"
-    }
-    sjanglab_students = {
-      name = "sjanglab-students"
-    }
-  }
-
-  policy_groups = {
-    for group_key, group in local.headscale_groups : "group:${group.name}" => [
-      for username, user in local.users : username
-      if user.active && contains(user.groups, group_key) && can(regex("@", username))
-    ]
-  }
+  # Admins are listed here because only they reach admin-only ports. Everyone
+  # else is a member: Headscale admits a login only after Authentik's group
+  # check (allowed_groups in modules/headscale), so membership is already the
+  # approval, and the apps behind tag:apps authenticate through Authentik.
+  admins = [
+    "lsw1167@gmail.com",
+    "sjang.bioe@gmail.com",
+  ]
 
   policy = {
-    groups = local.policy_groups
+    groups = {
+      "group:sjanglab-admins" = local.admins
+    }
 
     tagOwners = {
       "tag:server"     = ["group:sjanglab-admins"]
@@ -59,17 +40,7 @@ locals {
       },
       {
         action = "accept"
-        src    = ["group:sjanglab-researchers"]
-        dst = [
-          "tag:ai:80",
-          "tag:ai:443",
-          "tag:apps:80",
-          "tag:apps:443",
-        ]
-      },
-      {
-        action = "accept"
-        src    = ["group:sjanglab-students"]
+        src    = ["autogroup:member"]
         dst = [
           "tag:apps:80",
           "tag:apps:443",

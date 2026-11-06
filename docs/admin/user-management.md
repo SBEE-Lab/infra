@@ -7,7 +7,7 @@
 | **NixOS** (`modules/users/`) | SSH 계정, 로컬 사용자 | 서버 접속, 파일시스템, Docker |
 | **Authentik** (`auth.sjanglab.org`) | SSO 계정, 그룹 | 웹 서비스 인증, Headscale ACL |
 
-SSO 계정과 Headscale ACL은 `terraform/authentik/users.yaml`을 source of truth로 삼아 Terraform에서 함께 관리합니다.
+SSO 계정과 그룹 membership은 Authentik UI에서 관리합니다. Terraform은 그룹·앱 접근 binding 같은 구조만 관리합니다. Headscale ACL은 사용자별 membership 없이 관리자 목록과 `autogroup:member`로 구성합니다.
 
 ______________________________________________________________________
 
@@ -130,38 +130,45 @@ Authentik은 웹 서비스(Nextcloud, Vaultwarden, n8n)의 SSO 인증과 Headsca
 | Authentik 그룹 | Headscale ACL 접근 | 서비스 |
 |----------------|-------------------|--------|
 | `sjanglab-admins` | `tag:ai` + `tag:apps` + `tag:monitoring` | 전체 |
-| `sjanglab-researchers` | `tag:ai` + `tag:apps` | Nextcloud, Vaultwarden, n8n; AI 서비스는 활성 상태·개별 네트워크 제한 확인 |
-| `sjanglab-students` | `tag:apps` | Nextcloud, Vaultwarden |
+| `sjanglab-researchers` | `tag:apps` (member) | Nextcloud, Vaultwarden, n8n |
+| `sjanglab-students` | `tag:apps` (member) | Nextcloud, Vaultwarden |
 
 > Nextcloud는 public edge에서도 접근 가능하지만 OIDC 인증이 필요합니다. Vaultwarden은 tau의 tailnet proxy를 사용하므로 Headscale VPN과 Authentik 계정이 모두 필요합니다.
 
 ### 사용자 추가
 
-1. `terraform/authentik/users.yaml`에 사용자를 추가합니다
-1. 학생 계정이면 `expires_on`을 설정합니다
-1. `terraform/authentik`과 `terraform/headscale` plan을 확인한 뒤 apply합니다
+역할 그룹(`sjanglab-researchers`, `sjanglab-students`, `sjanglab-staff`)의 멤버는 Slack user group(`@researchers`, `@students`, `@staff`)이 정합니다. eta의 `slack-group-sync`가 Slack 그룹 변경을 받아 몇 초 안에 Authentik 그룹을 맞춥니다. Authentik UI에서 이 세 그룹을 바꾸면 다음 동기화가 되돌립니다. `sjanglab-admins`는 동기화하지 않으며 Authentik UI에서 관리합니다.
+
+1. 요청자를 Slack에 초대하고, 역할에 맞는 Slack user group에 넣습니다
+1. Slack 관리 화면에서 요청자의 member id(`U…`)를 확인합니다
+1. Authentik UI의 Directory → Users에서 사용자를 만듭니다. username과 email은 요청자의 이메일로 합니다
+1. Slack 연결을 만듭니다. Authentik API와 UI는 다른 사용자의 연결을 만들 수 없으므로 eta에서 직접 만듭니다:
+
+```bash
+ssh eta
+sudo ak shell -c 'from authentik.core.models import User; from authentik.sources.oauth.models import OAuthSource, UserOAuthSourceConnection; print(UserOAuthSourceConnection.objects.get_or_create(user=User.objects.get(username="<username>"), source=OAuthSource.objects.get(slug="slack"), defaults={"identifier": "<U…>"}))'
+```
+
+연결이 생기면 동기화가 Slack 그룹에 맞춰 Authentik 그룹을 넣고, 요청자는 바로 Slack으로 로그인할 수 있습니다.
+
+### 역할 변경
+
+Slack user group을 옮기면 됩니다. 동기화는 새 그룹을 먼저 넣고 이전 그룹을 빼므로, 옮기는 동안 접근이 끊기지 않습니다.
 
 ### ACL 정책 반영
 
-Authentik 사용자/그룹과 Headscale ACL은 같은 SOPS inventory에서 생성됩니다:
-
-1. `terraform/authentik/users.yaml`이 사용자와 그룹 membership의 source of truth입니다
-1. `terraform/authentik`은 Authentik 사용자/그룹을 반영합니다
-1. Headscale OIDC `allowed_groups`는 Authentik 그룹 membership으로 VPN 로그인을 인가합니다
-1. `terraform/headscale`은 같은 membership으로 Headscale database ACL policy를 생성합니다
-
-즉시 반영하려면:
-
-```bash
-cd terraform/headscale
-terragrunt apply
-```
+Headscale ACL에는 사용자별 membership이 없습니다. 사용자 추가·변경은 Slack user group에서 끝나고, Headscale OIDC `allowed_groups`가 Authentik 그룹으로 VPN 로그인을 인가합니다. `terraform/headscale`은 관리자 목록이 바뀔 때만 apply합니다.
 
 ### 사용자 비활성화
 
-1. `terraform/authentik/users.yaml`에서 `active: false`로 변경합니다
-1. `terraform/authentik`을 apply해 Authentik 로그인을 비활성화합니다
-1. `terraform/headscale`을 apply해 Headscale ACL 그룹에서 제거합니다
+졸업·퇴사 시 Slack에서 처리합니다.
+
+1. Slack user group에서 뺍니다. 동기화가 Authentik 역할 그룹에서 빼므로 앱 접근이 끊깁니다
+1. Slack에서 계정을 비활성화합니다. 동기화가 Authentik 계정도 비활성화하고 `slack-group-sync/deactivated` 표시를 남깁니다. Slack에서 다시 활성화하면 이 표시가 있는 계정만 다시 활성화됩니다
+
+이미 열린 앱 세션은 앱이 만료시킬 때까지 남습니다. 즉시 끊어야 하면 Authentik UI의 Directory → Users에서 직접 비활성화합니다. 직접 비활성화한 계정은 동기화가 다시 활성화하지 않습니다.
+
+동기화의 동작과 안전장치는 `packages/slack-group-sync/README.md`를 참조하세요.
 
 ______________________________________________________________________
 
@@ -208,5 +215,5 @@ flowchart LR
 | `researcher` | O | — | 연구원 역할 (NixOS) |
 | `student` | O | — | 학생 역할 (NixOS) |
 | `sjanglab-admins` | — | O | 전체 서비스 + ACL |
-| `sjanglab-researchers` | — | O | AI + 앱 ACL |
-| `sjanglab-students` | — | O | 앱만 ACL |
+| `sjanglab-researchers` | — | O | 앱 ACL (member) |
+| `sjanglab-students` | — | O | 앱 ACL (member) |
