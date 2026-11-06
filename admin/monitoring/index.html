@@ -1,0 +1,3270 @@
+
+<!doctype html>
+<html lang="ko" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="SBEE Lab의 NixOS 기반 생물정보학 연구 인프라 문서">
+      
+      
+        <meta name="author" content="SBEE Lab">
+      
+      
+        <link rel="canonical" href="https://sbee-lab.github.io/infra/admin/monitoring/">
+      
+      
+        <link rel="prev" href="../deployment/">
+      
+      
+        <link rel="next" href="../backup/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="zensical-0.0.62">
+    
+    
+      
+        <title>모니터링 - SBEE Lab Infra</title>
+      
+    
+    
+      
+        
+      
+      <link rel="stylesheet" href="../../assets/stylesheets/modern/main.ce62732f.min.css">
+      
+        
+          
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/modern/palette.812a03bb.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,500,500i,700,700i%7CJetBrains+Mono:400,400i,700,700i&amp;display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_scope.pathname.endsWith("/")||(__md_scope=new URL(__md_scope.pathname+"/",location)),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,_=__md_scope)=>JSON.parse(t.getItem(_.pathname+"."+e)),__md_set=(e,t,_=localStorage,a=__md_scope)=>{try{_.setItem(a.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer" aria-label="네비게이션"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#_1" class="md-skip">
+          콘텐츠로 이동
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="상단/헤더">
+    <a href="../.." title="SBEE Lab Infra" class="md-header__button md-logo" aria-label="SBEE Lab Infra" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer" aria-label="네비게이션">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-menu" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h16"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            SBEE Lab Infra
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              모니터링
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="라이트 모드로 전환"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="라이트 모드로 전환" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sun-moon" viewBox="0 0 24 24"><path d="M12 2v2M14.837 16.385a6 6 0 1 1-7.223-7.222c.624-.147.97.66.715 1.248a4 4 0 0 0 5.26 5.259c.589-.255 1.396.09 1.248.715M16 12a4 4 0 0 0-4-4M19 5l-1.256 1.256M20 12h2"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="다크 모드로 전환"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="다크 모드로 전환" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="orange"  aria-label="시스템 설정 따르기"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="시스템 설정 따르기" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-moon-star" viewBox="0 0 24 24"><path d="M18 5h4M20 3v4M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search" aria-label="검색">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-search" viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog" aria-label="검색">
+  <button type="button" class="md-search__button">
+    검색
+  </button>
+</div>
+      
+    
+    <div class="md-header__source">
+      
+        <a href="https://github.com/sbee-lab/infra" title="저장소로 이동" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M216.5 362.5c-66-8-112.5-55.5-112.5-117 0-25 9-52 24-70-6.5-16.5-5.5-51.5 2-66 20-2.5 47 8 63 22.5 19-6 39-9 63.5-9s44.5 3 62.5 8.5c15.5-14 43-24.5 63-22 7 13.5 8 48.5 1.5 65.5 16 19 24.5 44.5 24.5 70.5 0 61.5-46.5 108-113.5 116.5 17 11 28.5 35 28.5 62.5v52c0 15 12.5 23.5 27.5 17.5C441 459.5 512 369 512 257 512 115.5 397 0 255.5 0S0 115.5 0 257c0 111 70.5 203 165.5 237.5 13.5 5 26.5-4 26.5-17.5v-40c-7 3-16 5-24 5-33 0-52.5-18-66.5-51.5-5.5-13.5-11.5-21.5-23-23-6-.5-8-3-8-6 0-6 10-10.5 20-10.5 14.5 0 27 9 40 27.5 10 14.5 20.5 21 33 21s20.5-4.5 32-16c8.5-8.5 15-16 21-21"/></svg>
+  </div>
+  <div class="md-source__repository">
+    sbee-lab/infra
+  </div>
+</a>
+      
+    </div>
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="탭" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  홈
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+      
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../guide/" class="md-tabs__link">
+          
+  
+  사용자 가이드
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+      
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../dev/" class="md-tabs__link">
+          
+  
+  연구·개발 환경
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+      
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  관리자 가이드
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+      
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../reference/faq/" class="md-tabs__link">
+          
+  
+  참조
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="네비게이션" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="SBEE Lab Infra" class="md-nav__button md-logo" aria-label="SBEE Lab Infra" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-book-open" viewBox="0 0 24 24"><path d="M12 5v16M20.001 19A2 2 0 0 0 22 17V5a2 2 0 0 0-1.999-2L16 3.002A5 5 0 0 0 12 5a5 5 0 0 0-4-2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 1.999 2H8a5 5 0 0 1 4 2 5 5 0 0 1 4-2z"/></svg>
+
+    </a>
+    SBEE Lab Infra
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/sbee-lab/infra" title="저장소로 이동" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M216.5 362.5c-66-8-112.5-55.5-112.5-117 0-25 9-52 24-70-6.5-16.5-5.5-51.5 2-66 20-2.5 47 8 63 22.5 19-6 39-9 63.5-9s44.5 3 62.5 8.5c15.5-14 43-24.5 63-22 7 13.5 8 48.5 1.5 65.5 16 19 24.5 44.5 24.5 70.5 0 61.5-46.5 108-113.5 116.5 17 11 28.5 35 28.5 62.5v52c0 15 12.5 23.5 27.5 17.5C441 459.5 512 369 512 257 512 115.5 397 0 255.5 0S0 115.5 0 257c0 111 70.5 203 165.5 237.5 13.5 5 26.5-4 26.5-17.5v-40c-7 3-16 5-24 5-33 0-52.5-18-66.5-51.5-5.5-13.5-11.5-21.5-23-23-6-.5-8-3-8-6 0-6 10-10.5 20-10.5 14.5 0 27 9 40 27.5 10 14.5 20.5 21 33 21s20.5-4.5 32-16c8.5-8.5 15-16 21-21"/></svg>
+  </div>
+  <div class="md-source__repository">
+    sbee-lab/infra
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  홈
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../guide/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  사용자 가이드
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_2" id="__nav_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  사용자 가이드
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/requesting-access/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  접근 권한 요청
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/vpn-setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  VPN 설정
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/first-login/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  첫 로그인
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/nextcloud/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Nextcloud
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/vaultwarden/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Vaultwarden
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/n8n/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  n8n
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guide/upterm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Upterm
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../../dev/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  연구·개발 환경
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_3" id="__nav_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  연구·개발 환경
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/ssh-access/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  SSH 접속
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/gpu-computing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  GPU 컴퓨팅
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/apptainer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Apptainer
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/bioinformatics-db/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  생물정보 DB
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Nix
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  Nix
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/nix-environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  개발 환경
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/home-manager/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Home Manager
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  학생
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  학생
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/students/best-practices/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  모범 사례
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dev/students/account-expiration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  계정 만료
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  관리자 가이드
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_4" id="__nav_4_label" tabindex="">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  관리자 가이드
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  사용자 관리
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  배포
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  모니터링
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="././" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  모니터링
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+
+<nav class="md-nav md-nav--secondary" aria-label="목차">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      목차
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        운영 모드
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="운영 모드">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        보수 중 자동 업데이트 차단
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        대시보드
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#grafana" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Grafana 사용 순서
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Grafana 사용 순서">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#access-audit" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Access &amp; Audit 패널 판독
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jobs" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Jobs 패널 판독
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        스택 구성
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="스택 구성">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#vector" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Vector (로그/메트릭 수집)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        백업 완료 결과
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#authentik-headscale" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        접근 감사 (Authentik / Headscale)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prometheus-rho" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Prometheus (rho)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#alert-response-runbook" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Alert response runbook
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#postgresql-replica-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        PostgreSQL replica recovery
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#alert-delivery-bootstrap" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Alert delivery bootstrap
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#alert-bridge-cutover" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Alert bridge cutover
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#loki-rho" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Loki (rho)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gatus-eta" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Gatus (eta)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../backup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  백업
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ci-cd/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  CI/CD
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  아키텍처
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_8" id="__nav_4_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  아키텍처 도식
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  아키텍처 도식
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture-diagrams/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  도식 모음
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../infra-services-architecture.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  전체 서비스 지도
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ingress-auth-architecture.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Ingress와 인증
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../network-access-architecture.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  네트워크와 접근 제어
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data-backup-architecture.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  데이터와 백업
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../observability-architecture.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  관측과 감사
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ops-secrets-certs-architecture.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  배포·시크릿·인증서
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cicd-cache-architecture.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  CI/CD와 Nix 캐시
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../module-development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  모듈 개발
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../terraform/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  Terraform
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../network/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  네트워크
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../authentication/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  인증
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../secrets-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  비밀 관리
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  보안
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contributing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  코드 기여
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datacenter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  데이터센터
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  참조
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+  참조
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  FAQ
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/glossary/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  용어집
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/server-specs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+  서버 스펙
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  
+                    
+                    
+                    
+                      
+                    
+                    
+                      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+                      <div class="md-sidebar-button__wrapper">
+                        <label class="md-sidebar-button" for="__toc"></label>
+                      </div>
+                    
+                  
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--secondary" aria-label="목차">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      목차
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        운영 모드
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="운영 모드">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        보수 중 자동 업데이트 차단
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        대시보드
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#grafana" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Grafana 사용 순서
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Grafana 사용 순서">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#access-audit" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Access &amp; Audit 패널 판독
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#jobs" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Jobs 패널 판독
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        스택 구성
+      </span>
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="스택 구성">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#vector" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Vector (로그/메트릭 수집)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        백업 완료 결과
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#authentik-headscale" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        접근 감사 (Authentik / Headscale)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#prometheus-rho" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Prometheus (rho)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#alert-response-runbook" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Alert response runbook
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#postgresql-replica-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        PostgreSQL replica recovery
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#alert-delivery-bootstrap" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Alert delivery bootstrap
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#alert-bridge-cutover" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Alert bridge cutover
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#loki-rho" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Loki (rho)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gatus-eta" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Gatus (eta)
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="네비게이션" >
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href="../.." class="md-path__link">
+        
+  
+  <span class="md-ellipsis">
+    홈
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+      <li class="md-path__item">
+        <a href="../" class="md-path__link">
+          
+  
+  <span class="md-ellipsis">
+    관리자 가이드
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+  
+    <a href="https://github.com/sbee-lab/infra/edit/main/docs/admin/monitoring.md" title="이 페이지를 편집" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-file-pen" viewBox="0 0 24 24"><path d="M12.659 22H18a2 2 0 0 0 2-2V8a2.4 2.4 0 0 0-.706-1.706l-3.588-3.588A2.4 2.4 0 0 0 14 2H6a2 2 0 0 0-2 2v9.34"/><path d="M14 2v5a1 1 0 0 0 1 1h5M10.378 12.622a1 1 0 0 1 3 3.003L8.36 20.637a2 2 0 0 1-.854.506l-2.867.837a.5.5 0 0 1-.62-.62l.836-2.869a2 2 0 0 1 .506-.853z"/></svg>
+    </a>
+  
+  
+    
+      
+    
+    <a href="https://github.com/sbee-lab/infra/raw/main/docs/admin/monitoring.md" title="페이지소스 보기" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-file-code-2" viewBox="0 0 24 24"><path d="M4 12.15V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.706.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2h-3.35"/><path d="M14 2v5a1 1 0 0 0 1 1h5M5 16l-3 3 3 3M9 22l3-3-3-3"/></svg>
+    </a>
+  
+
+
+<h1 id="_1">모니터링<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
+<h2 id="_2">운영 모드<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<p>공통 설정은 현재 <code>active</code>입니다. 수집·대시보드·Prometheus 규칙 평가를 유지하며 명시적으로 분류된 operational alert를 Slack bridge로 전송하고 Watchdog은 healthchecks.io로 직접 보냅니다. 미분류 알림은 discard 처리합니다. <code>observe</code>는 수집·평가를 유지하면서 외부 전송을 중단하고, <code>paused</code>는 수집·평가도 중단합니다. 모드 전환과 실제 알림·복구 전송 테스트는 별도 승인 대상입니다.</p>
+<p><code>active</code>에서는 즉시 대응과 업무시간 대응을 구분합니다. 업무시간은 평일 09:00–18:00 Asia/Seoul이며 공휴일 예외나 요약 발송은 없습니다. 아래 알림 연결도는 활성 모드의 경로입니다. 설정만으로 전달 성공을 판정하지 않고 실제 수신을 확인합니다.</p>
+<h3 id="_3">보수 중 자동 업데이트 차단<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<p>자동 업데이트 차단 여부는 각 호스트에서 <code>systemctl cat auto-upgrade.service auto-upgrade.timer auto-reboot.service auto-reboot.timer</code>로 확인합니다. 런타임 drop-in의 존재를 Git 선언만으로 추정하지 않습니다.</p>
+<p><code>/etc/systemd/system.control/{auto-upgrade,auto-reboot}.{service,timer}.d/90-migration-pause.conf</code>가 있으면 재부팅과 일반 Nix 배포 후에도 차단될 수 있습니다. <code>/run/systemd/system/</code>의 동일 이름 drop-in도 확인합니다. <code>/run/infra-maintenance-resume-automatic-updates</code> marker 생성으로 실행 조건을 우회하지 않습니다.</p>
+<p>차단 해제는 변경 검토·배포·운영 검증을 마친 뒤 별도 승인으로 수행합니다. 해당 drop-in을 제거하고 daemon reload·timer 재활성화 후 다음 실행 시각과 실제 적용 상태를 확인합니다.</p>
+<h2 id="_4">대시보드<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Grafana</strong>: <code>https://logging.sjanglab.org</code> (Authentik Forward Auth, localhost upstream, 신규 인증 사용자 Viewer)</li>
+<li><code>SjangLab Infrastructure</code> (홈): 발화 중 알림, 침해 징후, 즉시 등급 서비스 장애, 백업 경과, Gatus 실패 수</li>
+<li><code>SjangLab Access &amp; Audit</code>: 맨 위 침해 징후(평소 0)·로그인 출처·공격 압력, 아래 접힌 SSH/tailnet/Authentik/Headscale drilldown</li>
+<li><code>SjangLab Public Edge</code>: eta 공개 vhost 트래픽, 스캐너 경로, 큰 요청 본문, 5xx, 민감 경로 응답</li>
+<li><code>SjangLab Hosts</code>: 호스트 리소스, 데이터 파일시스템, SMART·NVMe·RAID, auto-upgrade 결과, Headscale 노드 상태</li>
+<li><code>SjangLab Apps</code>: Gatus 내부 체크와 Blackbox 외부 probe 비교, Nextcloud PHP-FPM·5xx·경고 로그</li>
+<li><code>SjangLab Jobs</code>: Borg 백업·무결성 검사와 PostgreSQL 덤프의 마지막 완료 기록</li>
+<li><code>SjangLab AI Resources</code>: AI 서비스 smoke, psi 리소스, 데이터 동기화 상태</li>
+<li><code>SjangLab PostgreSQL</code>: rho primary, tau replica, streaming lag, slot WAL 여유, replication 감사 이력</li>
+<li><strong>Gatus</strong>: <code>https://status.sjanglab.org</code> (eta 공개 HTTPS + Authentik 구성원 인증 상태 페이지)</li>
+<li>PostgreSQL은 <code>primary rho</code>와 <code>replica tau</code>를 별도 endpoint로 표시합니다.</li>
+</ul>
+<h2 id="grafana">Grafana 사용 순서<a class="headerlink" href="#grafana" title="Permanent link">&para;</a></h2>
+<ol>
+<li><a href="https://logging.sjanglab.org">Grafana</a>에 접속해 Authentik으로 로그인합니다. 공개 HTTPS 경로는 VPN이 필요 없으며 기존 <code>sjanglab-admins</code> 인가 정책을 유지합니다. 신규 사용자는 Viewer이며 공유 관리자 계정이나 별도 API 토큰이 필요하지 않습니다. 접근 거부는 Authentik 인가·그룹을 확인하고, 헤더 위조나 인증 우회로 해결하지 않습니다.</li>
+<li>우측 상단 시간 범위를 평소에는 최근 6시간, 야간 작업 점검에는 최근 24시간으로 선택합니다. 패널이 비어 있으면 기간을 늘리고 수집 상태부터 확인합니다. <code>No data</code>를 성공이나 0건으로 해석하지 않습니다.</li>
+<li><a href="https://logging.sjanglab.org/d/sjanglab-hosts">Hosts</a>에서 <code>Metrics freshness</code>, <code>Prometheus targets</code>, 디스크·CPU·메모리를 먼저 봅니다. 수집 경로가 끊긴 상태에서 다른 패널의 과거 값을 현재 상태로 판정하지 않습니다.</li>
+<li><a href="https://logging.sjanglab.org/d/sjanglab-jobs">Jobs</a>에서 <code>Latest recorded outcome</code>과 <code>Last completion time</code>을 함께 봅니다. <code>Success</code>만으로 예약 실행·무결성·복원을 판정하지 않습니다.</li>
+<li>앱 장애는 <a href="https://logging.sjanglab.org/d/sjanglab-apps">Apps</a>, DB 복제는 <a href="https://logging.sjanglab.org/d/sjanglab-postgresql">PostgreSQL</a>, 로그인·권한 문제는 <a href="https://logging.sjanglab.org/d/sjanglab-access-audit">Access &amp; Audit</a>에서 같은 시간대를 확인합니다.</li>
+</ol>
+<p>공개 경로는 eta nginx → rho nginx → localhost Grafana입니다. eta는 rho 인증서의 CA·hostname을 검증하고 외부에서 받은 identity 헤더를 버립니다. 교차 서명된 중간 CA 체인을 허용하도록 TLS 검증 깊이는 4로 설정합니다. 502가 발생하면 실제 upstream 인증서 체인을 확인하며 인증서 검증을 끄지 않습니다. rho가 Authentik 인가 후 identity를 다시 설정하며, 클라이언트 주소 헤더도 eta peer에서 온 경우에만 신뢰합니다. 익명 접근은 끄고 신규 Grafana 계정 기본 역할은 Viewer로 유지합니다. Viewer도 데이터소스 조회가 가능하므로 SSO 접근 그룹을 확대할 때 로그 열람 범위를 함께 검토합니다.</p>
+<p>Headscale split DNS는 내부 rho 경로를 유지합니다. <code>/prometheus/</code>와 <code>/alertmanager/</code>는 공개 eta 경로에서 404이며, 내부 경로 또는 SSH 터널을 사용합니다. Grafana의 자체 <code>/api/</code>·WebSocket은 인증 뒤에 제공하며 직접 Prometheus/Loki API를 공개하는 설정이 아닙니다.</p>
+<p>공개 경로 변경은 <code>terraform/dns</code>의 <code>logging.sjanglab.org</code> 레코드와 eta·rho 설정을 함께 적용해야 합니다. rho의 인증·헤더 신뢰 설정을 먼저 적용하고, eta의 public ACME 발급·rho 인증서 동기화를 확인한 뒤 공개 접속을 검증합니다. 선언 추가나 기존 인증서 파일만으로 적용 완료를 판정하지 않습니다. 검증 기준은 VPN 없는 접속의 로그인 유도, 승인 사용자 dashboard·Live 연결, identity 헤더 위조 거부, public 관리 경로 404, 내부 관리 경로 유지입니다. public DNS를 추가해 HTTP-01 발급을 시작하기 전에는 기존 DNS-01 인증서를 제거하지 않습니다.</p>
+<p>인증서 동기화에서 <code>failed to set times</code>가 발생하면 rho의 수신 디렉토리와 파일·심볼릭 링크 자체의 소유권을 수신 계정 <code>acme-sync-logging</code>과 비교합니다. 링크 소유권 수정에는 <code>chown -h</code>를 사용해 대상을 따라가지 않으며, 개인키·인증서 본문을 로그에 출력하지 않습니다. 동기화 서비스 정상 종료와 nginx reload까지 확인합니다.</p>
+<h3 id="access-audit">Access &amp; Audit 패널 판독<a class="headerlink" href="#access-audit" title="Permanent link">&para;</a></h3>
+<p><code>SSH Access audit</code>와 <code>Tailnet app access</code>는 원본 SSH·nginx 로그가 아니라 rho의 두 correlator가 가공한 기록입니다. <code>observe</code>에서도 수집하며 timer 활성화 60초 뒤 첫 실행, 이후 60초 간격으로 실행합니다. <code>active (elapsed)</code>이면서 다음 실행이 없으면 정상 수집 상태가 아닙니다. 다음 trigger, 최근 서비스 완료, <code>correlator_heartbeat</code>와 원본 로그를 함께 확인합니다. 수집 재개만으로 과거 공백이 자동 복구되지는 않습니다. 공개 Grafana 요청은 tailnet audit 대상이 아니며 원본 <code>nginx_access</code>에서 확인합니다.</p>
+<h3 id="jobs">Jobs 패널 판독<a class="headerlink" href="#jobs" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>표시</th>
+<th>의미</th>
+<th>추가 확인</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Success</code></td>
+<td>마지막으로 기록한 실행이 정상 종료</td>
+<td>완료 시각이 충분히 최근인지 확인</td>
+</tr>
+<tr>
+<td><code>Unsuccessful</code></td>
+<td>마지막 완료가 비정상 종료</td>
+<td>같은 실행의 systemd 결과·원인 확인</td>
+</tr>
+<tr>
+<td><code>No completion data</code> / 행 없음</td>
+<td>완료 관측 없음</td>
+<td>미실행과 수집 누락 구분</td>
+</tr>
+<tr>
+<td><code>scheduled=true</code></td>
+<td>선언에 일정 있음</td>
+<td>실제 timer 활성화·다음 시각·마지막 trigger는 systemd 확인</td>
+</tr>
+<tr>
+<td>결과 시계열의 연속 0</td>
+<td>마지막 성공 값이 반복 수집됨</td>
+<td>성공 실행 횟수나 매분 백업을 뜻하지 않음</td>
+</tr>
+</tbody>
+</table>
+<p>Jobs는 psi·rho·tau의 Borg와 PostgreSQL 덤프만 표시합니다. eta Restic·Stalwart 작업은 이 패널에 없으므로 전체 백업 상태판으로 사용하지 않습니다. eta는 systemd timer/service와 Loki의 backup snapshot을 별도로 확인합니다. Explore 권한이 있는 사용자는 Loki에서 다음 쿼리로 작업별 <code>unit</code>, <code>health</code>, <code>health_reason</code>을 확인할 수 있습니다. Explore가 보이지 않으면 권한을 요청하며 익명 접근을 열지 않습니다.</p>
+<div class="highlight"><pre><span></span><code>{host=&quot;eta&quot;, log_type=&quot;systemd_status&quot;, event=&quot;job_snapshot&quot;} | json | job_class=&quot;backup&quot;
+</code></pre></div>
+<p>로그 자체가 없으면 정상이라는 뜻이 아닙니다. 서비스가 <code>inactive (dead)</code>여도 oneshot은 정상 종료 후 그렇게 표시됩니다. <code>Result</code>, <code>ExecMainStatus</code>, 시작·종료 시각을 같은 실행 기준으로 함께 봅니다. 예약 성공을 확인하려면 timer의 <code>LastTriggerUSec</code>가 서비스 시작 시각과 연결되고, 그 실행이 정상 종료했는지 확인합니다. 수동 실행 성공만으로 자동 예약 검증을 완료하지 않습니다.</p>
+<p>Grafana는 관측 화면이며 백업 실행기나 알림 전송 확인서가 아닙니다. <code>observe</code>에서도 같은 대시보드를 사용합니다. <code>active</code> 승인은 실제 firing/resolved 수신과 독립 Watchdog 전달을 확인하는 절차와 분리하지 않습니다.</p>
+<h2 id="_5">스택 구성<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>flowchart LR
+  subgraph hosts["각 호스트"]
+    vec["Vector"]
+  end
+
+  subgraph rho["rho"]
+    prom["Prometheus"]
+    loki["Loki"]
+    alertmanager["Alertmanager"]
+    graf["Grafana"]
+  end
+
+  subgraph eta["eta"]
+    gatus["Gatus"]
+  end
+
+  bridge["Cloudflare alert bridge"]
+  slack_alerts["Slack #infra-alerts"]
+  healthchecks["healthchecks.io"]
+
+  vec -- "메트릭" --&gt; prom
+  vec -- "로그" --&gt; loki
+  prom --&gt; graf
+  loki --&gt; graf
+  prom -- "alerts" --&gt; alertmanager
+  alertmanager -- "immediate/business-hours" --&gt; bridge
+  bridge --&gt; slack_alerts
+  alertmanager -- "Watchdog ping" --&gt; healthchecks
+  bridge -- "heartbeat" --&gt; healthchecks
+  healthchecks --&gt; slack_alerts
+  hosts -- "헬스체크 Push" --&gt; gatus</code></pre>
+<h3 id="vector">Vector (로그/메트릭 수집)<a class="headerlink" href="#vector" title="Permanent link">&para;</a></h3>
+<p>모든 호스트에서 실행됩니다:</p>
+<table>
+<thead>
+<tr>
+<th>수집 대상</th>
+<th>전송처</th>
+<th>주기</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>sshd 로그</td>
+<td>Loki (rho:3100)</td>
+<td>실시간</td>
+</tr>
+<tr>
+<td>SSH bastion forward 매핑</td>
+<td>Loki (rho:3100)</td>
+<td>실시간</td>
+</tr>
+<tr>
+<td>auditd 로그</td>
+<td>Loki (rho:3100)</td>
+<td>실시간</td>
+</tr>
+<tr>
+<td>Authentik 감사 이벤트 (eta)</td>
+<td>Loki (rho:3100)</td>
+<td>실시간</td>
+</tr>
+<tr>
+<td>Headscale 컨트롤플레인 이벤트 (eta)</td>
+<td>Loki (rho:3100)</td>
+<td>실시간</td>
+</tr>
+<tr>
+<td>Headscale 노드 인벤토리 스냅샷 (eta)</td>
+<td>Loki (rho:3100)</td>
+<td>300초</td>
+</tr>
+<tr>
+<td>nginx 원본 접근 로그 (요청 크기, eta 경유 시 실제 클라이언트 IP 포함)</td>
+<td>Loki (rho:3100)</td>
+<td>실시간</td>
+</tr>
+<tr>
+<td>Nextcloud 경고 이상·PHP-FPM 로그 (tau)</td>
+<td>Loki (rho:3100)</td>
+<td>실시간</td>
+</tr>
+<tr>
+<td>호스트 메트릭</td>
+<td>Prometheus (rho:9090)</td>
+<td>60초</td>
+</tr>
+<tr>
+<td>Borg·PostgreSQL 작업 완료 결과</td>
+<td>Prometheus (rho:9090)</td>
+<td>60초</td>
+</tr>
+<tr>
+<td>RAID·SMART exporter metrics (psi/rho/tau)</td>
+<td>Prometheus (rho:9090)</td>
+<td>60초</td>
+</tr>
+<tr>
+<td>PostgreSQL exporter metrics (rho/tau)</td>
+<td>Prometheus (rho:9090)</td>
+<td>30초</td>
+</tr>
+<tr>
+<td>PostgreSQL replication audit snapshot (rho/tau)</td>
+<td>Loki (rho:3100)</td>
+<td>60초</td>
+</tr>
+</tbody>
+</table>
+<p>eta는 SSH 인증 로그와 같은 PID의 outbound socket을 관찰해 <code>ssh_bastion</code> 로그를 생성하고 Loki로 직접 전송합니다. ProxyJump 때문에 대상 호스트가 eta의 내부 IP만 보더라도 실제 접속원 IP, bastion 사용자, 대상 호스트를 함께 조회할 수 있습니다.</p>
+<div class="highlight"><pre><span></span><code>{log_type=&quot;ssh_bastion&quot;, event=&quot;bastion_forward&quot;}
+</code></pre></div>
+<p>대상 호스트의 SSH 로그와 맞출 때는 <code>target_host</code>, <code>bastion_user</code>, 시간대, <code>bastion_local_port</code>를 함께 봅니다. 대상 호스트 sshd 로그의 <code>source_port</code>가 eta에서 기록한 <code>bastion_local_port</code>입니다.</p>
+<h3 id="_6">백업 완료 결과<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h3>
+<p>psi·rho·tau의 Borg·PostgreSQL 덤프는 종료 시각과 정상 완료 여부만 기록합니다. Vector가 <code>infra_job_last_completion_timestamp_seconds</code>와 <code>infra_job_last_result</code>를 전송하며, 최초 완료 전에는 값을 생성하지 않습니다. 결과 0은 정상 완료, 1은 비정상 완료입니다. 실행 중 상태나 별도로 보존된 마지막 성공 이력으로 해석하지 않습니다.</p>
+<p>Jobs 대시보드는 마지막 완료 결과와 경과 시간을 표시합니다. 예약 백업·주간 Borg 무결성 검사의 실패, 선행 덤프 실패, 백업 36시간·검사 9일 완료 지연, 완료 관측 누락을 구분합니다. 주간 검사는 파일 추출이나 DB 복원을 하지 않습니다. 누락은 실패나 복구의 증거가 아닙니다. 일정·범위·복원 절차는 <a href="../backup/">백업 문서</a>를 봅니다.</p>
+<h3 id="authentik-headscale">접근 감사 (Authentik / Headscale)<a class="headerlink" href="#authentik-headscale" title="Permanent link">&para;</a></h3>
+<p>eta의 Vector가 journald에서 수집해 이벤트를 분류합니다 (<code>modules/authentik/audit.nix</code>, <code>modules/headscale/audit.nix</code>):</p>
+<ul>
+<li><strong>Authentik</strong> (<code>log_type="authentik"</code>): <code>login</code>, <code>login_failed</code>, <code>logout</code>, <code>app_authorize</code>(브라우저 앱 인가), <code>admin_change</code>, <code>policy_error</code>, <code>forward_auth_deny</code></li>
+<li><strong>Headscale</strong> (<code>log_type="headscale"</code>): <code>node_register</code>, <code>node_expire</code>, <code>preauth_key</code>, <code>oidc_denied</code>, <code>error</code> — 컨트롤플레인/멤버십 감사이며 tailnet 데이터플레인 트래픽은 관측 대상이 아닙니다</li>
+<li><strong>Headscale 노드 인벤토리</strong> (<code>log_type="headscale_nodes"</code>): 5분 주기 스냅샷 (<code>event="node_snapshot"</code>)과 집계 행(<code>event="nodes_summary"</code>)으로 node, user, IP, tags, online, health, health_reason, last_seen_seconds, expiry_seconds를 기록합니다</li>
+</ul>
+<div class="highlight"><pre><span></span><code>{log_type=&quot;authentik&quot;, event=&quot;login_failed&quot;}
+{log_type=&quot;headscale&quot;, event=&quot;node_register&quot;}
+</code></pre></div>
+<p><strong>레이블 정책</strong>: Loki 레이블은 bounded 값(<code>host</code>, <code>log_type</code>, <code>event</code>)만 사용합니다. <code>user</code>, <code>source_ip</code>, <code>app</code>, <code>node</code> 등 고카디널리티 값은 JSON 필드로만 저장하고 LogQL <code>| json</code>으로 조회합니다. 시크릿/쿠키/인증 헤더는 수집하지 않습니다. Authentik <code>login</code>/<code>app_authorize</code> 이벤트의 <code>client_ip</code>는 실제 클라이언트 IP로 보존하지만, <code>forward_auth_deny</code>의 <code>remote</code>는 내부 프록시 주소일 수 있어 <code>proxy_remote</code> 필드로만 기록합니다.</p>
+<h3 id="prometheus-rho">Prometheus (rho)<a class="headerlink" href="#prometheus-rho" title="Permanent link">&para;</a></h3>
+<ul>
+<li>리텐션: 30일</li>
+<li>Remote write receiver 활성화</li>
+<li>Scrape jobs:</li>
+<li><code>vector</code>: rho Vector exporter</li>
+<li><code>blackbox_exporter</code>: eta blackbox exporter 자체 health</li>
+<li><code>alertmanager</code>: rho Alertmanager health (Alertmanager SOPS keys가 있을 때)</li>
+<li><code>blackbox_http</code>: eta vantage public HTTPS probes (<code>auth</code>, <code>hs</code>, <code>n8n</code>)</li>
+<li><code>blackbox_tailnet_http</code>: eta vantage wg-admin HTTPS probes with Host/SNI override for tailnet-only apps (<code>n8n-ui</code>, <code>nextcloud</code>, etc.). Grafana는 공개 HTTPS/login 경로를 검사하며 인증 후 dashboard 내용까지 검증하지는 않습니다.</li>
+<li><code>blackbox_tcp</code>: eta vantage TCP probe for Upterm</li>
+<li><code>blackbox_icmp</code>: eta vantage ICMP probe for wg-admin host reachability</li>
+<li><code>nvidia-gpu</code>: psi GPU exporter</li>
+<li><code>postgresql</code>: rho/tau local postgres_exporter metrics relayed through Vector</li>
+<li>Alert rules: 호스트 관측 누락, 공간 부족, PostgreSQL 상태·replication, 등록 서비스 probe 실패·관측 누락, TLS 만료, Vector 전송 오류, 규칙 평가 실패, 예약 작업·백업 덤프 실패·완료 지연·관측 누락, RAID·SMART 상태와 수집 누락, Watchdog</li>
+<li>Alert delivery: 현재 <code>active</code>에서 정책상 대응이 필요한 operational alert를 Cloudflare Worker/D1 bridge로 전송합니다. <code>observe</code>로 되돌리면 외부 전송을 discard 처리합니다. 서비스별 소유 호스트·접근 경로·대응 정책은 <code>modules/monitoring/targets.nix</code>에 선언하며, 의존 대상 장애는 종속 경보를 억제합니다.</li>
+<li>Alert bridge: Bridge는 자체 healthchecks.io heartbeat를 사용합니다. healthchecks.io 알림은 별도 cutover 전까지 기존 Slack integration을 유지합니다.</li>
+</ul>
+<h3 id="alert-response-runbook">Alert response runbook<a class="headerlink" href="#alert-response-runbook" title="Permanent link">&para;</a></h3>
+<p>공통 절차:</p>
+<ol>
+<li>Slack alert의 <code>host</code>, <code>service</code>, <code>alert_category</code>, <code>dashboard_url</code>, <code>runbook_url</code>를 확인합니다.</li>
+<li>Grafana dashboard에서 같은 시간대의 metrics/logs를 확인합니다.</li>
+<li>서비스 단위 장애면 <code>systemctl status &lt;unit&gt;</code>와 <code>journalctl -u &lt;unit&gt; -e</code>를 먼저 확인합니다.</li>
+<li>사용자 영향이 있으면 <code>#infra-alerts</code>에 조사 시작/완료 시간을 남깁니다.</li>
+<li>원인을 모르면 silence하지 않습니다. 노이즈성 반복일 때만 만료 시간이 있는 silence를 설정합니다.</li>
+</ol>
+<p>alert별 1차 확인:</p>
+<table>
+<thead>
+<tr>
+<th>Alert</th>
+<th>1차 확인</th>
+<th>다음 조치</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>HostMetricsMissing</code></td>
+<td><code>systemctl status vector</code>, 네트워크, rho Prometheus target</td>
+<td>Vector 재시작 또는 wg-admin 연결 복구</td>
+</tr>
+<tr>
+<td><code>DiskSpaceLow</code> / <code>DiskSpaceCritical</code></td>
+<td><code>df -h</code>, <code>du -xhd1 &lt;mount&gt;</code></td>
+<td>GC, 오래된 workspace 정리, root filesystem 증설</td>
+</tr>
+<tr>
+<td>RAID·SMART 하드웨어 경보</td>
+<td><code>/proc/mdstat</code>, <code>smartctl</code>, 대상 by-id 디스크</td>
+<td>실제 장애 여부 확인 후 디스크 교체·배열 복구 계획</td>
+</tr>
+<tr>
+<td>RAID·SMART 수집 누락 경보</td>
+<td>node/smartctl exporter, Vector와 원격 전송</td>
+<td>수집 경로 복구. 관측 누락만으로 디스크 고장 판정 금지</td>
+</tr>
+<tr>
+<td><code>BlackboxExporterDown</code></td>
+<td>eta의 <code>prometheus-blackbox-exporter.service</code></td>
+<td>exporter 재시작, listen address와 방화벽 확인</td>
+</tr>
+<tr>
+<td><code>ServiceUnavailable</code> / <code>ServiceObservationMissing</code></td>
+<td>대상 probe, 접근 경로, DNS, nginx 인증서</td>
+<td>실제 접근 실패와 관측 누락을 구분해 조사</td>
+</tr>
+<tr>
+<td><code>TlsCertificateExpiringSoon</code></td>
+<td>eta ACME timer와 대상 <code>acme-sync-*</code> unit</td>
+<td>인증서 갱신 후 대상 호스트 동기화 확인</td>
+</tr>
+<tr>
+<td><code>PostgresqlDown</code> / <code>PostgresqlExporterMissing</code></td>
+<td>rho/tau <code>postgresql.service</code>, <code>prometheus-postgres-exporter.service</code>, Vector</td>
+<td>DB 또는 exporter 복구 후 <code>pg_up</code> 확인</td>
+</tr>
+<tr>
+<td><code>PostgresqlReplicaNotStreaming</code> / <code>PostgresqlReplicationLagHigh</code></td>
+<td>rho <code>pg_stat_replication</code>, tau <code>pg_stat_wal_receiver</code></td>
+<td>연결·WAL 상태 확인, WAL 유실이면 tau 재-bootstrap</td>
+</tr>
+<tr>
+<td><code>PostgresqlReplicationSlotInactive</code> / <code>PostgresqlReplicationSlotWalRisk</code></td>
+<td>rho <code>pg_replication_slots</code></td>
+<td>tau 상태 복구. <code>wal_status=lost</code>면 새 basebackup 수행</td>
+</tr>
+<tr>
+<td><code>PublicHttpServerErrorBurst</code></td>
+<td>eta <code>nginx_public_server_errors_total</code>, Loki <code>{log_type="nginx_access"} \| json \| status &gt;= 500</code></td>
+<td>upstream 서비스 상태 확인. 공격 시도도 여기서 먼저 보이므로 <code>request_length</code>·<code>client_ip</code>와 함께 판독</td>
+</tr>
+<tr>
+<td><code>ProcessCrashed</code> / <code>ProcessCrashLoop</code></td>
+<td>해당 호스트 <code>coredumpctl list</code>·<code>coredumpctl info</code>, systemd-coredump journal</td>
+<td>제품과 무관하게 core dump로 죽은 프로세스. 버그와 메모리 손상 exploit 시도 모두 이렇게 끝나므로, 공개 서비스면 같은 시각 접근 로그를 먼저 확인. 15분 안에 반복되면(<code>ProcessCrashLoop</code>, 즉시) 진행 중인 공격으로 보고 대응</td>
+</tr>
+<tr>
+<td><code>ScheduledJobFailed</code> / <code>BackupDumpFailed</code></td>
+<td>백업·덤프 journal, 종료 결과</td>
+<td>원인 수정 후 systemd 백업 서비스로 재실행</td>
+</tr>
+<tr>
+<td><code>BackupCompletionOverdue</code></td>
+<td>05:30 타이머, 덤프 의존성, Borg 실행 여부</td>
+<td>36시간 완료 지연 원인 조사</td>
+</tr>
+<tr>
+<td><code>BackupVerificationOverdue</code></td>
+<td>일요일 09:00 타이머, Borg 검사 journal</td>
+<td>9일 완료 지연 원인 조사</td>
+</tr>
+<tr>
+<td><code>BackupObservationMissing</code></td>
+<td>최초 실행 여부, 완료 기록 파일, Vector job source·sink</td>
+<td>초기 검사 또는 관측 경로 복구. 실패·성공 추정 금지</td>
+</tr>
+<tr>
+<td><code>SshLoginUnclassified</code></td>
+<td>rho <code>ssh-access-audit</code> journal, Security &amp; audit 대시보드 <code>path="unknown"</code> 이벤트</td>
+<td>source IP·사용자·키 지문 확인. 본인이 아니면 해당 키 폐기, 접속 차단, 호스트 점검을 먼저 함</td>
+</tr>
+<tr>
+<td><code>SensitivePathServed</code></td>
+<td>Public edge 대시보드, Loki <code>{log_type="nginx_access", ingress_network="public"}</code></td>
+<td>해당 경로를 nginx에서 404로 막고, 같은 시각 요청 출처와 노출된 내용 확인</td>
+</tr>
+<tr>
+<td><code>HeadscaleNodeAdded</code></td>
+<td>Security &amp; audit의 <code>node_added</code> 이벤트, Headscale node 목록</td>
+<td>구성원과 기기 확인. 모르는 노드면 <code>headscale nodes delete</code> 후 사용자 계정 점검</td>
+</tr>
+<tr>
+<td><code>GatusCheckFailing</code></td>
+<td>Apps 대시보드의 inside 표, 해당 호스트 서비스</td>
+<td>외부 probe가 없는 내부 구성요소이므로 호스트에서 서비스 상태 직접 확인</td>
+</tr>
+<tr>
+<td><code>Watchdog</code> 미수신</td>
+<td>Alertmanager, healthchecks.io ping URL, 네트워크</td>
+<td>Alertmanager 복구. bridge 장애와 분리 확인</td>
+</tr>
+</tbody>
+</table>
+<p>알림 판정은 Prometheus만 합니다. Loki는 원인 조사와 감사 조회용이며, 로그에서 나온 신호는 Vector <code>log_to_metric</code>으로 숫자로 바꾼 뒤 Prometheus 규칙이 판정합니다. 보안 알림(<code>SshLoginUnclassified</code>, <code>SensitivePathServed</code>, <code>HeadscaleNodeAdded</code>)도 <code>#infra-alerts</code>로 갑니다. 사용자명, source IP, app/node 정보를 기록하고 계정 탈취 가능성이 있으면 Authentik 계정 비활성화와 Headscale ACL apply를 우선합니다. 공격 압력(스캔, 차단, forward-auth 거부)은 알림 없이 Security &amp; audit 대시보드에서 추세로 봅니다.</p>
+<p><code>#infra-audit</code>에는 rho의 <code>infra-audit-digest.timer</code>가 매주 금요일 15:30 KST에 주간 감사 요약을 게시합니다. 침해 징후 4개(평소 0), 새 tailnet 노드, SSH 로그인 출처, 공격 압력(fail2ban, 인증 전 거부, forward-auth 거부, 스캐너 출처와 404 범주)을 담고, 0건이어도 게시합니다. 요약이 오지 않으면 파이프라인 고장입니다. 쿼리가 실패하면 요약에 실패 항목을 표시하고 서비스가 실패로 끝나 <code>ScheduledJobFailed</code>가 <code>#infra-alerts</code>로 갑니다. 수동 실행은 <code>systemctl start infra-audit-digest</code>, 게시 없이 확인은 rho에서 <code>digest.py --dry-run</code>입니다.</p>
+<h3 id="postgresql-replica-recovery">PostgreSQL replica recovery<a class="headerlink" href="#postgresql-replica-recovery" title="Permanent link">&para;</a></h3>
+<p>일시적인 네트워크 장애는 slot이 보존한 WAL로 자동 복구됩니다. <code>requested WAL segment ... has already been removed</code> 또는 <code>wal_status=lost</code>이면 기존 PGDATA를 다시 시작하지 않습니다.</p>
+<ol>
+<li>tau의 <code>postgresql.target</code>을 중지합니다.</li>
+<li><code>/var/lib/postgresql/17</code>을 timestamp가 붙은 <code>17.stale-*</code> 경로로 이동해 보존합니다.</li>
+<li>rho의 inactive/lost <code>tau</code> slot을 삭제하고 physical slot을 다시 만듭니다.</li>
+<li><code>inv deploy --hosts tau</code>를 실행하면 <code>postgresql-replica-init</code>이 <code>pg_basebackup --slot=tau</code>로 새 replica를 구성합니다.</li>
+<li>rho <code>pg_stat_replication</code>의 <code>application_name=tau</code>, <code>state=streaming</code>과 tau <code>pg_is_in_recovery()=true</code>를 확인합니다.</li>
+<li>Grafana와 Loki에서 byte lag 0, healthy audit snapshot, <code>replica_basebackup_completed</code>를 확인합니다.</li>
+</ol>
+<p>stale PGDATA는 새 replica와 backup 검증 완료 전 삭제하지 않습니다.</p>
+<h3 id="alert-delivery-bootstrap">Alert delivery bootstrap<a class="headerlink" href="#alert-delivery-bootstrap" title="Permanent link">&para;</a></h3>
+<p>Slack 앱 설정은 <code>slack/infra-alerts/slack-app-manifest.json</code>이 source of truth입니다. <code>slack/infra-alerts</code> 디렉터리에서 direnv를 허용하면 Slack CLI가 포함된 <code>slack-deploy</code> shell에 들어갑니다:</p>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>slack/infra-alerts
+direnv<span class="w"> </span>allow
+</code></pre></div>
+<p>운영 원칙:</p>
+<ul>
+<li>Slack app/bot/scope: manifest JSON으로 선언하고 Slack CLI가 <code>.slack/hooks.json</code>을 통해 app을 생성/업데이트합니다.</li>
+<li>Slack app install: Slack CLI로 app을 install하고, 필요하면 admin OAuth 승인을 완료합니다.</li>
+<li>Slack channel: workspace resource라 수동으로 준비합니다 (<code>#infra-alerts</code>, <code>#infra-audit</code>).</li>
+<li>Slack bot token: external alert bridge가 <code>chat:write</code>로 메시지를 생성/수정할 때 사용합니다. CI에 넣지 않습니다.</li>
+<li>Slack webhook URL: bridge migration 동안만 유지되는 channel-bound secret입니다.</li>
+<li>healthchecks.io checks: <code>terraform/healthchecksio</code>에서 <code>rho-alertmanager-watchdog</code>와 <code>infra-alert-bridge-heartbeat</code>를 관리하고, sensitive <code>ping_url</code> output을 SOPS에 수동 저장합니다. healthchecks.io Slack integration은 bridge migration 동안 유지합니다.</li>
+<li>Alert bridge: <code>terraform/alert-bridge</code>가 Cloudflare Worker/D1/secret binding/cron을 관리합니다. D1 migration은 Worker 배포 후 수동으로 실행합니다.</li>
+<li>CI: manifest JSON syntax 검증만 합니다. Slack token이나 webhook URL을 CI에 넣지 않습니다.</li>
+</ul>
+<p>필요한 SOPS keys:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">alertmanager-bridge-token</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ENC[...]</span>
+<span class="nt">alertmanager-healthchecks-ping-url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ENC[...]</span>
+</code></pre></div>
+<p>Rollback window 동안만 legacy Slack incoming webhook secrets를 유지합니다:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">alertmanager-slack-infra-alerts-webhook</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ENC[...]</span>
+<span class="nt">alertmanager-slack-infra-audit-webhook</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ENC[...]</span>
+</code></pre></div>
+<p>자세한 Slack bootstrap/drift check 절차는 <code>slack/infra-alerts/README.md</code>를 봅니다.</p>
+<h3 id="alert-bridge-cutover">Alert bridge cutover<a class="headerlink" href="#alert-bridge-cutover" title="Permanent link">&para;</a></h3>
+<p><code>active</code> 모드의 Alertmanager 전송 경로는 Cloudflare Worker bridge입니다. 새 활성화나 재활성화에서는 별도 승인 후 아래 절차를 수행합니다. 실제 Slack firing/resolved 수신과 healthchecks.io의 독립 Watchdog 수신을 확인하지 못하면 <code>observe</code>로 되돌립니다.</p>
+<ol>
+<li><code>terraform/alert-bridge</code> apply 완료 확인</li>
+<li><code>packages/infra-alert-bridge</code>에서 D1 migration 실행</li>
+<li>Worker <code>GET /healthz</code>와 cron heartbeat 확인</li>
+<li>Alertmanager receiver가 bridge <code>POST /alertmanager</code>와 bearer token을 사용하는지 확인</li>
+<li>실제 선언된 receiver의 대상인 <code>#infra-alerts</code>에서 firing/resolved/update 메시지가 같은 thread로 정상 생성되는지 확인. bridge의 <code>#infra-audit</code> 지원만으로 감사 채널 전송을 가정하지 않으며, 전용 receiver 추가 시 별도 검증</li>
+<li>rollback window 동안 legacy Slack webhook secret 유지</li>
+<li>안정화 후 <code>incoming-webhook</code> Slack scope와 webhook SOPS key 제거</li>
+</ol>
+<p>healthchecks.io webhook integration은 아직 legacy Slack integration을 유지합니다. 이후 bridge <code>POST /healthchecks</code>와 bearer token으로 전환합니다. Worker 장애가 Watchdog ping 자체를 막지 않도록 <code>rho-alertmanager-watchdog</code>은 healthchecks.io로 직접 ping합니다.</p>
+<h3 id="loki-rho">Loki (rho)<a class="headerlink" href="#loki-rho" title="Permanent link">&para;</a></h3>
+<ul>
+<li>리텐션: 기본 7일, 감사·원본 접근·Nextcloud 스트림(<code>log_type=~"ssh|ssh_bastion|access_audit|audit|authentik|headscale|postgresql_audit|nginx_access|nextcloud"</code>)은 90일</li>
+<li><code>headscale_nodes</code> 스냅샷은 반복 상태 데이터라 기본 7일 적용</li>
+<li>스토리지: 로컬 파일시스템 (<code>/var/lib/loki</code>)</li>
+</ul>
+<h3 id="gatus-eta">Gatus (eta)<a class="headerlink" href="#gatus-eta" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Pull 방식: eta에서 직접 접근 가능한 서비스 (Authentik, Headscale, Upterm 등)</li>
+<li>Push 방식: 내부 서비스가 로컬/사용자 경로를 확인한 뒤 상태 보고</li>
+<li>접근: eta 공개 vhost에서 Authentik Forward Auth로 보호. tailnet 장애 중에도 열람 가능. push API(<code>/api/v1/endpoints/*/external</code>)는 공개 경로에서 404이고 wg-admin <code>:8081</code>로만 받음</li>
+<li>저장소: SQLite (<code>/var/lib/gatus/gatus.sqlite</code>)로 재시작 후 uptime 유지</li>
+<li>External endpoint heartbeat: 15분 동안 push가 없으면 실패 처리</li>
+<li>그룹: <code>apps</code>, <code>ai</code>, <code>ci</code>, <code>monitoring</code>, <code>platform</code>, <code>storage</code></li>
+<li>기본 정렬: group 기준</li>
+<li>알림: Gatus 직접 전송 없음. <code>observe</code>에서는 외부 알림을 보내지 않습니다. 서비스 경보는 등록된 probe와 대응 정책을 기준으로 평가합니다.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-circle-arrow-up" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16 12-4-4-4 4M12 16V8"/></svg>
+  맨위로
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="하단/푸터" >
+        
+          
+          <a href="../deployment/" class="md-footer__link md-footer__link--prev" aria-label="이전: 배포">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7M19 12H5"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                이전
+              </span>
+              <div class="md-ellipsis">
+                배포
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../backup/" class="md-footer__link md-footer__link--next" aria-label="다음: 백업">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                다음
+              </span>
+              <div class="md-ellipsis">
+                백업
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" class="lucide lucide-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2025 SBEE Lab
+    </div>
+  
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/sbee-lab" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M216.5 362.5c-66-8-112.5-55.5-112.5-117 0-25 9-52 24-70-6.5-16.5-5.5-51.5 2-66 20-2.5 47 8 63 22.5 19-6 39-9 63.5-9s44.5 3 62.5 8.5c15.5-14 43-24.5 63-22 7 13.5 8 48.5 1.5 65.5 16 19 24.5 44.5 24.5 70.5 0 61.5-46.5 108-113.5 116.5 17 11 28.5 35 28.5 62.5v52c0 15 12.5 23.5 27.5 17.5C441 459.5 512 369 512 257 512 115.5 397 0 255.5 0S0 115.5 0 257c0 111 70.5 203 165.5 237.5 13.5 5 26.5-4 26.5-17.5v-40c-7 3-16 5-24 5-33 0-52.5-18-66.5-51.5-5.5-13.5-11.5-21.5-23-23-6-.5-8-3-8-6 0-6 10-10.5 20-10.5 14.5 0 27 9 40 27.5 10 14.5 20.5 21 33 21s20.5-4.5 32-16c8.5-8.5 15-16 21-21"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://sjanglab.org" target="_blank" rel="noopener" title="sjanglab.org" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.3.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2026 Fonticons, Inc.--><path fill="currentColor" d="M351.9 280H161c2.9 64.5 17.2 123.9 37.5 167.4 11.4 24.5 23.7 41.8 35.1 52.4 11.2 10.5 18.9 12.2 22.9 12.2s11.7-1.7 22.9-12.2c11.4-10.6 23.7-28 35.1-52.4 20.3-43.5 34.6-102.9 37.5-167.4zm-191-48h190.9c-2.8-64.5-17.1-123.9-37.4-167.4-11.4-24.4-23.7-41.8-35.1-52.4C268.1 1.7 260.4 0 256.4 0s-11.7 1.7-22.9 12.2c-11.4 10.6-23.7 28-35.1 52.4-20.3 43.5-34.6 102.9-37.5 167.4m-48 0c3.5-85.6 25.6-165.1 57.9-217.3C78.7 47.3 10.9 131.2 1.5 232zM1.5 280c9.4 100.8 77.2 184.7 169.3 217.3-32.3-52.2-54.4-131.7-57.9-217.3zm398.4 0c-3.5 85.6-25.6 165.1-57.9 217.3 92.1-32.7 159.9-116.5 169.3-217.3zm111.4-48C501.9 131.2 434.1 47.3 342 14.7c32.3 52.2 54.4 131.7 57.9 217.3z"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      
+      
+        
+        
+      <script id="__config" type="application/json">{"annotate":null,"base":"../..","features":["announce.dismiss","content.action.edit","content.action.view","content.code.annotate","content.code.copy","content.code.select","content.footnote.tooltips","content.tabs.link","content.tooltips","navigation.footer","navigation.indexes","navigation.path","navigation.sections","navigation.tabs","navigation.top","search.highlight","search.suggest"],"redirect":null,"search":"../../assets/javascripts/workers/search.7d14d953.min.js","tags":null,"translations":{"clipboard.copied":"클립보드에 복사됨","clipboard.copy":"클립보드로 복사","search.result.more.one":"이 문서에서 1개의 검색 결과 더 보기","search.result.more.other":"이 문서에서 #개의 검색 결과 더 보기","search.result.none":"검색어와 일치하는 문서가 없습니다","search.result.one":"1개의 일치하는 문서","search.result.other":"#개의 일치하는 문서","search.result.placeholder":"검색어를 입력하세요","search.result.term.missing":"포함되지 않은 검색어","select.version":"버전 선택"},"version":null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.8dcc8e9c.min.js"></script>
+      
+    
+  </body>
+</html>
