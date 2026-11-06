@@ -6,6 +6,7 @@ the consuming service's SOPS configuration.
 
 - `infra-alerts/`: Slack bot for infrastructure alert delivery
 - `nextcloud_integration/`: user OAuth app for Nextcloud file sharing
+- `quorum/`: Rami bot for the quorum agent and conversation collector
 - `sjanglab-login/`: Sign in with Slack for Authentik
 
 Slack App creation, installation, and drift checks use the packaged Slack CLI
