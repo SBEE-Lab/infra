@@ -1,10 +1,19 @@
 # SBEE-Lab Login Slack app
 
-Sign in with Slack for Authentik. The app has no bot user and requests only
-the OpenID Connect user scopes; Authentik's `slack` source
-(`terraform/authentik/sources.tf`) consumes it. Its client ID and secret live
-in `terraform/authentik/secrets.yaml` as `SLACK_LOGIN_CLIENT_ID` and
-`SLACK_LOGIN_CLIENT_SECRET`.
+Sign in with Slack for Authentik, and the event source for
+`packages/slack-group-sync`, which keeps Authentik groups equal to Slack user
+groups.
+
+- Sign in: the OpenID Connect user scopes, consumed by Authentik's `slack`
+  source (`terraform/authentik/sources.tf`). The client ID and secret live in
+  `terraform/authentik/secrets.yaml` as `SLACK_LOGIN_CLIENT_ID` and
+  `SLACK_LOGIN_CLIENT_SECRET`.
+- Group sync: a bot with `usergroups:read` and `users:read` only, and Socket
+  Mode with user group and user events. The bot token and the app-level token
+  (`connections:write`) live in `modules/authentik/secrets.yaml` as
+  `slack-group-sync-slack-bot-token` and `slack-group-sync-slack-app-token`.
+  Run one sync process per app: Socket Mode connections of the same app share
+  its events.
 
 The source has no enrollment flow: a Slack identity signs in only after it is
 linked to an existing Authentik user.

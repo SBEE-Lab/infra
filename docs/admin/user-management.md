@@ -137,9 +137,11 @@ Authentik은 웹 서비스(Nextcloud, Vaultwarden, n8n)의 SSO 인증과 Headsca
 
 ### 사용자 추가
 
+역할 그룹(`sjanglab-researchers`, `sjanglab-students`, `sjanglab-staff`)의 멤버는 Slack user group(`@researchers`, `@students`, `@staff`)이 정합니다. eta의 `slack-group-sync`가 Slack 그룹 변경을 받아 몇 초 안에 Authentik 그룹을 맞춥니다. Authentik UI에서 이 세 그룹을 바꾸면 다음 동기화가 되돌립니다. `sjanglab-admins`는 동기화하지 않으며 Authentik UI에서 관리합니다.
+
+1. 요청자를 Slack에 초대하고, 역할에 맞는 Slack user group에 넣습니다
 1. Slack 관리 화면에서 요청자의 member id(`U…`)를 확인합니다
 1. Authentik UI의 Directory → Users에서 사용자를 만듭니다. username과 email은 요청자의 이메일로 합니다
-1. 역할에 맞는 그룹(`sjanglab-researchers`, `sjanglab-students`, `sjanglab-staff`)에 넣습니다
 1. Slack 연결을 만듭니다. Authentik API와 UI는 다른 사용자의 연결을 만들 수 없으므로 eta에서 직접 만듭니다:
 
 ```bash
@@ -147,18 +149,26 @@ ssh eta
 sudo ak shell -c 'from authentik.core.models import User; from authentik.sources.oauth.models import OAuthSource, UserOAuthSourceConnection; print(UserOAuthSourceConnection.objects.get_or_create(user=User.objects.get(username="<username>"), source=OAuthSource.objects.get(slug="slack"), defaults={"identifier": "<U…>"}))'
 ```
 
-연결이 생기면 요청자는 바로 Slack으로 로그인할 수 있습니다.
+연결이 생기면 동기화가 Slack 그룹에 맞춰 Authentik 그룹을 넣고, 요청자는 바로 Slack으로 로그인할 수 있습니다.
+
+### 역할 변경
+
+Slack user group을 옮기면 됩니다. 동기화는 새 그룹을 먼저 넣고 이전 그룹을 빼므로, 옮기는 동안 접근이 끊기지 않습니다.
 
 ### ACL 정책 반영
 
-Headscale ACL에는 사용자별 membership이 없습니다. 사용자 추가·변경은 Authentik UI에서 끝나고, Headscale OIDC `allowed_groups`가 Authentik 그룹으로 VPN 로그인을 인가합니다. `terraform/headscale`은 관리자 목록이 바뀔 때만 apply합니다.
+Headscale ACL에는 사용자별 membership이 없습니다. 사용자 추가·변경은 Slack user group에서 끝나고, Headscale OIDC `allowed_groups`가 Authentik 그룹으로 VPN 로그인을 인가합니다. `terraform/headscale`은 관리자 목록이 바뀔 때만 apply합니다.
 
 ### 사용자 비활성화
 
-졸업·퇴사 시 두 곳에서 처리합니다. Slack만 비활성화하면 새 로그인만 막히고, 이미 열린 세션과 refresh token은 남습니다.
+졸업·퇴사 시 Slack에서 처리합니다.
 
-1. Slack에서 계정을 비활성화합니다
-1. Authentik UI의 Directory → Users에서 사용자를 비활성화합니다. 다음 요청부터 Authentik 세션과 앱 token 갱신이 거부됩니다
+1. Slack user group에서 뺍니다. 동기화가 Authentik 역할 그룹에서 빼므로 앱 접근이 끊깁니다
+1. Slack에서 계정을 비활성화합니다. 동기화가 Authentik 계정도 비활성화하고 `slack-group-sync/deactivated` 표시를 남깁니다. Slack에서 다시 활성화하면 이 표시가 있는 계정만 다시 활성화됩니다
+
+이미 열린 앱 세션은 앱이 만료시킬 때까지 남습니다. 즉시 끊어야 하면 Authentik UI의 Directory → Users에서 직접 비활성화합니다. 직접 비활성화한 계정은 동기화가 다시 활성화하지 않습니다.
+
+동기화의 동작과 안전장치는 `packages/slack-group-sync/README.md`를 참조하세요.
 
 ______________________________________________________________________
 
