@@ -39,10 +39,7 @@ in
       oauthId = "Iv23liVojH0Fo2OIQ24f";
       oauthSecretFile = config.sops.secrets.github-oauth-secret.path;
       topic = "build-with-buildbot";
-      userAllowlist = [
-        "SBEE-Lab"
-        "mulatta"
-      ];
+      userAllowlist = [ "SBEE-Lab" ];
     };
 
     admins = [ "github:mulatta" ];
