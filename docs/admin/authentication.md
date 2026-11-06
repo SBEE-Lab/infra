@@ -12,6 +12,7 @@
 - Slack 앱은 `slack/sjanglab-login/`입니다.
 - 그룹 동기화(`slack-group-sync`)도 이 앱의 bot(`usergroups:read`, `users:read`)과 Socket Mode를 씁니다.
 - 사용자는 Slack member id(`U…`)로 식별합니다. 연결(connection)이 있는 계정은 로그인만 하며, 로그인이 계정 정보를 바꾸지 않습니다.
+- 연결이 없는 SBEE Lab workspace 멤버가 처음 로그인하면 `slack-enrollment` flow가 계정을 만들어 `sjanglab-pending`에 넣습니다. 다른 workspace의 Slack 계정은 거부됩니다.
 
 ### 비상 접근 (break-glass) { #break-glass }
 

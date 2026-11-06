@@ -144,6 +144,10 @@ Authentik은 웹 서비스(Nextcloud, Vaultwarden, n8n)의 SSO 인증과 Headsca
 역할 그룹(`sjanglab-researchers`, `sjanglab-students`, `sjanglab-staff`)의 멤버는 Slack user group(`@researchers`, `@students`, `@staff`)이 정합니다. eta의 `slack-group-sync`가 Slack 그룹 변경을 받아 몇 초 안에 Authentik 그룹을 맞춥니다. Authentik UI에서 이 세 그룹을 바꾸면 다음 동기화가 되돌립니다. `sjanglab-admins`는 동기화하지 않으며 Authentik UI에서 관리합니다.
 
 1. 요청자를 Slack에 초대하고, 역할에 맞는 Slack user group에 넣습니다
+1. 요청자가 `https://auth.sjanglab.org`에서 Slack으로 처음 로그인하면 계정이 만들어집니다. username과 email은 Slack 이메일, 이름은 Slack 실명이며, `sjanglab-pending` 그룹에 들어갑니다
+1. 동기화가 Slack user group에 맞춰 역할 그룹을 넣고 `sjanglab-pending`에서 뺍니다. 요청자는 그때부터 앱을 쓸 수 있습니다
+
+Slack user group에 넣기 전에 로그인한 사람은 `sjanglab-pending`에 머물며 어떤 앱도 쓸 수 없습니다. 승인 대기자는 Authentik UI의 `sjanglab-pending` 그룹에서 볼 수 있습니다. 가입은 SBEE Lab workspace의 Slack 계정만 가능합니다.
 
 ### 역할 변경
 
