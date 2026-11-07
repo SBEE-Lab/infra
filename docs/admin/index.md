@@ -69,6 +69,7 @@ Terraform이 Authentik 그룹과 Headscale ACL policy를 같은 사용자 invent
 - [모니터링](monitoring.md) — Grafana, Prometheus, Loki, Gatus
 - [백업](backup.md) — 로컬 Borg·eta R2 Restic의 범위, 점검과 복구
 - [CI/CD](ci-cd.md) — Nixbot, Nix 바이너리 캐시
+- [k3s](k3s.md) — psi k3s GPU 스케줄링과 containerd 캐시
 - [아키텍처](architecture.md) — 전체 구조, 호스트 역할, 기술 스택
 - [아키텍처 도식](architecture-diagrams.md) — 전체/인증/네트워크/백업/관측/운영/CI 도식 묶음
 - [모듈 개발](module-development.md) — NixOS 모듈 작성 가이드

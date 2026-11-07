@@ -44,6 +44,7 @@ nav = [
     { "모니터링" = "admin/monitoring.md" },
     { "백업" = "admin/backup.md" },
     { "CI/CD" = "admin/ci-cd.md" },
+    { "k3s" = "admin/k3s.md" },
     { "아키텍처" = "admin/architecture.md" },
     { "아키텍처 도식" = [
       { "도식 모음" = "admin/architecture-diagrams.md" },

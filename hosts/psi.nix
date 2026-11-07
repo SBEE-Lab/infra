@@ -30,7 +30,7 @@ in
     ../modules/disko/xfs-mdadm.nix
     ../modules/disko/xfs-project-quota.nix
     ../modules/nvidia.nix
-    ../modules/k3s.nix
+    ../modules/k3s
     ../modules/tailscale
     ../modules/buildbot/database.nix
     ../modules/buildbot/master.nix
@@ -57,6 +57,7 @@ in
         mountpoint = "/workspace";
         extraXfsOptions = [
           "allocsize=16m"
+          "pquota"
         ];
       };
       # HDD RAID1 for data (30TB usable)
@@ -76,10 +77,59 @@ in
 
   disko.xfsProjectQuotas = {
     enable = true;
+    filesystems."/workspace".projects.k3s-containerd = {
+      id = 1002;
+      path = "/workspace/.system/k3s-containerd";
+      blockHardLimit = "2t";
+    };
     filesystems."/".projects.blobs = {
       id = 1001;
       path = "/blobs";
       blockHardLimit = "200g";
+    };
+  };
+
+  services.k3s.extraKubeletConfig.systemReserved = {
+    cpu = "24";
+    memory = "96Gi";
+  };
+
+  # Disposable image/snapshot cache belongs on NVMe RAID0, outside borg's
+  # --one-file-system root backup. Kubernetes control-plane state stays on root.
+  fileSystems."/var/lib/rancher/k3s/agent/containerd" = {
+    device = "/workspace/.system/k3s-containerd";
+    fsType = "none";
+    options = [
+      "bind"
+      "x-systemd.requires=k3s-cache-directory.service"
+      "x-systemd.after=k3s-cache-directory.service"
+    ];
+    depends = [ "/workspace" ];
+  };
+  systemd.tmpfiles.rules = [
+    "d /workspace/.system 0700 root root -"
+    "d /workspace/.system/k3s-containerd 0700 root root -"
+  ];
+  systemd.services.k3s = {
+    requires = [ "xfs-project-quota-workspace.service" ];
+    after = [ "xfs-project-quota-workspace.service" ];
+    unitConfig.RequiresMountsFor = [ "/var/lib/rancher/k3s/agent/containerd" ];
+  };
+  systemd.services.xfs-project-quota-workspace = {
+    after = [ "k3s-cache-directory.service" ];
+    requires = [ "k3s-cache-directory.service" ];
+    unitConfig.RequiresMountsFor = [ "/workspace" ];
+  };
+  # The bind mount is part of local-fs.target, before the normal tmpfiles pass.
+  systemd.services.k3s-cache-directory = {
+    unitConfig = {
+      DefaultDependencies = false;
+      RequiresMountsFor = [ "/workspace" ];
+    };
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = "${pkgs.systemd}/bin/systemd-tmpfiles --create --prefix=/workspace/.system";
     };
   };
 
