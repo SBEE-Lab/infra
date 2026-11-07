@@ -20,7 +20,11 @@ let
   ++ lib.optional (
     config.disko.xfsMdadm.arrays ? workspace
   ) config.disko.xfsMdadm.arrays.workspace.mountpoint
-  ++ lib.optional postgresEnabled config.services.postgresql.dataDir;
+  ++ lib.optional postgresEnabled config.services.postgresql.dataDir
+  # Images and build cache are re-pullable or rebuildable, and dominate the backup size.
+  ++ lib.optional config.virtualisation.docker.enable (
+    config.virtualisation.docker.daemon.settings.data-root or "/var/lib/docker"
+  );
   job = config.services.borgbackup.jobs.local;
   acquireLock = ''
     exec 9>${lockDir}/workflow.lock
