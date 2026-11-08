@@ -34,11 +34,11 @@
         "uv2nix": "uv2nix"
       },
       "locked": {
-        "lastModified": 1793625125,
-        "narHash": "sha256-wdXOj2WbBFBDbQrQxrSgn+Ycw9XW3VGxSJX01436XwQ=",
+        "lastModified": 1793704918,
+        "narHash": "sha256-eGM+VE7rQ9k0leDmIFxFsuUFeGlffykSsIXvcNh4U1M=",
         "owner": "nix-community",
         "repo": "authentik-nix",
-        "rev": "0fc4898f336e6c8f4ff4ea1bcd53a1b38ba53928",
+        "rev": "5d339402a75b5ee823e3aeb62ea32a11ece756c5",
         "type": "github"
       },
       "original": {
