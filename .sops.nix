@@ -19,6 +19,7 @@ let
     admin = [
       # admins may access all secrets
       seungwon
+      seungwon-citra
     ];
     all = builtins.attrValues (keys.users // keys.machines);
   };
