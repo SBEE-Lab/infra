@@ -67,7 +67,7 @@ let
         "tau"
       ];
       "modules/buildbot/secrets.yaml" = [ "psi" ];
-      "modules/container-registry/secrets.yaml" = [ "eta" ];
+      "modules/container-registry/secrets.yaml" = [ "psi" ];
       "modules/monitoring/secrets.yaml" = [ "rho" ];
       "modules/n8n/secrets.yaml" = [ "tau" ];
       "terraform/authentik/neko-secrets.yaml" = [ "rho" ];

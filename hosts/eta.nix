@@ -75,7 +75,7 @@ in
     ./eta/restic
     ../modules/buildbot/edge-proxy.nix
     ../modules/gitea-mq
-    ../modules/container-registry
+    ../modules/container-registry/edge-proxy.nix
     ../modules/nginx/edge.nix
     ../modules/niks3/edge-proxy.nix
     ../modules/uptermd

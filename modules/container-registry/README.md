@@ -1,32 +1,64 @@
 # Container Registry
 
-`registry.sjanglab.org` is a public-pull OCI Distribution registry backed by the
-private Cloudflare R2 `container-registry` bucket.
+`registry.sjanglab.org` is a private zot OCI registry. zot runs on psi and
+stores images on the `/data` HDD array. eta terminates public TLS and proxies to
+psi over wg-admin; on psi the name resolves to the local nginx vhost, so k3s,
+docker and skopeo pull from local disk without leaving the host.
 
-## Access model
+## Repository layout
 
-- Pulls are anonymous.
-- `docker-push-bot` may pull and push any repository.
-- `registry-admin` may pull, push, and delete any repository. This account is
-  reserved for manual retention and recovery work.
-- HTTP deletion remains enabled so `registry-admin` can remove manifests and
-  offline garbage collection can remove the resulting unreferenced blobs.
-- Tagged manifests and referenced layers have no age-based retention policy.
+- `research/<project>/<image>:<version>` for project images.
+- `research/base/<image>:<version>` for shared runtimes such as PyTorch.
+- `infra/<image>:<version>` for service and CI images.
+
+Other paths are reserved for administrators. CI keeps its BuildKit cache next to
+each image as `<image>-cache:buildkit`.
 
 Only publish redistributable build artifacts. Images must not contain model
 parameters, research data, internal source code, credentials, or software whose
 license prohibits redistribution.
 
-## Health image
+## Access model
 
-Use the data-only OCI health image for anonymous pull checks:
+Every request needs a login; there is no anonymous pull.
 
-```text
-registry.sjanglab.org/sjanglab/registry-healthcheck@sha256:1634c441a4f34568a2c451544653bee64c85cee0030a778be1a8a9612233729c
+| Identity | `research/**` | `infra/**` |
+| --- | --- | --- |
+| `sjanglab-admins`, `registry-admin` | read, push, overwrite, delete | same |
+| `docker-push-bot` | read, push, overwrite tags | same |
+| `sjanglab-researchers` | read, push new tags | none |
+| `sjanglab-students` | read | none |
+
+Researchers cannot overwrite a published tag, so a version always names the
+same image. `registry-admin` is a break-glass account for recovery when
+authentik is unavailable. There is no retention policy; images stay until an
+administrator deletes them.
+
+## Member login
+
+Sign in to <https://registry.sjanglab.org> with authentik. docker and skopeo
+cannot use OIDC, so create an API key in the web UI with a 30-day expiry and
+use it as the password:
+
+```bash
+docker login registry.sjanglab.org --username <slack email> --password-stdin
 ```
 
-Tag `v1` points to this digest. The image contains only `README.txt` and may be
-used for anonymous pull checks.
+The username is the authentik account name, which is the Slack email.
+
+An API key keeps the groups its owner had at their last web login. Removing a
+member from authentik does not revoke keys they already created, and only the
+owner can delete a key, so keep keys short-lived.
+
+## Image format
+
+zot accepts both OCI and Docker manifests and stores them unchanged. Prefer OCI
+for new pipelines because it allows zstd layers and manifest annotations:
+
+```bash
+skopeo copy --format oci docker-archive:./image.tar docker://registry.sjanglab.org/research/project/name:tag
+docker buildx build --output type=image,name=registry.sjanglab.org/research/project/name:tag,push=true,oci-mediatypes=true .
+```
 
 ## CI login
 
@@ -59,9 +91,9 @@ sops -d --extract '["container-registry-admin-password"]' \
   docker login registry.sjanglab.org --username registry-admin --password-stdin
 ```
 
-Use this account only for manual retention and recovery work. Deleting a
-manifest makes its exclusive blobs eligible for the next offline garbage
-collection pass.
+The same credentials log in to the web UI, where tags can also be deleted.
+zot garbage-collects blobs that are no longer referenced while it keeps
+serving requests.
 
 ## Credential rotation
 
@@ -69,16 +101,12 @@ collection pass.
    process arguments.
 2. Replace both password and password-hash keys for the account being rotated
    in `secrets.yaml`.
-3. Deploy eta. `sops-nix` restarts `docker-auth.service` after rendering the new
-   hash.
+3. Deploy psi. `sops-nix` restarts `zot.service` after rendering the new
+   htpasswd file.
 4. Replace the CI secret and verify login before removing old runner state.
 
-## Storage maintenance
+## Storage
 
-The daily garbage-collection unit stops Distribution before its mark-and-sweep
-pass, then starts it again. This prevents concurrent uploads from being mistaken
-for unreachable data. Garbage collection does not delete tagged images.
-
-R2 credentials must remain Object Read & Write scoped to only the
-`container-registry` bucket. Large blob pulls receive signed R2 redirects;
-manifest and token traffic continues through eta.
+Blobs, the dedupe index and metaDB live in `/data/zot`. Repeated blobs are
+hardlinked, so each layer is stored once. The store is not backed up; if it is
+lost, let CI push all images again.

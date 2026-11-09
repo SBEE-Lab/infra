@@ -1,68 +1,37 @@
-# Public Docker/OCI Registry and token-auth endpoint on eta.
-{
-  containerRegistry,
-  ...
-}:
+# Public ingress for the zot registry and web UI, which run on psi.
+{ config, ... }:
 let
+  inherit (config.networking.sbee) hosts;
+  domain = "registry.sjanglab.org";
   nginxStatusPort = 9114;
-
-  proxyHeaders = ''
-    proxy_http_version 1.1;
-    proxy_set_header Connection "";
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_connect_timeout 5s;
-  '';
-
-  authLocation = {
-    proxyPass = "http://${containerRegistry.auth.address}:${toString containerRegistry.auth.port}";
-    extraConfig = ''
-      client_max_body_size 64k;
-      client_body_timeout 10s;
-      send_timeout 30s;
-      proxy_send_timeout 30s;
-      proxy_read_timeout 30s;
-
-      limit_req zone=container_registry_auth burst=40 nodelay;
-      limit_req zone=container_registry_basic_auth burst=10 nodelay;
-      limit_req_status 429;
-      limit_conn container_registry_per_ip 10;
-      limit_conn_status 429;
-
-      limit_except GET POST {
-        deny all;
-      }
-
-      ${proxyHeaders}
-    '';
-  };
 in
 {
-  services.sbee.nginx.edgeVhosts.${containerRegistry.domain} = { };
   imports = [
+    ../acme/sync.nix
+    ../gatus/check.nix
     ../monitoring/audit/nginx-access-logs.nix
   ];
 
-  services.sbee.nginxAccessLogs.services.${containerRegistry.domain} = "container-registry";
+  services.sbee.nginx.edgeVhosts.${domain} = { };
+  services.sbee.nginxAccessLogs.services.${domain} = "container-registry";
+
+  acmeSyncer.mkSender = [
+    {
+      inherit domain;
+      serviceName = "acme-sync-registry-to-psi";
+      remoteUser = "acme-sync-registry";
+      remoteHost = hosts.psi.wg-admin;
+    }
+  ];
 
   services.nginx = {
     recommendedTlsSettings = true;
 
     commonHttpConfig = ''
-      map $http_authorization $container_registry_basic_auth_client {
-        default "";
-        ~*^Basic\s+ $binary_remote_addr;
-      }
-
-      limit_req_zone $binary_remote_addr zone=container_registry_auth:10m rate=20r/s;
-      limit_req_zone $container_registry_basic_auth_client zone=container_registry_basic_auth:10m rate=1r/s;
       limit_conn_zone $binary_remote_addr zone=container_registry_per_ip:10m;
     '';
 
-    virtualHosts.${containerRegistry.domain} = {
-
+    virtualHosts.${domain} = {
       extraConfig = ''
         add_header Strict-Transport-Security "max-age=31536000" always;
         access_log /var/log/nginx/access-audit/container-registry.log nginx_access_json;
@@ -71,11 +40,13 @@ in
         limit_conn_status 429;
       '';
 
-      locations."= /v2".return = "308 /v2/";
-
-      locations."/v2/" = {
-        proxyPass = "http://${containerRegistry.registry.address}:${toString containerRegistry.registry.port}";
+      # zot serves the registry API, its own /zot API and the UI from one origin.
+      locations."/" = {
+        proxyPass = "https://${hosts.psi.wg-admin}";
         extraConfig = ''
+          proxy_ssl_server_name on;
+          proxy_ssl_name ${domain};
+
           client_max_body_size 50g;
           client_body_timeout 300s;
           send_timeout 300s;
@@ -84,14 +55,15 @@ in
           proxy_request_buffering off;
           proxy_buffering off;
 
-          ${proxyHeaders}
+          proxy_http_version 1.1;
+          proxy_set_header Connection "";
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Forwarded-Proto $scheme;
+          proxy_connect_timeout 5s;
         '';
       };
-
-      # docker_auth exposes both Distribution and OAuth-compatible token paths.
-      locations."= /auth" = authLocation;
-      locations."= /auth/token" = authLocation;
-      locations."/".return = "404";
     };
 
     virtualHosts.nginx-status = {
@@ -116,4 +88,16 @@ in
     scrapeUri = "http://127.0.0.1:${toString nginxStatusPort}/nginx_status";
   };
 
+  gatusCheck.pull = [
+    {
+      name = "Container Registry";
+      url = "https://${domain}/v2/";
+      group = "storage";
+      # Every repository requires a login, so a healthy registry challenges.
+      conditions = [
+        "[STATUS] == 401"
+        "[CERTIFICATE_EXPIRATION] > 720h"
+      ];
+    }
+  ];
 }

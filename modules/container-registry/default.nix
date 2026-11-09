@@ -1,159 +1,162 @@
 {
   config,
-  lib,
   ...
 }:
 let
-  containerRegistry = {
-    domain = "registry.sjanglab.org";
-    issuer = "sjanglab-container-registry";
-    signingCertificate = ./token-signing.crt;
-    secretsFile = ./secrets.yaml;
-
-    registry = {
-      address = "127.0.0.1";
-      port = 5000;
-    };
-    auth = {
-      address = "127.0.0.1";
-      port = 5001;
-    };
-  };
-
-  r2Endpoint = "0572d3fa726276fa78f433d5ba90048e.r2.cloudflarestorage.com";
-  bucket = "container-registry";
+  domain = "registry.sjanglab.org";
+  secretsFile = ./secrets.yaml;
+  pushBot = "docker-push-bot";
+  admin = "registry-admin";
+  credential = name: "/run/credentials/zot.service/${name}";
+  # CI overwrites the <image>-cache:buildkit tag on every build.
+  pushActions = [
+    "read"
+    "create"
+    "update"
+  ];
 in
 {
   imports = [
-    ./auth.nix
-    ./edge-proxy.nix
+    ../zot
+    ./reverse-proxy.nix
   ];
 
-  _module.args = { inherit containerRegistry; };
-
-  services.dockerRegistry = {
+  services.zot = {
     enable = true;
-    listenAddress = containerRegistry.registry.address;
-    port = containerRegistry.registry.port;
-    storagePath = null;
-    enableDelete = true;
-    enableGarbageCollect = true;
-    garbageCollectDates = "*-*-* 04:30:00";
-
-    extraConfig = {
+    credentials = {
+      htpasswd = config.sops.templates.zot-htpasswd.path;
+      "oidc.json" = config.sops.templates.zot-oidc.path;
+      "session-keys.json" = config.sops.templates.zot-session-keys.path;
+    };
+    settings = {
+      distSpecVersion = "1.1.1";
       storage = {
-        s3 = {
-          region = "auto";
-          regionendpoint = "https://${r2Endpoint}";
-          inherit bucket;
-          rootdirectory = "/registry";
-          encrypt = false;
-          secure = true;
-          v4auth = true;
-          chunksize = 5242880;
-          multipartcopychunksize = 33554432;
-          multipartcopymaxconcurrency = 10;
-          multipartcopythresholdsize = 33554432;
+        # Blobs, the dedupe index and metaDB live on the HDD array; images are
+        # reproducible, so the store is not backed up.
+        rootDirectory = "/data/zot";
+        dedupe = true;
+        gc = true;
+      };
+      http = {
+        address = "127.0.0.1";
+        port = "5000";
+        realm = domain;
+        # OIDC redirect URIs are built from this rather than the proxied Host.
+        externalUrl = "https://${domain}";
+        # The 60s defaults cover a whole request body, so a single-PATCH
+        # multi-GB layer push fails; match nginx's 1800s proxy timeouts.
+        readTimeout = "30m";
+        writeTimeout = "30m";
+        # Accept Docker media types so default docker/skopeo pushes and Docker
+        # Hub mirrors work; zot stores them as-is without converting to OCI.
+        compat = [ "docker2s2" ];
+        auth = {
+          htpasswd.path = credential "htpasswd";
+          # Every registry request carries Basic credentials, so nginx cannot
+          # rate-limit login attempts separately; slow failures down instead.
+          failDelay = 5;
+          # Lab members sign in to the UI through authentik; docker and skopeo
+          # cannot run OIDC, so they log in with an API key created in the UI.
+          # A key keeps the groups from its owner's last UI login, so removing
+          # someone in authentik does not revoke keys they already hold.
+          openid.providers.oidc = {
+            name = "authentik";
+            issuer = "https://auth.sjanglab.org/application/o/registry/";
+            credentialsFile = credential "oidc.json";
+            scopes = [
+              "openid"
+              "profile"
+              "email"
+              "groups"
+            ];
+            claimMapping.username = "preferred_username";
+          };
+          apikey = true;
+          # Fixed keys keep UI sessions valid across zot restarts.
+          sessionKeysFile = credential "session-keys.json";
         };
-        redirect.disable = false;
+        # Only research/ and infra/ exist for non-admins; any other repository
+        # matches no pattern and is denied. zot applies the single longest
+        # matching pattern, so a more specific pattern must restate every
+        # policy it should keep.
+        accessControl = {
+          repositories = {
+            "research/**".policies = [
+              {
+                users = [ pushBot ];
+                actions = pushActions;
+              }
+              {
+                # Without update a published tag cannot be overwritten.
+                groups = [ "sjanglab-researchers" ];
+                actions = [
+                  "read"
+                  "create"
+                ];
+              }
+              {
+                groups = [ "sjanglab-students" ];
+                actions = [ "read" ];
+              }
+            ];
+            "infra/**".policies = [
+              {
+                users = [ pushBot ];
+                actions = pushActions;
+              }
+            ];
+          };
+          adminPolicy = {
+            users = [ admin ];
+            groups = [ "sjanglab-admins" ];
+            actions = pushActions ++ [ "delete" ];
+          };
+        };
       };
-
-      auth.token = {
-        realm = "https://${containerRegistry.domain}/auth";
-        service = containerRegistry.domain;
-        inherit (containerRegistry) issuer;
-        rootcertbundle = toString containerRegistry.signingCertificate;
+      extensions = {
+        search = {
+          enable = true;
+          # Trivy scans blobs from local storage. Each update pulls trivy-db and
+          # the much larger trivy-java-db from ghcr.io, which zot cannot skip,
+          # so refresh daily instead of every 2h.
+          cve.updateInterval = "24h";
+        };
+        ui.enable = true;
       };
+      log.level = "info";
     };
   };
-
-  systemd.services.docker-registry = {
-    after = [ "docker-auth.service" ];
-    wants = [ "docker-auth.service" ];
-    environment.OTEL_TRACES_EXPORTER = "none";
-    serviceConfig = {
-      EnvironmentFile = config.sops.templates.container-registry-env.path;
-      DynamicUser = false;
-      StateDirectory = "docker-registry";
-      WorkingDirectory = lib.mkForce "/var/lib/docker-registry";
-      Restart = "on-failure";
-      RestartSec = "5s";
-
-      CapabilityBoundingSet = "";
-      LockPersonality = true;
-      NoNewPrivileges = true;
-      PrivateDevices = true;
-      PrivateTmp = true;
-      ProtectClock = true;
-      ProtectControlGroups = true;
-      ProtectHome = true;
-      ProtectHostname = true;
-      ProtectKernelLogs = true;
-      ProtectKernelModules = true;
-      ProtectKernelTunables = true;
-      ProtectSystem = "strict";
-      RestrictAddressFamilies = [
-        "AF_INET"
-        "AF_INET6"
-        "AF_UNIX"
-      ];
-      RestrictNamespaces = true;
-      RestrictRealtime = true;
-      SystemCallArchitectures = "native";
-      UMask = "0077";
-    };
-  };
-
-  # Distribution requires an offline registry during garbage collection to
-  # avoid deleting layers uploaded while the mark phase is running.
-  systemd.services.docker-registry-garbage-collect = {
-    after = [ "docker-registry.service" ];
-    environment.OTEL_TRACES_EXPORTER = "none";
-    serviceConfig = {
-      EnvironmentFile = config.sops.templates.container-registry-env.path;
-      TimeoutStartSec = "6h";
-    };
-    script = lib.mkForce ''
-      trap '${config.systemd.package}/bin/systemctl start docker-registry.service || true' EXIT
-      ${config.systemd.package}/bin/systemctl stop docker-registry.service
-      ${config.services.dockerRegistry.package}/bin/registry garbage-collect --delete-untagged ${config.services.dockerRegistry.configFile}
-    '';
-  };
-
-  gatusCheck.pull = [
-    {
-      name = "Container Registry";
-      url = "https://${containerRegistry.domain}/v2/";
-      group = "storage";
-      conditions = [
-        "[STATUS] == 401"
-        "[CERTIFICATE_EXPIRATION] > 720h"
-      ];
-    }
-  ];
 
   sops.secrets = {
-    container-registry-r2-access-key-id = {
-      sopsFile = containerRegistry.secretsFile;
-      owner = "docker-registry";
-    };
-    container-registry-r2-secret-access-key = {
-      sopsFile = containerRegistry.secretsFile;
-      owner = "docker-registry";
-    };
-    container-registry-http-secret = {
-      sopsFile = containerRegistry.secretsFile;
-      owner = "docker-registry";
+    container-registry-docker-push-bot-password-hash.sopsFile = secretsFile;
+    container-registry-admin-password-hash.sopsFile = secretsFile;
+    container-registry-oidc-client-secret.sopsFile = secretsFile;
+    container-registry-session-hash-key.sopsFile = secretsFile;
+    container-registry-session-encrypt-key.sopsFile = secretsFile;
+  };
+
+  # LoadCredential copies the file at start, so account changes need a restart.
+  sops.templates.zot-htpasswd = {
+    restartUnits = [ "zot.service" ];
+    content = ''
+      ${pushBot}:${config.sops.placeholder."container-registry-docker-push-bot-password-hash"}
+      ${admin}:${config.sops.placeholder."container-registry-admin-password-hash"}
+    '';
+  };
+
+  sops.templates.zot-oidc = {
+    restartUnits = [ "zot.service" ];
+    content = builtins.toJSON {
+      clientid = "registry";
+      clientsecret = config.sops.placeholder."container-registry-oidc-client-secret";
     };
   };
 
-  sops.templates.container-registry-env = {
-    owner = "docker-registry";
-    restartUnits = [ "docker-registry.service" ];
-    content = ''
-      REGISTRY_STORAGE_S3_ACCESSKEY=${config.sops.placeholder."container-registry-r2-access-key-id"}
-      REGISTRY_STORAGE_S3_SECRETKEY=${config.sops.placeholder."container-registry-r2-secret-access-key"}
-      REGISTRY_HTTP_SECRET=${config.sops.placeholder."container-registry-http-secret"}
-    '';
+  sops.templates.zot-session-keys = {
+    restartUnits = [ "zot.service" ];
+    content = builtins.toJSON {
+      hashKey = config.sops.placeholder."container-registry-session-hash-key";
+      encryptKey = config.sops.placeholder."container-registry-session-encrypt-key";
+    };
   };
 }
