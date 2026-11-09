@@ -69,7 +69,7 @@ def update_sops_files(c: Any) -> None:
 
     excludes = ["**/minio/secrets.yaml"]
     exclude_args = " ".join([f'--exclude "{e}"' for e in excludes])
-    cmd = f"fd -e yaml {exclude_args} -x sops updatekeys --yes {{}}"
+    cmd = f"fd --hidden -e yaml {exclude_args} -x sops updatekeys --yes {{}}"
 
     result = c.run(cmd, hide=True, warn=True)
 

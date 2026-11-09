@@ -44,6 +44,11 @@ in
         address = "10.100.0.200";
         publicKey = "EeRAyghu9jCEIwiuVEXtkfi9WrEyr+TuqnCgIHktGWg=";
       };
+      seungwon-citra = {
+        owner = "seungwon";
+        address = "10.100.0.201";
+        publicKey = "KTW17Oll/An2l6ikoFjfHeqO2Dx0PyYlJSxoR1wqRBc=";
+      };
     };
 
     networking.sbee.wireguard.wg-admin.peers = lib.mapAttrsToList (_name: peer: {
