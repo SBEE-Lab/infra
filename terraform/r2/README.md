@@ -3,14 +3,11 @@
 This stack owns R2 buckets for object-heavy services:
 
 - `niks3`, plus its public read domain `cache.sjanglab.org`
-- `container-registry`, used by the eta Docker/OCI Registry
 - Stalwart mail blob buckets
 - `eta-restic-backups`, reserved for eta PostgreSQL and Vaultwarden Restic repositories
 
 The niks3 bucket is protected from accidental Terraform destruction because
-niks3 tracks object reachability separately in PostgreSQL. The container registry
-bucket is protected for the same operational reason: registry manifests and R2
-objects must stay consistent.
+niks3 tracks object reachability separately in PostgreSQL.
 
 Each service needs its own R2 S3 API token scoped to Object Read & Write on only
 its bucket. Cloudflare reveals that token's secret once, so bootstrap it outside

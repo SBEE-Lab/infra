@@ -23,7 +23,7 @@ Nix가 provider 버전의 단일 기준입니다. 실행 cache는 unit별 `.terr
 | Unit | 책임 |
 |------|------|
 | `dns` | 공개 ingress가 필요한 Cloudflare DNS. 내부 서비스 이름은 Headscale split DNS |
-| `r2` | 서비스 bucket·custom domain. niks3, OCI Registry, Stalwart blobs, eta Restic 등 |
+| `r2` | 서비스 bucket·custom domain. niks3, Stalwart blobs, eta Restic 등 |
 | `authentik` | 사용자·그룹, proxy/OIDC provider, application, outpost attachment, policy·claim mapping |
 | `headscale` | Authentik과 같은 사용자 inventory에서 생성한 database ACL policy |
 | `healthchecksio` | dead-man checks와 기존 Slack integration 연결 |
