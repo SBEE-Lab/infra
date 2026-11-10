@@ -26,7 +26,6 @@ let
     inherit system;
     overlays = [
       (import ./overlays/stalwart)
-      (import ./overlays/php)
     ];
   };
 
