@@ -415,29 +415,6 @@
         "type": "github"
       }
     },
-    "nixos-images": {
-      "inputs": {
-        "nixos-stable": [
-          "nixpkgs"
-        ],
-        "nixos-unstable": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1791456080,
-        "narHash": "sha256-VDnm81L/1YLrPklNacGCNwpPhHi5Tya1XbfdnCB/Zd0=",
-        "owner": "nix-community",
-        "repo": "nixos-images",
-        "rev": "50939ddf1a0339f289a9dbd810bdfd4e4fba6df4",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nix-community",
-        "repo": "nixos-images",
-        "type": "github"
-      }
-    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1794131412,
@@ -569,7 +546,6 @@
         "nix-grpc-store": "nix-grpc-store",
         "nix-index-database": "nix-index-database",
         "nixbot": "nixbot",
-        "nixos-images": "nixos-images",
         "nixpkgs": "nixpkgs",
         "rhwp": "rhwp",
         "rhwp-nextcloud": "rhwp-nextcloud",
