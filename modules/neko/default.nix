@@ -2,7 +2,6 @@
   config,
   lib,
   pkgs,
-  self,
   ...
 }:
 let
@@ -39,8 +38,6 @@ let
       gateway = "fd89:6e65:6b6f::1";
     };
   };
-
-  image = self.packages.${pkgs.stdenv.hostPlatform.system}.neko-image;
 
   podmanNetworkConfig = (pkgs.formats.json { }).generate "neko-podman-network.json" {
     inherit (network) name;
@@ -281,7 +278,6 @@ in
       podmanNetworkConfig
       chromiumConfig
       chromiumPolicy
-      image
       pkgs.pkgsStatic.socat
     ];
   };
@@ -289,9 +285,7 @@ in
   virtualisation.oci-containers = {
     backend = "podman";
     containers.neko = {
-      image = "${image.imageName}:${image.imageTag}";
-      imageFile = image;
-      pull = "never";
+      image = "ghcr.io/m1k1o/neko/chromium:3.2.0@sha256:270face8b8111e639744fb7bcdbbf0deed227900bb89d58b2f8adfc12af8c41e";
       hostname = "neko";
       networks = [ network.name ];
       environmentFiles = [ config.sops.templates.neko-oauth-env.path ];
