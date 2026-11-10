@@ -60,8 +60,6 @@ in
       dbname = "nextcloud";
       dbuser = "nextcloud";
       dbpassFile = config.sops.secrets.nextcloud-db-password.path;
-      adminpassFile = config.sops.secrets.nextcloud-admin-password.path;
-      adminuser = "admin";
     };
 
     settings = {
@@ -180,11 +178,6 @@ in
   };
 
   sops.secrets.nextcloud-db-password = {
-    sopsFile = ./secrets.yaml;
-    owner = "nextcloud";
-    group = "nextcloud";
-  };
-  sops.secrets.nextcloud-admin-password = {
     sopsFile = ./secrets.yaml;
     owner = "nextcloud";
     group = "nextcloud";
