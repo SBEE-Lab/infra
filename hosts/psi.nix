@@ -40,6 +40,7 @@ in
     ../modules/backup/borg.nix
     ../modules/niks3
     ../modules/vllm
+    ../modules/agentgateway
     ../modules/biodb
     ../modules/biodb/databases.nix
   ];
@@ -85,6 +86,10 @@ in
 
   # Enable periodic TRIM for SSD health
   services.fstrim.enable = true;
+
+  # Routes, client keys and the Naru listener are added with the llama-swap cutover;
+  # until then the gateway only provisions its database and serves the admin socket.
+  services.agentgateway.enable = true;
 
   networking.hostName = "psi";
 

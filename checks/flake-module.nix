@@ -22,7 +22,7 @@
           lib.mapAttrs (_: config: config.config.system.build.toplevel) self.nixosConfigurations
         )
       );
-      # NixOS VM tests for modules no host imports yet; hosts cover the rest.
+      # NixOS VM tests for module behaviour that host builds cannot exercise.
       nixosModules = lib.optionalAttrs (system == "x86_64-linux") {
         nixosModule-agentgateway = pkgs.callPackage ../modules/agentgateway/test.nix { };
       };
