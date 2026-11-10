@@ -11,7 +11,8 @@
   services.flakelets = {
     enable = true;
     services.tribuchet-worker = {
-      flake = "github:Mic92/tribuchet";
+      # The fork keeps worker and agent IPv4-only support in the same build.
+      flake = "github:mulatta/tribuchet/fod-ipv4-only";
       output = "flakelets.worker";
       autoUpdate.enable = true;
       settings = {
@@ -22,6 +23,7 @@
           cert = "${./worker.crt}";
           # Shares psi with the SBEE nixbot.
           max-jobs = 12;
+          fod-ipv4-only = true;
           # FODs reach only the public internet on fetcher ports; first match wins.
           fod-network = {
             default = "deny";
