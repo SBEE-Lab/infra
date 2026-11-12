@@ -493,11 +493,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1793860511,
-        "narHash": "sha256-8pZ3p5r4PzulZZkQGDzaJWq3pIUlp1219UtatDX4RjA=",
+        "lastModified": 1794245504,
+        "narHash": "sha256-uJeYXDPT81aWkDViQoM3qxMVyRUVIMZNlrmLV++jn3Q=",
         "owner": "mulatta",
         "repo": "rhwp.nix",
-        "rev": "a30c981bfc84b71e29479aadd12f248f732835a7",
+        "rev": "8c603f24d0daf987b105559c64c5f605e23dbfeb",
         "type": "github"
       },
       "original": {
