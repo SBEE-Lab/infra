@@ -1,0 +1,120 @@
+/* === Font: Pretendard (Korean-optimized sans-serif) === */
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+
+/* === Typography === */
+:root {
+  --md-text-font: "Pretendard Variable", "Pretendard", -apple-system,
+    BlinkMacSystemFont, system-ui, "Segoe UI", sans-serif;
+  --md-code-font: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+}
+
+.md-typeset {
+  font-size: 0.82rem;
+  line-height: 1.8;
+}
+
+/* === Headings === */
+.md-typeset h1 {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.4em;
+}
+
+.md-typeset h2 {
+  font-weight: 700;
+  margin-top: 2.4em;
+  padding-top: 1.2em;
+  border-top: 1px solid var(--md-default-fg-color--lightest);
+}
+
+.md-typeset h2:first-of-type {
+  border-top: none;
+  margin-top: 1.2em;
+  padding-top: 0;
+}
+
+.md-typeset h3 {
+  font-weight: 600;
+}
+
+/* === Tables === */
+.md-typeset table:not([class]) {
+  width: 100%;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.4rem;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  font-size: 0.78rem;
+}
+
+.md-typeset table:not([class]) th {
+  background: var(--md-default-fg-color--lightest);
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0;
+  padding: 0.8em 1em;
+  border-bottom: 2px solid var(--md-primary-fg-color--light);
+}
+
+.md-typeset table:not([class]) td {
+  padding: 0.7em 1em;
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+}
+
+.md-typeset table:not([class]) tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.md-typeset table:not([class]) tbody tr:hover {
+  background: color-mix(in srgb, var(--md-accent-fg-color) 5%, transparent);
+}
+
+/* === Links === */
+.md-typeset a {
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.md-typeset a:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+/* === Lists === */
+.md-typeset ol,
+.md-typeset ul {
+  line-height: 1.9;
+}
+
+/* === Code blocks === */
+.md-typeset code {
+  font-size: 0.82em;
+  padding: 0.15em 0.4em;
+  border-radius: 0.25rem;
+}
+
+.md-typeset pre {
+  border-radius: 0.5rem;
+}
+
+/* === Content area spacing === */
+.md-content__inner {
+  padding-top: 1.6rem;
+  padding-bottom: 3rem;
+}
+
+/* === Admonitions refinement === */
+.md-typeset .admonition,
+.md-typeset details {
+  border-radius: 0.4rem;
+  font-size: 0.8rem;
+}
+
+/* === Dark mode adjustments === */
+[data-md-color-scheme="slate"] .md-typeset table:not([class]) th {
+  background: var(--md-default-fg-color--lighter);
+}
+
+[data-md-color-scheme="slate"] .md-typeset table:not([class]) tbody tr:hover {
+  background: color-mix(in srgb, var(--md-accent-fg-color) 8%, transparent);
+}
