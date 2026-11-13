@@ -11,6 +11,7 @@
       self',
       system,
       lib,
+      pkgs,
       ...
     }:
     let
@@ -21,6 +22,10 @@
           lib.mapAttrs (_: config: config.config.system.build.toplevel) self.nixosConfigurations
         )
       );
+      # NixOS VM tests for module behaviour that host builds cannot exercise.
+      nixosModules = lib.optionalAttrs (system == "x86_64-linux") {
+        nixosModule-agentgateway = pkgs.callPackage ../modules/agentgateway/test.nix { };
+      };
     in
     {
       treefmt = {
@@ -30,6 +35,7 @@
         inherit (self') formatter;
       }
       // nixosMachines
+      // nixosModules
       // packages
       // devShells;
     };
