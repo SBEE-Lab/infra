@@ -16,6 +16,8 @@ locals {
     nextcloud   = local.lab
     vaultwarden = local.lab
     quorum      = local.lab
+    # zot maps the groups claim to repository permissions; staff get none.
+    registry = local.members
   }
 
   app_uuids = merge(

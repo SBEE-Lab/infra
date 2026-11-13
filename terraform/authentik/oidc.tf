@@ -9,6 +9,15 @@ locals {
         }
       EOF
     }
+    registry = {
+      name       = "registry-groups"
+      scope_name = "groups"
+      expression = <<-EOF
+        return {
+              "groups": [g.name for g in request.user.ak_groups.all()]
+        }
+      EOF
+    }
     nextcloud = {
       name       = "nextcloud-groups"
       scope_name = "groups"
@@ -134,6 +143,24 @@ locals {
         local.oidc_default_property_mappings,
         [authentik_property_mapping_provider_scope.quorum_slack.id],
       )
+    }
+    registry = {
+      name            = "Container Registry"
+      slug            = "registry"
+      client_id       = "registry"
+      client_secret   = data.sops_file.oidc_secrets.data["REGISTRY_CLIENT_SECRET"]
+      client_type     = "confidential"
+      sub_mode        = "hashed_user_id"
+      meta_launch_url = "https://registry.sjanglab.org"
+      allowed_redirect_uris = [
+        {
+          matching_mode     = "strict"
+          redirect_uri_type = "authorization"
+          url               = "https://registry.sjanglab.org/zot/auth/callback/oidc"
+        },
+      ]
+      group_property_mapping_keys = ["registry"]
+      property_mappings           = local.oidc_default_property_mappings
     }
     vaultwarden = {
       name            = "Vaultwarden"
