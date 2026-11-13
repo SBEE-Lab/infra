@@ -45,6 +45,10 @@ locals {
     }
   }
 
+  # Provider 2026.8 stores an empty grant list when grant_types is null, and
+  # Authentik then rejects every authorization request.
+  oidc_default_grant_types = ["authorization_code", "refresh_token"]
+
   oidc_default_property_mappings = [
     data.authentik_property_mapping_provider_scope.openid.id,
     data.authentik_property_mapping_provider_scope.email.id,
@@ -58,7 +62,6 @@ locals {
       client_id       = "neko-rho"
       client_secret   = data.sops_file.neko_secrets.data["NEKO_OAUTH_CLIENT_SECRET"]
       client_type     = "confidential"
-      grant_types     = ["authorization_code", "refresh_token"]
       sub_mode        = "hashed_user_id"
       meta_launch_url = "https://neko.sjanglab.org"
       allowed_redirect_uris = [
@@ -184,7 +187,7 @@ resource "authentik_provider_oauth2" "oidc" {
   client_id                  = each.value.client_id
   client_secret              = each.value.client_secret
   client_type                = each.value.client_type
-  grant_types                = lookup(each.value, "grant_types", null)
+  grant_types                = lookup(each.value, "grant_types", local.oidc_default_grant_types)
   sub_mode                   = each.value.sub_mode
   issuer_mode                = "per_provider"
   include_claims_in_id_token = true
