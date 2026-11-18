@@ -57,6 +57,7 @@ let
     ./modules/packages.nix
     ./modules/register-flake.nix
     ./modules/remote-builder.nix
+    ./modules/sctp.nix
     ./modules/sshd
     ./modules/users/admins.nix
     ./modules/users/extra-user-options.nix
