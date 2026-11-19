@@ -1,9 +1,20 @@
 # Linux Audit daemon configuration for SSH session tracking
 # Generates session IDs for correlation across jumphost and internal hosts
 {
+  config,
+  lib,
+  pkgs,
+  ...
+}:
+let
+  nginxUid = toString config.ids.uids.nginx;
+in
+{
   # Enable audit subsystem
   security.audit = {
     enable = true;
+    # The default 1024 overflowed and dropped events on eta, tau and psi.
+    backlogLimit = 8192;
 
     # Audit rules - minimal set for SSH session tracking
     rules = [
@@ -14,7 +25,11 @@
 
       # Track SSH authentication
       "-w /etc/ssh/sshd_config -p wa -k sshd_config"
-    ];
+
+      # nginx workers never exec; any exec means a compromised worker.
+      "-a always,exit -F arch=b64 -S execve,execveat -F uid=${nginxUid} -k nginx_exec"
+    ]
+    ++ lib.optional pkgs.stdenv.hostPlatform.isx86_64 "-a always,exit -F arch=b32 -S execve,execveat -F uid=${nginxUid} -k nginx_exec";
   };
 
   # Enable auditd daemon
