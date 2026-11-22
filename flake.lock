@@ -662,11 +662,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1794777846,
-        "narHash": "sha256-wmM6LtP/96NXxYr/xgs86hknHpXdbMT5dTT0weHFjSQ=",
+        "lastModified": 1794944414,
+        "narHash": "sha256-dT/Ny0jbVMeeW1TGp/YDPQGiDwspvhd8/k/OgULz57Y=",
         "owner": "Mic92",
         "repo": "tincr",
-        "rev": "d7cf54aff49694abb8b3b6388ca2024042c68193",
+        "rev": "fd92f2164f8f4e2927d6c983a116bf41ac2337d5",
         "type": "github"
       },
       "original": {
