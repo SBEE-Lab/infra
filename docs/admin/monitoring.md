@@ -6,21 +6,13 @@
 
 `active`에서는 즉시 대응과 업무시간 대응을 구분합니다. 업무시간은 평일 09:00–18:00 Asia/Seoul이며 공휴일 예외나 요약 발송은 없습니다. 아래 알림 연결도는 활성 모드의 경로입니다. 설정만으로 전달 성공을 판정하지 않고 실제 수신을 확인합니다.
 
-### 보수 중 자동 업데이트 차단
-
-자동 업데이트 차단 여부는 각 호스트에서 `systemctl cat auto-upgrade.service auto-upgrade.timer auto-reboot.service auto-reboot.timer`로 확인합니다. 런타임 drop-in의 존재를 Git 선언만으로 추정하지 않습니다.
-
-`/etc/systemd/system.control/{auto-upgrade,auto-reboot}.{service,timer}.d/90-migration-pause.conf`가 있으면 재부팅과 일반 Nix 배포 후에도 차단될 수 있습니다. `/run/systemd/system/`의 동일 이름 drop-in도 확인합니다. `/run/infra-maintenance-resume-automatic-updates` marker 생성으로 실행 조건을 우회하지 않습니다.
-
-차단 해제는 변경 검토·배포·운영 검증을 마친 뒤 별도 승인으로 수행합니다. 해당 drop-in을 제거하고 daemon reload·timer 재활성화 후 다음 실행 시각과 실제 적용 상태를 확인합니다.
-
 ## 대시보드
 
 - **Grafana**: `https://logging.sjanglab.org` (Authentik Forward Auth, localhost upstream, 신규 인증 사용자 Viewer)
   - `SjangLab Infrastructure` (홈): 발화 중 알림, 침해 징후, 즉시 등급 서비스 장애, 백업 경과, Gatus 실패 수
   - `SjangLab Access & Audit`: 맨 위 침해 징후(평소 0)·로그인 출처·공격 압력, 아래 접힌 SSH/tailnet/Authentik/Headscale drilldown
   - `SjangLab Public Edge`: eta 공개 vhost 트래픽, 스캐너 경로, 큰 요청 본문, 5xx, 민감 경로 응답
-  - `SjangLab Hosts`: 호스트 리소스, 데이터 파일시스템, SMART·NVMe·RAID, auto-upgrade 결과, Headscale 노드 상태
+  - `SjangLab Hosts`: 호스트 리소스, 데이터 파일시스템, SMART·NVMe·RAID, update-prefetch 결과, Headscale 노드 상태
   - `SjangLab Apps`: Gatus 내부 체크와 Blackbox 외부 probe 비교, Nextcloud PHP-FPM·5xx·경고 로그
   - `SjangLab Jobs`: Borg 백업·무결성 검사와 PostgreSQL 덤프의 마지막 완료 기록
   - `SjangLab AI Resources`: AI 서비스 smoke, psi 리소스, 데이터 동기화 상태

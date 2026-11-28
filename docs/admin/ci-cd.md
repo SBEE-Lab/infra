@@ -177,8 +177,8 @@ flowchart LR
   cron["Dependabot<br/>(매일 03:00 KST)"] -- "flake.lock 검사" --> pr["PR 자동 생성<br/>(flake.lock 변경)"]
   pr -- "auto-merge 요청" --> mq["gitea-mq batch<br/>required checks"]
   mq -- "검사 통과" --> main["main 브랜치"]
-  main -- "실행 hold 없음 · 매일 04:40 KST" --> upgrade["NixOS<br/>system.autoUpgrade"]
-  upgrade -- "매월 마지막 토요일" --> reboot["커널 변경<br/>재부팅 확인"]
+  main -- "매시간 update-prefetch" --> prefetch["호스트<br/>/run/next-system"]
+  prefetch -- "관리자 승인" --> deploy["inv deploy"]
 ```
 
 | 항목 | 설정 |
@@ -190,7 +190,7 @@ flowchart LR
 | 그룹 | `flake-inputs` (모든 flake input을 한 PR로 묶음) |
 | 병합 | auto-merge 워크플로우와 gitea-mq가 PR을 자동 merge commit으로 병합 |
 
-흐름: flake.lock 변경 → PR 생성 → auto-merge 요청 → gitea-mq batch 검증 → main 반영입니다. 자동 적용·재부팅 일정은 [배포](deployment.md)의 선언을 따르며, 보수용 hold가 있으면 실행되지 않을 수 있습니다. 타이머·실행 조건과 최근 완료를 실제 호스트에서 확인하고 승인 없이 hold를 해제하지 않습니다.
+흐름: flake.lock 변경 → PR 생성 → auto-merge 요청 → gitea-mq batch 검증 → main 반영입니다. 호스트는 main 빌드를 미리 가져오기만 하고 자동으로 적용하거나 재부팅하지 않습니다. 적용은 [배포](deployment.md)의 수동 배포를 따릅니다.
 
 > Flake input 갱신 PR은 Dependabot이 생성합니다. Nixbot은 PR/default-branch의 checks와 선언된 effects를 실행하며, 별도 scheduled effect는 패키지 갱신 PR도 생성합니다.
 

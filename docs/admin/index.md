@@ -65,7 +65,7 @@ Terraform이 Authentik 그룹과 Headscale ACL policy를 같은 사용자 invent
 ## 가이드 목록
 
 - [사용자 관리](user-management.md) — 계정 추가/삭제, 만료 관리
-- [배포](deployment.md) — NixOS 설정 배포 및 자동 업그레이드
+- [배포](deployment.md) — NixOS 설정 배포 및 업데이트 prefetch
 - [모니터링](monitoring.md) — Grafana, Prometheus, Loki, Gatus
 - [백업](backup.md) — 로컬 Borg·eta R2 Restic의 범위, 점검과 복구
 - [CI/CD](ci-cd.md) — Nixbot, Nix 바이너리 캐시

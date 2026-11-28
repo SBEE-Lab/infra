@@ -136,5 +136,5 @@ ssh psi 'systemctl status nixbot borgbackup-job-local.timer borgbackup-verify-lo
 
 - 서버 전원 케이블을 분리하기 전에 반드시 `inv shutdown`으로 정상 종료합니다
 - 디스크 교체 시 by-id 식별자·현재 RAID 상태·disko 선언을 대조합니다. psi workspace만 RAID0이며 HDD data와 rho/tau `/srv`는 RAID1입니다. 장치명 추정이나 재포맷으로 장애를 우회하지 않습니다.
-- 재기동 후 서비스·RAID·마운트·백업 타이머·GPU와 기존 유지보수 hold를 확인합니다. 승인 없이 자동 업데이트/재부팅 hold나 `observe` 모드를 변경하지 않습니다.
+- 재기동 후 서비스·RAID·마운트·백업 타이머·GPU를 확인합니다. 승인 없이 `observe` 모드를 변경하지 않습니다.
 - 네트워크 케이블 변경 시 IP/게이트웨이 설정을 `modules/hosts.nix`와 대조합니다

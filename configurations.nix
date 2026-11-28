@@ -47,7 +47,6 @@ let
     };
 
   commonModules = [
-    ./modules/auto-upgrade.nix
     ./modules/cleanup-usr.nix
     ./modules/hosts.nix
     ./modules/network.nix
@@ -59,6 +58,7 @@ let
     ./modules/remote-builder.nix
     ./modules/sctp.nix
     ./modules/sshd
+    ./modules/update-prefetch.nix
     ./modules/users/admins.nix
     ./modules/users/extra-user-options.nix
     ./modules/zram.nix

@@ -366,11 +366,11 @@ in
     })
     (p.table {
       id = 14;
-      title = "Auto-upgrade: last run";
-      description = "Each host applies nixbot's main build daily. A failed run keeps the previous system; manual pauses show as a stale completion time.";
+      title = "Update prefetch: last run";
+      description = "Each host fetches nixbot's main build hourly into /run/next-system. Deploys are manual.";
       ds = "prometheus";
       pos = grid 0 50 12 7;
-      expr = ''time() - infra_job_last_completion_timestamp_seconds{unit="auto-upgrade.service"}'';
+      expr = ''time() - infra_job_last_completion_timestamp_seconds{unit="update-prefetch.service"}'';
       hide = [
         "instance"
         "job"
@@ -381,10 +381,10 @@ in
     })
     (p.table {
       id = 15;
-      title = "Auto-upgrade: last result (0 = success)";
+      title = "Update prefetch: last result (0 = success)";
       ds = "prometheus";
       pos = grid 12 50 12 7;
-      expr = ''infra_job_last_result{unit="auto-upgrade.service"}'';
+      expr = ''infra_job_last_result{unit="update-prefetch.service"}'';
       hide = [
         "instance"
         "job"

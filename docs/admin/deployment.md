@@ -12,17 +12,11 @@ inv deploy --hosts psi,rho,tau,eta
 
 배포는 별도 승인받은 호스트만 대상으로 합니다. `inv deploy`는 로컬 flake를 `nix flake archive --to ssh://<host>`로 전달한 뒤 원격 호스트에서 `sudo nixos-rebuild switch`를 실행합니다. 빌드 성공만으로 서비스 정상 동작을 판정하지 않습니다.
 
-## 자동 업그레이드
+## 업데이트 prefetch
 
-모든 호스트에 자동 업그레이드가 설정되어 있습니다:
+모든 호스트의 `update-prefetch` 서비스가 매시간 Nixbot이 `main`에서 빌드한 자기 시스템을 가져와 `/run/next-system`에 GC root로 둡니다. 자동 switch와 자동 재부팅은 없습니다.
 
-- **소스**: `github:SBEE-lab/infra`
-- **업그레이드 체크**: `system.autoUpgrade`가 매일 04:40 KST에 최신 커밋을 가져와 `nixos-rebuild switch` 실행
-- **재부팅 체크**: 매월 마지막 토요일에 `auto-reboot` 서비스가 커널 업데이트 여부를 확인
-- **재부팅**: 커널이 변경된 경우에만 24시간 후 자동 재부팅 (`shutdown -r +1440`)
-- **재부팅 지터**: 최대 20분 지연 (호스트별 시점 분산)
-
-보수용 runtime/영구 drop-in이 있으면 선언된 타이머도 실행이 차단될 수 있습니다. Git의 선언만 보고 해제 상태를 추정하지 않습니다. [자동 업데이트 차단 확인·해제](monitoring.md)를 따르며, 일반 배포만으로 영구 hold가 제거되거나 marker를 만들어도 된다는 뜻은 아닙니다.
+배포는 `origin/main`의 깨끗한 checkout에서 `inv deploy`로 합니다. 그래야 store path가 prefetch한 것과 같아서 빠진 경로만 복사됩니다. 커널 변경은 배포한 관리자가 재부팅할 때 적용됩니다.
 
 ## 사전 빌드 (Nixbot/niks3 캐시)
 
@@ -51,7 +45,7 @@ inv docs-linkcheck
 
 macOS에서는 routine Linux system toplevel 빌드보다 평가와 native CI를 우선합니다. 필요한 개별 테스트는 `.#checks.x86_64-linux.<check>`로 지정합니다. CI 전체를 확인하고 rollback generation·접속 경로·secret 전달·디스크 마운트가 유지되는지 검토합니다.
 
-배포 후 해당 systemd unit·실제 listener·방화벽 도달성·메트릭·사용자 endpoint를 확인합니다. 경로 장애로 관측이 누락되면 정상으로 판정하지 않습니다. 자동 업데이트·재부팅 hold와 `observe` 모드는 배포와 별개로 승인·검증한 뒤 변경합니다.
+배포 후 해당 systemd unit·실제 listener·방화벽 도달성·메트릭·사용자 endpoint를 확인합니다. 경로 장애로 관측이 누락되면 정상으로 판정하지 않습니다. `observe` 모드는 배포와 별개로 승인·검증한 뒤 변경합니다.
 
 ## 주요 invoke 명령어
 
